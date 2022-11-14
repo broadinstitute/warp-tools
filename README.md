@@ -1,5 +1,5 @@
 # WARP-Tools
-This repository contains all the Docker containers and tools that WARP uses.
+This repository contains all the Docker containers and tools that [WARP](https://github.com/broadinstitute/warp) uses.
 
 The project structure is pretty straightforward and carries over from how it was organized in the WARP repo:
 
