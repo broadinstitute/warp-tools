@@ -1,8 +1,20 @@
 # WARP-Tools
-This repository contains all containers that WARP uses.
+This repository contains all the Docker containers and tools that WARP uses.
 
+The project structure is pretty straightforward and carries over from how it was organized in the WARP repo:
 
-## Docker Style Guide 
+## dockers/
+  This contains all Dockerfile, build scripts, and Readmes for specific containers in their respective subdirectories. These containers are written following the Docker Style Guide below.
+
+## scripts/
+  This contains all scripts that can be shared by multiple containers or those that don't belong to any specific container (ie. utility scripts). For container-specific scripts, you can find them in the container subdirectory they are relevant to.
+
+## .github/workflows 
+  This contains all YML files for automated container builds.
+
+---
+
+# Docker Style Guide 
 
 This style guide provides formatting guidelines and best practices for writing Dockerfiles in WARP.
 
