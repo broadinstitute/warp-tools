@@ -316,7 +316,9 @@ public:
     unsigned int cur_num_read = 0;
     while (cur_num_read < options_.alignments_per_batch)
     {
-      if (sam_read1(sam_file_ptr_, bam_hdr_, aln_arr_[thread_index][cur_num_read]) == 0)
+      // The documentation claims 0 means success, but I see code using >= and even >,
+      // so it looks like actually positive means success. I guess >= is safest, then.
+      if (sam_read1(sam_file_ptr_, bam_hdr_, aln_arr_[thread_index][cur_num_read]) >= 0)
         cur_num_read++;
       else
         break;
@@ -462,3 +464,9 @@ std::vector<std::string> create_sorted_file_splits_htslib(INPUT_OPTIONS_TAGSORT 
   return alignment_reader.partial_filenames();
 }  // function
 
+void crash(std::string msg)
+{
+  std::cout << msg << std::endl;
+  std::cerr << msg << std::endl;
+  exit(1);
+}
