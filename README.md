@@ -1,13 +1,17 @@
 # WARP-Tools
-This repository contains all the Docker containers and tools that [WARP](https://github.com/broadinstitute/warp) uses.
+This repository has the container that hosts all the scripts and tools that [WARP](https://github.com/broadinstitute/warp) uses.
 
-The project structure is pretty straightforward and carries over from how it was organized in the WARP repo:
+The project structure is straightforward and contains essentially just two types of directory: a tool directory, named after the tool itself, and a script directory which hosts all the scripts (mostly python).
+Each directory contains it's own README that describes the tool or scripts, along with a usage guide.
 
-## dockers/
-  This contains all Dockerfile, build scripts, and Readmes for specific containers in their respective subdirectories. These containers are written following the Docker Style Guide below.
+## build-indices/
+  TBD
+
+## sctools/
+  SCTools
 
 ## scripts/
-  This contains all scripts that can be shared by multiple containers or those that don't belong to any specific container (ie. utility scripts). For container-specific scripts, you can find them in the container subdirectory they are relevant to.
+  This contains all scripts that can be shared by multiple containers. A more extensive description of each script can be found inside this directory.
 
 ## .github/workflows 
   This contains all YML files for automated container builds.
