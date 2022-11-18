@@ -44,12 +44,6 @@ WhiteListData readWhiteList(std::string const& white_list_file)
   return white_list_data;
 }
 
-void crashWithPerror(std::string msg)
-{
-  perror(msg.c_str());
-  exit(1);
-}
-
 void crash(std::string msg)
 {
   std::cout << msg << std::endl;
