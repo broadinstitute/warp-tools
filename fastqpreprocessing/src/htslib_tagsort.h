@@ -11,4 +11,6 @@
 // Returns the file paths of the created sorted partial files.
 std::vector<std::string> create_sorted_file_splits_htslib(INPUT_OPTIONS_TAGSORT options);
 
+void crash(std::string msg);
+
 #endif

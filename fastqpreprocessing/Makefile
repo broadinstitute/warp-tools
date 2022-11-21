@@ -1,56 +1,31 @@
-IDIR1 = libStatGen/include
-IDIR2 = htslib-1.13
-IDIR3 = gzstream
-
-CC = g++ -std=c++17 -fPIC  -DHTSLIB -Wall -O4  -Wwrite-strings
-
-CFLAGS = -I$(IDIR1) -LlibStatGen  -Lgzstream
+CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
 
 LIBS = -LlibStatGen -lStatGen -lz -lpthread -lstdc++fs -Lgzstream -lgzstream
 
-_DEPS = src/utilities.h src/input_options.h src/fastq_common.h
-
-TARGET1 = bin/fastqprocess
-TARGET1_OBJ = obj/fastqprocess.o
-
-TARGET2 = bin/TagSort
-TARGET2_OBJ = obj/tagsort.o obj/htslib_tagsort.o obj/metricgatherer.o
-
-TARGET3 = bin/fastq_slideseq
-TARGET3_OBJ = obj/fastq_slideseq.o
-
-TARGET4 = bin/fastq_metrics
-TARGET4_OBJ = obj/fastq_metrics.o
-
-TARGET5 = bin/samplefastq
-TARGET5_OBJ = obj/samplefastq.o
-
-install: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5)
-	cp htslib-1.13/*.so.? bin/
-
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5)
+install: bin/fastqprocess bin/TagSort bin/fastq_slideseq bin/fastq_metrics bin/samplefastq
 
 COMMON_OBJ = obj/utilities.o obj/input_options.o obj/fastq_common.o
 
-obj/%.o: src/%.cpp $(_DEPS)
-	$(CC) -c -o $@ $<  -I$(IDIR1) -I$(IDIR2) -I$(IDIR3)
+TAGSORT_OBJ = obj/tagsort.o obj/htslib_tagsort.o obj/metricgatherer.o obj/input_options.o
 
-$(TARGET1): $(COMMON_OBJ) $(TARGET1_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)  $(LIBS)
+obj/%.o: src/%.cpp src/*.h
+	$(CC) -c -o $@ $<  -IlibStatGen/include -Ihtslib -Igzstream
 
-$(TARGET2): $(COMMON_OBJ) $(TARGET2_OBJ)
-	$(CC) -Wl,-rpath,/usr/local/bin:fastqpreprocessing/bin:bin:. -o $@ $(COMMON_OBJ)  $(TARGET2_OBJ) $(LIBS) -Lhtslib-1.13 -lhts
+bin/fastqprocess: $(COMMON_OBJ) obj/fastqprocess.o
+	$(CC) -o $@ $^  $(LIBS)
 
-$(TARGET3): $(COMMON_OBJ) $(TARGET3_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)  $(LIBS)
+bin/TagSort: $(TAGSORT_OBJ)
+	$(CC) -o $@ $(TAGSORT_OBJ) htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs -lpthread
 
-$(TARGET4): $(COMMON_OBJ) $(TARGET4_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)  $(LIBS)
+bin/fastq_slideseq: $(COMMON_OBJ) obj/fastq_slideseq.o
+	$(CC) -o $@ $^  $(LIBS)
 
-$(TARGET5): $(COMMON_OBJ) $(TARGET5_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)  $(LIBS)
+bin/fastq_metrics: $(COMMON_OBJ) obj/fastq_metrics.o
+	$(CC) -o $@ $^  $(LIBS)
+
+bin/samplefastq: $(COMMON_OBJ) obj/samplefastq.o
+	$(CC) -o $@ $^  $(LIBS)
 
 .PHONY: clean
 clean:
-	rm -f obj/*.o *~ core $(INCDIR)/*~  *.o *.so *.a
-	rm -rf $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5)
+	rm -f obj/*.o bin/*

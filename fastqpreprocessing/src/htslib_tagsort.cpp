@@ -464,3 +464,9 @@ std::vector<std::string> create_sorted_file_splits_htslib(INPUT_OPTIONS_TAGSORT 
   return alignment_reader.partial_filenames();
 }  // function
 
+void crash(std::string msg)
+{
+  std::cout << msg << std::endl;
+  std::cerr << msg << std::endl;
+  exit(1);
+}
