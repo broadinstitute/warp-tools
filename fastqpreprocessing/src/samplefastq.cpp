@@ -68,8 +68,6 @@ void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_th
 int main(int argc, char** argv)
 {
   INPUT_OPTIONS_FASTQ_READ_STRUCTURE options = readOptionsFastqSlideseq(argc, argv);
-  // number of output bam files, and one writer thread per bam file
-  int num_writer_threads = get_num_blocks(options);
 
   std::ofstream outfile_r1("sampled_down.R1");
   if (!outfile_r1)

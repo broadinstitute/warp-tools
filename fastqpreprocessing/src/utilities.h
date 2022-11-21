@@ -23,7 +23,6 @@ struct WhiteListData
 // 1 mutation away from a whitelisted barcode.
 WhiteListData readWhiteList(std::string const& white_list_file);
 
-void crashWithPerror(std::string msg);
 void crash(std::string msg);
 
 #endif
