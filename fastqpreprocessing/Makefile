@@ -4,9 +4,9 @@ LIBS = -LlibStatGen -lStatGen -lz -lpthread -lstdc++fs -Lgzstream -lgzstream
 
 install: bin/fastqprocess bin/TagSort bin/fastq_slideseq bin/fastq_metrics bin/samplefastq
 
-COMMON_OBJ = obj/utilities.o obj/input_options.o obj/fastq_common.o
+COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_data.o
 
-TAGSORT_OBJ = obj/tagsort.o obj/htslib_tagsort.o obj/metricgatherer.o obj/input_options.o
+TAGSORT_OBJ = obj/tagsort.o obj/htslib_tagsort.o obj/metricgatherer.o obj/mitochondrial_gene_selector.o obj/alignment_datatype.o obj/tagsort_input_options.o
 
 obj/%.o: src/%.cpp src/*.h
 	$(CC) -c -o $@ $<  -IlibStatGen/include -Ihtslib -Igzstream

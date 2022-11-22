@@ -1,4 +1,4 @@
-#include "utilities.h"
+#include "whitelist_data.h"
 
 #include <fstream>
 #include <iostream>
@@ -42,11 +42,4 @@ WhiteListData readWhiteList(std::string const& white_list_file)
   }
 
   return white_list_data;
-}
-
-void crash(std::string msg)
-{
-  std::cout << msg << std::endl;
-  std::cerr << msg << std::endl;
-  exit(1);
 }

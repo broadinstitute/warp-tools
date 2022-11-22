@@ -7,7 +7,7 @@
 // number of samrecords per buffer in each reader
 constexpr size_t kSamRecordBufferSize = 10000;
 #include "input_options.h"
-#include "utilities.h"
+#include "whitelist_data.h"
 
 #include "FastQFile.h"
 #include "FastQStatus.h"
