@@ -9,9 +9,9 @@ LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-developmen
 
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev
-RUN mkdir -p /sctools/fastqpreprocessing
+RUN mkdir -p /sctools
 
-COPY fastqpreprocessing /sctools/fastqpreprocessing
+COPY . /sctools
 
 RUN cd /sctools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh
 
