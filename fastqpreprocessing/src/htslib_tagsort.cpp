@@ -1,30 +1,28 @@
-constexpr int kThreshold = 30; // qual score threshold
-
 #include "htslib_tagsort.h"
 
 #include <algorithm>
-#include <tuple>
-#include <cstdint>
-#include <string>
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <thread>
-#include <mutex>
-
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <cstdlib>
-#include <unordered_map>
+#include <fstream>
+#include <iostream>
 #include <memory>
-#include <set>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
+
+#include <htslib/sam.h>
+
+#include "alignment_datatype.h"
+
+constexpr int kThreshold = 30; // qual score threshold
 
 extern "C" {
   bam_hdr_t* sam_hdr_read(samFile*);   //read header
   htsFile* hts_open(const char* fn, const char* mode);
 }
-
 
 // returns int tag, or -1 if not present
 inline int get_itag_or_default(bam1_t* aln, const char* tagname, int default_value)
@@ -55,44 +53,9 @@ inline char* get_Ztag_or_default(bam1_t* aln, const char* tagname, char* default
   return  tag_value;
 }
 
-using TRIPLET = std::tuple<std::string, std::string, std::string>;
-
-using TAGTUPLE = std::tuple<
-    TRIPLET /*  barcode umi and gene_id, not necessarily in that order */,
-    std::string /* reference */,
-    std::string /* biotype */,
-    int /* pos */,
-    int /*rev strand   1 for yes, 0 otherwise*/,
-    float /*avg barcode qual score */,
-    float /* frac of barcode qual score >30 */,
-    float /*avg qual seq */,
-    float /*fract of >30 score qual seq*/,
-    int /*NH*/,
-    int /*perfect molecule barcode, 1 is yes, 0 otherwise*/,
-    int /*spliced reads 1 yes, 0 otherwise*/,
-    int /*is duplicate */,
-    int /*perfect cell barcode 1 is yes, 0 otherwise*/,
-    float /* fraction of umi qual score > 30 */
-    >;
-
-enum class TagOrder { BUG, BGU, UBG, UGB, GUB, GBU };
-TRIPLET makeTriplet(std::string barcode, std::string umi, std::string gene_id, TagOrder tag_order)
-{
-  switch (tag_order)
-  {
-    case TagOrder::BUG: return TRIPLET(barcode, umi, gene_id);
-    case TagOrder::BGU: return TRIPLET(barcode, gene_id, umi);
-    case TagOrder::UBG: return TRIPLET(umi, barcode, gene_id);
-    case TagOrder::UGB: return TRIPLET(umi, gene_id, barcode);
-    case TagOrder::GUB: return TRIPLET(gene_id, umi, barcode);
-    case TagOrder::GBU: return TRIPLET(gene_id, barcode, umi);
-    default: crash("no such TagOrder"); return TRIPLET("","","");
-  }
-}
-
-void parseOneAlignment(std::vector<TAGTUPLE>* tuple_records, bam1_t* aln,
-                       INPUT_OPTIONS_TAGSORT& options, const bam_hdr_t* bam_hdr,
-                       TagOrder tag_order)
+std::unique_ptr<LineFields> parseOneAlignment(
+    bam1_t* aln, INPUT_OPTIONS_TAGSORT& options, const bam_hdr_t* bam_hdr,
+    TagOrder tag_order)
 {
   // "consts" that the library doesn't allow to be const.
   char empty[] = "";
@@ -186,33 +149,24 @@ void parseOneAlignment(std::vector<TAGTUPLE>* tuple_records, bam1_t* aln,
     }
   }
 
-  tuple_records->emplace_back(
-      makeTriplet(barcode, umi, gene_id, tag_order), /* triplet of tags */
-      std::string(chr),  /* record[0] */
-      std::string(location_tag), /* record[1] */
-      pos,   /* record [2] */
-      isrev, /* record[3] */
-      avg_cell_barcode_qual,  /* record[4] */
-      cell_barcode_qual_above_threshold, /* record[5] */
-      avg_sequence_qual, /* record[6] */
-      qual_above_threshold, /* record[7]  */
-      nh_num, /* record[8] */
-      perfect_molecule_barcode, /* record[9] */
-      spliced_read, /* record[10] */
-      is_duplicate, /* record[11] */
-      perfect_cell_barcode,  /* record[12] */
-      frac_umi_qual_above_threshold /* record[13] */);
+  return std::make_unique<LineFields>(
+      makeTriplet(barcode, umi, gene_id, tag_order), chr, location_tag, pos,
+      isrev, avg_cell_barcode_qual, cell_barcode_qual_above_threshold,
+      avg_sequence_qual, qual_above_threshold, nh_num, perfect_molecule_barcode,
+      spliced_read, is_duplicate, perfect_cell_barcode,
+      frac_umi_qual_above_threshold);
 }
 
-inline bool sortTripletsLex(std::pair<TRIPLET, int> const& a,
-                            std::pair<TRIPLET, int> const& b)
+inline bool sortAlignmentsByTagTriple(std::unique_ptr<LineFields> const& a,
+                                      std::unique_ptr<LineFields> const& b)
 {
-  using std::get;
-  if (get<0>(a.first) != get<0>(b.first))
-    return get<0>(a.first).compare(get<0>(b.first)) < 0;
-  if (get<1>(a.first) != get<1>(b.first))
-    return get<1>(a.first).compare(get<1>(b.first)) < 0;
-  return get<2>(a.first).compare(get<2>(b.first)) < 0;
+  int comp0 = a->tag_triple.first .compare( b->tag_triple.first);
+  if (comp0 != 0)
+    return comp0 < 0;
+  int comp1 = a->tag_triple.second .compare( b->tag_triple.second);
+  if (comp1 != 0)
+    return comp1 < 0;
+  return a->tag_triple.third .compare( b->tag_triple.third) < 0;
 }
 
 // Generates a random alphanumeric string (AZaz09) of a fixed length.
@@ -233,50 +187,6 @@ std::string randomString()
   return str;
 }
 
-// This function takes a vector of tuples of the tags, sorts them in the
-// dictionary order of the tags, and writes them to a randomly named text file.
-// Returns the name of the output file.
-std::string sortAndWriteToPartialTxtFile(std::vector<TAGTUPLE> const& tuple_records,
-                                         std::string const& tmp_folder)
-{
-  using std::get;
-
-  std::string tempfile_filename = tmp_folder + "/" + randomString() + ".txt";
-  std::ofstream outfile(tempfile_filename);
-
-  // Sort by triplet, maintaining each triplet's pre-sorted index...
-  std::vector<std::pair<TRIPLET, int>> index_pairs;
-  for (size_t i = 0; i < tuple_records.size(); i++)
-    index_pairs.emplace_back(get<0>(tuple_records[i]), i);
-  std::sort(index_pairs.begin(), index_pairs.end(), sortTripletsLex);
-
-  // ...then write the triplets in sorted order, linked up with the tuple_record
-  // located at its pre-sorted index, i.e. the record for the triplet.
-  for (auto& [triplet_ptr, record_index] : index_pairs)
-  {
-    // TODO?
-    // what if you ran out of disk space ???? NEED TO add logic
-    outfile << get<0>(triplet_ptr) /*  first tag */ << "\t"
-            << get<1>(triplet_ptr) /*  second tag */ << "\t"
-            << get<2>(triplet_ptr) /*  third tag */ << "\t"
-            << get<1>(tuple_records[record_index]) /* record[0] */  << "\t"
-            << get<2>(tuple_records[record_index]) /* record[1] */  << "\t"
-            << get<3>(tuple_records[record_index]) /* record[2] */  << "\t"
-            << get<4>(tuple_records[record_index]) /* record[3] */  << "\t"
-            << get<5>(tuple_records[record_index]) /* record[4] */  << "\t"
-            << get<6>(tuple_records[record_index]) /* record[5] */  << "\t"
-            << get<7>(tuple_records[record_index]) /* record[6] */  << "\t"
-            << get<8>(tuple_records[record_index]) /* record[7] */  << "\t"
-            << get<9>(tuple_records[record_index]) /* record[8] */  << "\t"
-            << get<10>(tuple_records[record_index]) /* record[9] */ << "\t"
-            << get<11>(tuple_records[record_index]) /* record[10] */ << "\t"
-            << get<12>(tuple_records[record_index]) /* record[11] */ << "\t"
-            << get<13>(tuple_records[record_index]) /* record[12] */ << "\t"
-            << get<14>(tuple_records[record_index]) /* record[13] */ << "\n";
-  }
-
-  return tempfile_filename;
-}
 
 // Manages worker threads' access to reading the input file. Any worker can take
 // any line from the file, but only one thread can be reading at a time. This
@@ -378,71 +288,34 @@ void partialSortWorkerThread(int my_thread_index, AlignmentReader* alignment_rea
   bam_hdr_t* bam_hdr = alignment_reader->bam_hdr();
   while (true)
   {
-    std::vector<TAGTUPLE> tuple_records;
+    std::vector<std::unique_ptr<LineFields>> alignment_batch;
 
     auto [aln_ptr_array, alns_length] = alignment_reader->readAlignments(my_thread_index);
     if (alns_length == 0)
       break;
 
     for (unsigned int i = 0; i < alns_length; i++)
-      parseOneAlignment(&tuple_records, aln_ptr_array[i], options, bam_hdr, tag_order);
+    {
+      alignment_batch.push_back(parseOneAlignment(aln_ptr_array[i], options,
+                                                  bam_hdr, tag_order));
+    }
 
-    my_partial_filenames.push_back(
-        sortAndWriteToPartialTxtFile(tuple_records, options.temp_folder));
+    // Sort our tagged alignments by their tags, and write them to a randomly
+    // named text file.
+    std::string partialfile_name = options.temp_folder + "/" + randomString() + ".txt";
+    std::ofstream outfile(partialfile_name);
+
+    std::sort(alignment_batch.begin(), alignment_batch.end(),
+              sortAlignmentsByTagTriple);
+    for (int i = 0; i < alignment_batch.size(); i++)
+      alignment_batch[i]->writeTabbedToFile(outfile);
+
+    my_partial_filenames.push_back(partialfile_name);
   }
   alignment_reader->addToPartialFilenames(my_partial_filenames);
 }
 
-TagOrder getTagOrder(INPUT_OPTIONS_TAGSORT options)
-{
-  assert(options.tag_order.size() == 3);
-  // the order of the three tags are define by the order of the supplied input arguments
-  // tag.order [tag_name] -> order map
-  if (options.tag_order[options.barcode_tag] == 0 &&
-      options.tag_order[options.gene_tag] == 1 &&
-      options.tag_order[options.umi_tag] == 2)
-  {
-    return TagOrder::BGU;
-  }
-  if (options.tag_order[options.umi_tag] == 0 &&
-      options.tag_order[options.barcode_tag] == 1 &&
-      options.tag_order[options.gene_tag] == 2)
-  {
-    return TagOrder::UBG;
-  }
-  if (options.tag_order[options.umi_tag] == 0 &&
-      options.tag_order[options.gene_tag] == 1 &&
-      options.tag_order[options.barcode_tag] == 2)
-  {
-    return TagOrder::UGB;
-  }
-  if (options.tag_order[options.gene_tag] == 0 &&
-      options.tag_order[options.umi_tag] == 1 &&
-      options.tag_order[options.barcode_tag] == 2)
-  {
-    return TagOrder::GUB;
-  }
-  if (options.tag_order[options.gene_tag] == 0 &&
-      options.tag_order[options.barcode_tag] == 1 &&
-      options.tag_order[options.umi_tag] == 2)
-  {
-    return TagOrder::GBU;
-  }
-  return TagOrder::BUG;
-}
-
-/**
- * @brief From the input bam create a list of txt files with the records (lines)
- * sorted according to the * tags
- *
- * @details
- * The input bam file is read chunk by chunk, sorted by the tags and the written
- * out as a text file in the sorted manner.
- *
- * @param options: INPUT_OPTIONS_TAGSORT the inputs to the program
- * @return a vector containing the file paths of the partial files
-*/
-std::vector<std::string> create_sorted_file_splits_htslib(INPUT_OPTIONS_TAGSORT options)
+std::vector<std::string> splitAndPartialSortToFiles(INPUT_OPTIONS_TAGSORT options)
 {
   std::cout << "Running htslib" << std::endl;
   AlignmentReader alignment_reader(options);
@@ -462,11 +335,4 @@ std::vector<std::string> create_sorted_file_splits_htslib(INPUT_OPTIONS_TAGSORT 
             << options.alignments_per_batch << std::endl;
 
   return alignment_reader.partial_filenames();
-}  // function
-
-void crash(std::string msg)
-{
-  std::cout << msg << std::endl;
-  std::cerr << msg << std::endl;
-  exit(1);
 }

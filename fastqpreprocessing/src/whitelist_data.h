@@ -1,10 +1,15 @@
-#ifndef __OPTIMUS_UTILITES__
-#define __OPTIMUS_UTILITES__
+#ifndef FASTQ_PREPROCESSING_WHITELIST_DATA_H_
+#define FASTQ_PREPROCESSING_WHITELIST_DATA_H_
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 
+#include "input_options.h"
+
+// TODO this would ideally be a class, with a single public method
+// optional<string> getCorrectedBarcode(string uncorrected)
+//
 // structure for correcting the barcodes
 struct WhiteListData
 {
@@ -23,6 +28,4 @@ struct WhiteListData
 // 1 mutation away from a whitelisted barcode.
 WhiteListData readWhiteList(std::string const& white_list_file);
 
-void crash(std::string msg);
-
-#endif
+#endif // FASTQ_PREPROCESSING_WHITELIST_DATA_H_

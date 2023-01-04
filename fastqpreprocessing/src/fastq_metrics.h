@@ -5,11 +5,14 @@
 #include <unordered_map>
 #include <vector>
 #include <thread>
+
 #include "BaseAsciiMap.h"
-#include "utilities.h"
-#include "input_options.h"
 #include "FastQFile.h"
 #include "FastQStatus.h"
+
+#include "input_options.h"
+#include "whitelist_data.h"
+
 
 class PositionWeightMatrix
 {
