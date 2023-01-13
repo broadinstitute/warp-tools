@@ -13,10 +13,10 @@ std::string to_nan(float x)
 
 MetricGatherer::MetricGatherer(std::string metric_output_file)
 {
-  metrics_outfile_.open(metric_output_file);
-  if (!metrics_outfile_)
+  metrics_csv_outfile_.open(metric_output_file);
+  if (!metrics_csv_outfile_)
     crash("Failed to open for writing " + metric_output_file);
-  metrics_outfile_ << std::setprecision(kMetricsFloatPrintPrecision);
+  metrics_csv_outfile_ << std::setprecision(kMetricsFloatPrintPrecision);
 }
 
 MetricGatherer::~MetricGatherer() {}
@@ -119,7 +119,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
     if (val == 1)
       molecules_with_single_read_evidence++;
 
-  metrics_outfile_
+  metrics_csv_outfile_
       << prev_tag_ << ","
       << n_reads_ << ","
       << noise_reads << ","
@@ -167,10 +167,10 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
   // write metrics csv header
   std::string s;
   for (int i=0; i<24; i++)
-    metrics_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
+    metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
-    metrics_outfile_ << "," << cell_specific_headers[i];
-  metrics_outfile_ << "\n";
+    metrics_csv_outfile_ << "," << cell_specific_headers[i];
+  metrics_csv_outfile_ << "\n";
 }
 
 bool MetricGatherer::cellAndGeneIsItTimeToOutput(std::string const& first_tag)
@@ -257,7 +257,7 @@ void CellMetricGatherer::outputMetricsLine()
   else
     pct_mitochondrial_molecules = 0.0f;
 
-  metrics_outfile_
+  metrics_csv_outfile_
       << "," << perfect_cell_barcodes_
       << "," << reads_mapped_intergenic_
       << "," << reads_unmapped_
@@ -291,10 +291,10 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file)
   // write metrics csv header
   std::string s;
   for (int i=0; i<24; i++)
-    metrics_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
+    metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<2; i++)
-    metrics_outfile_ << "," << gene_specific_headers[i];
-  metrics_outfile_ << "\n";
+    metrics_csv_outfile_ << "," << gene_specific_headers[i];
+  metrics_csv_outfile_ << "\n";
 }
 
 void GeneMetricGatherer::ingestLine(std::string const& str)
@@ -336,9 +336,9 @@ void GeneMetricGatherer::outputMetricsLine()
     if (count > 1)
       number_cells_detected_multiple++;
 
-  metrics_outfile_ <<  ","  << number_cells_detected_multiple
-              <<  ","  << cells_histogram_.size()
-              << "\n";
+  metrics_csv_outfile_ <<  ","  << number_cells_detected_multiple
+                       <<  ","  << cells_histogram_.size()
+                       << "\n";
 }
 
 void GeneMetricGatherer::clear()
@@ -350,18 +350,15 @@ void GeneMetricGatherer::clear()
 
 
 ////////////////  UmiMetricGatherer ////////////////////////
-UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file)
+UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order)
   : MetricGatherer(metric_output_file)
 {
-  // TODO in theory we should be able to know which order to write umi/barcode/gene
-  //      here, but for now we'll just do tag1 tag2 tag3 and the user should be
-  //      able to figure out which is which
-  metrics_outfile_ << "tag1,tag2,tag3,count\n";
+  metrics_csv_outfile_ << tagOrderToString(tag_order) << ",count\n";
 }
 
 void UmiMetricGatherer::outputMetricsLine()
 {
-  metrics_outfile_ << cur_histogram_triple_ << "," << cur_histogram_count_ << "\n";
+  metrics_csv_outfile_ << cur_histogram_triple_ << "," << cur_histogram_count_ << "\n";
 }
 
 void UmiMetricGatherer::ingestLine(std::string const& str)
