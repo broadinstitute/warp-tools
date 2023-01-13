@@ -10,7 +10,7 @@ constexpr unsigned int kDefaultNumAlignsPerThread = 1000000;
 void crash(std::string msg);
 
 // Structure to hold input options for tagsort
-enum class MetricType { Cell, Gene };
+enum class MetricType { Cell, Gene, Umi };
 struct INPUT_OPTIONS_TAGSORT
 {
   MetricType metric_type;

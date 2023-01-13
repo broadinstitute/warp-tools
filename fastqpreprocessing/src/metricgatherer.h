@@ -218,4 +218,19 @@ private:
   };
 };
 
+class UmiMetricGatherer: public MetricGatherer
+{
+public:
+  UmiMetricGatherer(std::string metric_output_file);
+  void ingestLine(std::string const& str) override;
+  void outputMetricsLine() override;
+
+protected:
+  void clear() override;
+
+private:
+  std::string cur_histogram_triple_{};
+  int cur_histogram_count_ = 0;
+};
+
 #endif

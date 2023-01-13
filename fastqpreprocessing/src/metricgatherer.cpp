@@ -346,3 +346,44 @@ void GeneMetricGatherer::clear()
   clearCellAndGeneCommon();
   cells_histogram_.clear();
 }
+
+
+
+////////////////  UmiMetricGatherer ////////////////////////
+UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file)
+  : MetricGatherer(metric_output_file)
+{
+  // TODO in theory we should be able to know which order to write umi/barcode/gene
+  //      here, but for now we'll just do tag1 tag2 tag3 and the user should be
+  //      able to figure out which is which
+  metrics_outfile_ << "tag1,tag2,tag3,count\n";
+}
+
+void UmiMetricGatherer::outputMetricsLine()
+{
+  metrics_outfile_ << cur_histogram_triple_ << "," << cur_histogram_count_ << "\n";
+}
+
+void UmiMetricGatherer::ingestLine(std::string const& str)
+{
+  LineFields fields(str);
+
+  std::string comma_separated_tags = fields.tag_triple.first + "," +
+                                     fields.tag_triple.second + "," +
+                                     fields.tag_triple.third;
+
+  if (comma_separated_tags == cur_histogram_triple_)
+    cur_histogram_count_++;
+  else
+  {
+    outputMetricsLine();
+    cur_histogram_triple_ = comma_separated_tags;
+    cur_histogram_count_ = 1;
+  }
+}
+
+void UmiMetricGatherer::clear()
+{
+  // (clear is not relevant, since UmiMetricGatherer::ingestLine handles its own state reset,
+  //  and needs the value of comma_separated_tags to do so)
+}
