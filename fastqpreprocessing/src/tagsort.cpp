@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <queue>
 #include <string>
 
