@@ -8,7 +8,7 @@ Each directory contains it's own README that describes the tool or scripts, alon
   TBD
 
 ## sctools/
-  SCTools
+  TBD
 
 ## scripts/
   This contains all scripts that can be shared by multiple containers. A more extensive description of each script can be found inside this directory.

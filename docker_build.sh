@@ -7,18 +7,18 @@ TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/sctools"
+GCR_URL="us.gcr.io/broad-gotc-prod/warp-tools"
 
-# sctools version
-SCTOOLS_VERSION="v0.3.15"
+# warp-tools version
+WARP_TOOLS_VERSION="v0.3.15"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the sctools image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the warp-tools image and push to GCR & Quay
 
 where:
     -h|--help Show help text
-    -v|--version Version of Samtools to use (default: $SCTOOLS_VERSION)
+    -v|--version Version of Samtools to use (default: $WARP_TOOLS_VERSION)
     -t|--tools Show tools needed to run script
     "
 
@@ -35,7 +35,7 @@ function main(){
     key="$1"
     case $key in
         -v|--version)
-        SCTOOLS_VERSION="$2"
+        WARP_TOOLS_VERSION="$2"
         shift
         shift
         ;;
@@ -53,11 +53,11 @@ function main(){
     esac
     done
     
-    IMAGE_TAG="$DOCKER_IMAGE_VERSION-$SCTOOLS_VERSION-$TIMESTAMP"
+    IMAGE_TAG="$DOCKER_IMAGE_VERSION-$WARP_TOOLS_VERSION-$TIMESTAMP"
 
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
-        --build-arg SCTOOLS_VERSION="$SCTOOLS_VERSION" "$DIR" 
+        --build-arg WARP_TOOLS_VERSION="$WARP_TOOLS_VERSION" "$DIR" 
     docker push "$GCR_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
