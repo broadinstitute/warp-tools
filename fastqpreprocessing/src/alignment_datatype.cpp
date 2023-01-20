@@ -41,6 +41,20 @@ TagOrder getTagOrder(INPUT_OPTIONS_TAGSORT options)
   return TagOrder::BUG;
 }
 
+std::string tagOrderToString(TagOrder tag_order)
+{
+  switch (tag_order)
+  {
+    case TagOrder::BUG: return "barcode,umi,gene_id";
+    case TagOrder::BGU: return "barcode,gene_id,umi";
+    case TagOrder::UBG: return "umi,barcode,gene_id";
+    case TagOrder::UGB: return "umi,gene_id,barcode";
+    case TagOrder::GUB: return "gene_id,umi,barcode";
+    case TagOrder::GBU: return "gene_id,barcode,umi";
+    default: crash("no such TagOrder"); return "";
+  }
+}
+
 TagTriple makeTriplet(std::string barcode, std::string umi, std::string gene_id,
                       TagOrder tag_order)
 {

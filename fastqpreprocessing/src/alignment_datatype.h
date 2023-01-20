@@ -60,6 +60,7 @@ private:
 
 enum class TagOrder { BUG, BGU, UBG, UGB, GUB, GBU };
 TagOrder getTagOrder(INPUT_OPTIONS_TAGSORT options);
+std::string tagOrderToString(TagOrder tag_order);
 
 TagTriple makeTriplet(std::string barcode, std::string umi, std::string gene_id,
                       TagOrder tag_order);

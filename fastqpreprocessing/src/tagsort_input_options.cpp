@@ -166,6 +166,8 @@ INPUT_OPTIONS_TAGSORT readOptionsTagsort(int argc, char** argv)
     options.metric_type = MetricType::Cell;
   else if (metric_type_str == "gene")
     options.metric_type = MetricType::Gene;
+  else if (metric_type_str == "umi")
+    options.metric_type = MetricType::Umi;
   else
     crash("ERROR: --metric-type must be \"cell\", \"gene\", or \"umi\"");
 
