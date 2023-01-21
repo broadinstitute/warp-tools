@@ -373,6 +373,8 @@ void mainCommon(
   std::cout << "done" << std::endl;
 
 
+  for (unsigned int i = 0; i < R1s.size(); i++)
+    g_read_arenas.push_back(std::make_unique<SamRecordArena>());
   for (int i = 0; i < num_writer_threads; i++)
     g_write_queues.push_back(std::make_unique<WriteQueue>());
 
@@ -389,15 +391,11 @@ void mainCommon(
 
   // execute the fastq readers threads
   std::vector<std::thread> readers;
-
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
     assert(I1s.empty() || I1s.size() == R1s.size());
     // if there is no I1 file then send an empty file name
-    std::string I1 = I1s.empty() ? "" : I1s[i];
-
-    g_read_arenas.push_back(std::make_unique<SamRecordArena>());
-    readers.emplace_back(fastQFileReaderThread, i, I1.c_str(), R1s[i].c_str(),
+    readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
                          R2s[i].c_str(), &white_list_data, sam_record_filler, barcode_getter, output_handler);
   }
 
@@ -410,5 +408,5 @@ void mainCommon(
     write_queue->enqueueShutdownSignal();
 
   for (auto& writer : writers)
-writer.join();
+    writer.join();
 }
