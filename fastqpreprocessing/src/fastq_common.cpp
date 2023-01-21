@@ -373,7 +373,7 @@ void mainCommon(
   std::cout << "done" << std::endl;
 
 
-  for (unsigned int i = 0; i < R1s.size(); i++)
+  for (int i = 0; i < R1s.size(); i++)
     g_read_arenas.push_back(std::make_unique<SamRecordArena>());
   for (int i = 0; i < num_writer_threads; i++)
     g_write_queues.push_back(std::make_unique<WriteQueue>());
@@ -391,6 +391,7 @@ void mainCommon(
 
   // execute the fastq readers threads
   std::vector<std::thread> readers;
+
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
     assert(I1s.empty() || I1s.size() == R1s.size());
