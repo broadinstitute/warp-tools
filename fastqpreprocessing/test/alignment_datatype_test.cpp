@@ -5,25 +5,25 @@
 
 TEST(AlignmentDatatypeTest, BasicParsing)
 {
-  LineFields lf("TODO\tGET\tA\tGOOD\tEXAMPLE");
+  LineFields lf("a\tb\tc\td\te\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0");
 
-  // TODO
-//   EXPECT_EQ(lf.tag_triple,
-//   EXPECT_EQ(lf.reference,
-//   EXPECT_EQ(lf.alignment_location,
-//   EXPECT_EQ(lf.position,
-//   EXPECT_EQ(lf.is_strand,
-//   EXPECT_EQ(lf.barcode_qual,
-//   EXPECT_EQ(lf.cell_barcode_base_above_30,
-//   EXPECT_EQ(lf.genomic_read_quality,
-//   EXPECT_EQ(lf.genomic_reads_base_quality_above_30,
-//   EXPECT_EQ(lf.number_mappings,
-//   EXPECT_EQ(lf.perfect_molecule_barcode,
-//   EXPECT_EQ(lf.read_spliced,
-//   EXPECT_EQ(lf.read_is_duplicate,
-//   EXPECT_EQ(lf.cell_barcode_perfect,
-//   EXPECT_EQ(lf.molecule_barcode_base_above_30,
-
+  EXPECT_EQ(lf.tag_triple.first, "a");
+  EXPECT_EQ(lf.tag_triple.second, "b");
+  EXPECT_EQ(lf.tag_triple.third, "c");
+  EXPECT_EQ(lf.reference, "d");
+  EXPECT_EQ(lf.alignment_location, "e");
+  EXPECT_EQ(lf.position, 123);
+  EXPECT_EQ(lf.is_strand, 1);
+  EXPECT_NEAR(lf.barcode_qual, 0.12f, 0.001f);
+  EXPECT_NEAR(lf.cell_barcode_base_above_30, 4.56e10f, 1.0f);
+  EXPECT_EQ(lf.genomic_read_quality, 0);
+  EXPECT_EQ(lf.genomic_reads_base_quality_above_30, 0);
+  EXPECT_EQ(lf.number_mappings, 0);
+  EXPECT_EQ(lf.perfect_molecule_barcode, 0);
+  EXPECT_EQ(lf.read_spliced, 0);
+  EXPECT_EQ(lf.read_is_duplicate, 0);
+  EXPECT_EQ(lf.cell_barcode_perfect, 0);
+  EXPECT_EQ(lf.molecule_barcode_base_above_30, 0);
 }
 
 TEST(AlignmentDatatypeTest, FailedParseNotValidFloat)

@@ -52,12 +52,18 @@ public:
   int read_is_duplicate; // (14) 1 for yes, 0 for no
   int cell_barcode_perfect; // (15) 1 for yes, 0 for no
   float molecule_barcode_base_above_30; // (16) fraction of umi qual score > 30
+};
 
+class LineFieldsParser
+{
+public:
+  explicit LineFieldsParser(std::string const& s) : s_(s) {}
+  std::string getNextField();
+  bool hasMore() const;
 private:
-  std::string getNextField(std::string const& s);
-
+  std::string const& s_;
   size_t cur_start_ = 0;
-  size_t cur_tab_ = std::string::npos;
+  size_t cur_tab_ = 0;
   int fields_gotten_ = 0;
 };
 

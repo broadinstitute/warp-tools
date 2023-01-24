@@ -96,25 +96,26 @@ LineFields::LineFields(
 
 LineFields::LineFields(std::string const& s)
 {
-  std::string first_tag =                           getNextField(s); // 0
-  std::string second_tag =                          getNextField(s); // 1
-  std::string third_tag =                           getNextField(s); // 2
+  LineFieldsParser p(s);
+  std::string first_tag =                           p.getNextField(); // 0
+  std::string second_tag =                          p.getNextField(); // 1
+  std::string third_tag =                           p.getNextField(); // 2
   tag_triple = TagTriple(first_tag, second_tag, third_tag);
-  reference =                           getNextField(s); // 3
-  alignment_location =                  getNextField(s); // 4
-  position =                            std::stoi(getNextField(s)); // 5
-  is_strand =                           std::stoi(getNextField(s)); // 6
-  barcode_qual =                        std::stof(getNextField(s)); // 7 unused
-  cell_barcode_base_above_30 =          std::stof(getNextField(s)); // 8
-  genomic_read_quality =                std::stof(getNextField(s)); // 9
-  genomic_reads_base_quality_above_30 = std::stof(getNextField(s)); // 10
-  number_mappings =                     std::stoi(getNextField(s)); // 11
-  perfect_molecule_barcode =            std::stoi(getNextField(s)); // 12
-  read_spliced =                        std::stoi(getNextField(s)); // 13
-  read_is_duplicate =                   std::stoi(getNextField(s)); // 14
-  cell_barcode_perfect =                std::stoi(getNextField(s)); // 15
-  molecule_barcode_base_above_30 =      std::stof(getNextField(s)); // 16
-  if (cur_tab_ != std::string::npos && cur_start_ < s.size())
+  reference =                           p.getNextField(); // 3
+  alignment_location =                  p.getNextField(); // 4
+  position =                            std::stoi(p.getNextField()); // 5
+  is_strand =                           std::stoi(p.getNextField()); // 6
+  barcode_qual =                        std::stof(p.getNextField()); // 7 unused
+  cell_barcode_base_above_30 =          std::stof(p.getNextField()); // 8
+  genomic_read_quality =                std::stof(p.getNextField()); // 9
+  genomic_reads_base_quality_above_30 = std::stof(p.getNextField()); // 10
+  number_mappings =                     std::stoi(p.getNextField()); // 11
+  perfect_molecule_barcode =            std::stoi(p.getNextField()); // 12
+  read_spliced =                        std::stoi(p.getNextField()); // 13
+  read_is_duplicate =                   std::stoi(p.getNextField()); // 14
+  cell_barcode_perfect =                std::stoi(p.getNextField()); // 15
+  molecule_barcode_base_above_30 =      std::stof(p.getNextField()); // 16
+  if (p.hasMore())
     crash("Found more than the expected 17 fields in line. The bad line:\n" + s);
 }
 
@@ -139,27 +140,29 @@ void LineFields::writeTabbedToFile(std::ofstream& outfile)
           << molecule_barcode_base_above_30 << "\n";
 }
 
-std::string LineFields::getNextField(std::string const& s)
+std::string LineFieldsParser::getNextField()
 {
-  cur_tab_ = s.find('\t', cur_start_);
+  cur_tab_ = s_.find('\t', cur_start_);
   if (cur_tab_ == std::string::npos)
   {
     if (fields_gotten_ != 16)
     {
       crash("Found " + std::to_string(fields_gotten_+1) +
-            " fields in line; expected 17. The bad line:\n" + s);
+            " fields in line; expected 17. The bad line:\n" + s_);
     }
 
-    cur_tab_ = s.length();
-    std::string ret(s.data() + cur_start_, cur_tab_ - cur_start_);
+    cur_tab_ = s_.length();
+    std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     fields_gotten_++;
     return ret;
   }
   else
   {
-    std::string ret(s.data() + cur_start_, cur_tab_ - cur_start_);
+    std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     cur_start_ = cur_tab_ + 1;
     fields_gotten_++;
     return ret;
   }
 }
+
+bool LineFieldsParser::hasMore() const { return cur_tab_ < s_.length(); }
