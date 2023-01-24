@@ -58,8 +58,11 @@ class LineFieldsParser
 {
 public:
   explicit LineFieldsParser(std::string const& s) : s_(s) {}
+  int getNextFieldInt();
+  float getNextFieldFloat();
   std::string getNextField();
   bool hasMore() const;
+
 private:
   std::string const& s_;
   size_t cur_start_ = 0;

@@ -26,22 +26,39 @@ TEST(AlignmentDatatypeTest, BasicParsing)
   EXPECT_EQ(lf.molecule_barcode_base_above_30, 0);
 }
 
-TEST(AlignmentDatatypeTest, FailedParseNotValidFloat)
+TEST(AlignmentDatatypeDeathTest, FailedParseNotValidFloat)
 {
-  bool thrown = false;
-  try { LineFields lf("a\tb\tc\td\te\t1\t2\tgibberish\t1.23"); }
-  catch (std::exception const& e) { thrown = true; }
-  if (!thrown)
-    FAIL() <<"Didn't throw an exception when it should have";
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\tgibberish\t1.23"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("std::stof threw an exception"));
 }
 
-TEST(AlignmentDatatypeTest, FailedParseFloatGivenToInt)
+TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenToInt)
 {
-  bool thrown = false;
-  try { LineFields lf("a\tb\tc\td\te\t1.23\t2"); }
-  catch (std::exception const& e) { thrown = true; }
-  if (!thrown)
-    FAIL() << "Didn't throw an exception when it should have";
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\tBAD123\t2"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("std::stoi threw an exception"));
+}
+
+TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenAfterInt)
+{
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t123BAD\t2"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("Not an int"));
+}
+
+TEST(AlignmentDatatypeDeathTest, FailedParseFloatGivenToInt)
+{
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1.23\t2"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("Not an int"));
+}
+
+TEST(AlignmentDatatypeDeathTest, FailedParseCharsAfterFloat)
+{
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\t1.23e5f"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("Not a float"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseTooFewFields)
@@ -56,6 +73,14 @@ TEST(AlignmentDatatypeDeathTest, FailedParseTooManyFields)
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Found more than the expected 17 fields in line."));
+}
+
+// TODO or is this allowed?
+TEST(AlignmentDatatypeDeathTest, FailedParseEmptyField)
+{
+  EXPECT_EXIT(LineFields lf("a\t\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("TODO"));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)
