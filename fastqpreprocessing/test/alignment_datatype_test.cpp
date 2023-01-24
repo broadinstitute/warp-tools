@@ -56,7 +56,7 @@ TEST(AlignmentDatatypeDeathTest, FailedParseFloatGivenToInt)
 
 TEST(AlignmentDatatypeDeathTest, FailedParseCharsAfterFloat)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\t1.23e5f"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\t1.23e5f\t1"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Not a float"));
 }
@@ -76,11 +76,19 @@ TEST(AlignmentDatatypeDeathTest, FailedParseTooManyFields)
 }
 
 // TODO or is this allowed?
-TEST(AlignmentDatatypeDeathTest, FailedParseEmptyField)
+TEST(AlignmentDatatypeDeathTest, FailedParseEmptyStringField)
 {
   EXPECT_EXIT(LineFields lf("a\t\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("TODO"));
+              testing::HasSubstr("empty field"));
+}
+
+// TODO or is this allowed?
+TEST(AlignmentDatatypeDeathTest, FailedParseEmptyIntField)
+{
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("empty field"));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)
