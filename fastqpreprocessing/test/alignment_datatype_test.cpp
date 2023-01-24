@@ -1,5 +1,6 @@
 #include "../src/alignment_datatype.h"
 
+#include "gmock/gmock-matchers.h"
 #include "gtest/gtest.h"
 
 TEST(AlignmentDatatypeTest, BasicParsing)
@@ -47,14 +48,14 @@ TEST(AlignmentDatatypeDeathTest, FailedParseTooFewFields)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              "Found 16 fields in line; expected 17");
+              testing::HasSubstr("Found 16 fields in line; expected 17"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseTooManyFields)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              "Found 18 fields in line; expected 17");
+              testing::HasSubstr("Found more than the expected 17 fields in line."));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)

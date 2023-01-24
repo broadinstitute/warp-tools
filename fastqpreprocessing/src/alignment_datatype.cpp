@@ -114,6 +114,8 @@ LineFields::LineFields(std::string const& s)
   read_is_duplicate =                   std::stoi(getNextField(s)); // 14
   cell_barcode_perfect =                std::stoi(getNextField(s)); // 15
   molecule_barcode_base_above_30 =      std::stof(getNextField(s)); // 16
+  if (cur_tab_ != std::string::npos && cur_start_ < s.size())
+    crash("Found more than the expected 17 fields in line. The bad line:\n" + s);
 }
 
 void LineFields::writeTabbedToFile(std::ofstream& outfile)
@@ -143,7 +145,10 @@ std::string LineFields::getNextField(std::string const& s)
   if (cur_tab_ == std::string::npos)
   {
     if (fields_gotten_ != 16)
-      crash("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 17");
+    {
+      crash("Found " + std::to_string(fields_gotten_+1) +
+            " fields in line; expected 17. The bad line:\n" + s);
+    }
 
     cur_tab_ = s.length();
     std::string ret(s.data() + cur_start_, cur_tab_ - cur_start_);

@@ -18,9 +18,6 @@ TAGSORT_OBJ = obj/alignment_datatype.o obj/metricgatherer.o obj/mitochondrial_ge
 
 TAGSORT_LIBS = htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs -lpthread
 
-obj/%.o: src/%.cpp src/*.h
-	$(CC) -c -o $@ $<  -IlibStatGen/include -Ihtslib -Igzstream
-
 bin/fastqprocess: $(COMMON_OBJ) obj/fastqprocess.o
 	$(CC) -o $@ $^  $(LIBS)
 
@@ -36,9 +33,12 @@ bin/fastq_metrics: $(COMMON_OBJ) obj/fastq_metrics.o
 bin/samplefastq: $(COMMON_OBJ) obj/samplefastq.o
 	$(CC) -o $@ $^  $(LIBS)
 
+obj/%.o: src/%.cpp src/*.h
+	$(CC) -c -o $@ $<  -IlibStatGen/include -Ihtslib -Igzstream
+
 .PHONY: clean
 clean:
-	rm -f obj/*.o bin/*
+	rm -f obj/*.o bin/* *.o *.a
 
 #=============GOOGLE TEST STUFF; DONT CHANGE===============
 # Points to the root of Google Test, relative to where this file is.
@@ -74,10 +74,10 @@ gtest_main.o : $(GTEST_SRCS_)
             $(GTEST_DIR)/src/gtest_main.cc
 
 gtest.a : gtest-all.o
-	$(AR) $(ARFLAGS) $@ $^ -lpthread
+	$(AR) $(ARFLAGS) $@ $^
 
 gtest_main.a : gtest-all.o gtest_main.o
-	$(AR) $(ARFLAGS) $@ $^ -lpthread
+	$(AR) $(ARFLAGS) $@ $^
 
 obj/%_test.o : test/%_test.cpp $(GTEST_HEADERS)
 	$(CC) -Igtest/include -o $@ $< -c
