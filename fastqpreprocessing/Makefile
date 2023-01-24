@@ -1,14 +1,5 @@
-CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
-
-LIBS = -LlibStatGen -lStatGen -lz -lpthread -lstdc++fs -Lgzstream -lgzstream
-
+# The default target: the actual binaries the code is supposed to be built into.
 all: bin/fastqprocess bin/TagSort bin/fastq_slideseq bin/fastq_metrics bin/samplefastq
-
-COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_data.o
-
-TAGSORT_OBJ = obj/alignment_datatype.o obj/metricgatherer.o obj/mitochondrial_gene_selector.o obj/partial_file_merge.o obj/partial_sort.o obj/tagsort_input_options.o
-
-TAGSORT_LIBS = htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs -lpthread
 
 # All tests produced by this Makefile. Add new tests you create to this list.
 # UNIT TESTS MUST BE NAMED foo_test, with a corresponding foo_test.cpp in the
@@ -16,6 +7,16 @@ TAGSORT_LIBS = htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs
 # TODO tests are for tagsort only. should split tagsort out into its own dir
 #      before adding them for the rest.
 test: bin/alignment_datatype_test
+
+CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
+
+LIBS = -LlibStatGen -lStatGen -lz -lpthread -lstdc++fs -Lgzstream -lgzstream
+
+COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_data.o
+
+TAGSORT_OBJ = obj/alignment_datatype.o obj/metricgatherer.o obj/mitochondrial_gene_selector.o obj/partial_file_merge.o obj/partial_sort.o obj/tagsort_input_options.o
+
+TAGSORT_LIBS = htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs -lpthread
 
 obj/%.o: src/%.cpp src/*.h
 	$(CC) -c -o $@ $<  -IlibStatGen/include -Ihtslib -Igzstream
