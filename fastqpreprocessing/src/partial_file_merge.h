@@ -6,7 +6,9 @@
 
 #include "tagsort_input_options.h"
 
-// returns number of alignments processed
+// Takes the sorted partial files produced by splitAndPartialSortToFiles(),
+// and merges them into a single sorted output file.
+// Returns the number of alignments written into that output file.
 int mergePartialFiles(INPUT_OPTIONS_TAGSORT const& options,
                       std::vector<std::string> const& partial_files);
 
