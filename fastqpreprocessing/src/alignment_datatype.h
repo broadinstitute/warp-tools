@@ -21,7 +21,10 @@ public:
 struct LineFields
 {
 public:
+  // Parses a LineFields from an ASCII string. 's' should be a single line of
+  // tab separated values, one for each field in this struct.
   explicit LineFields(std::string const& s);
+
   LineFields(
       TagTriple _tag_triple, std::string _reference, std::string _alignment_location,
       int _position, int _is_strand,

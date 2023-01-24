@@ -57,7 +57,7 @@ INPUT_OPTIONS_TAGSORT readOptionsTagsort(int argc, char** argv)
     "barcode-tag the call barcode tag [required]",
     "umi-tag the umi tag [required]: the tsv file output is sorted according the tags in the options barcode-tag, umi-tag or gene-tag",
     "gene-tag the gene tag [required]",
-    "metric type, either \"cell\" or \"gene\" [required]",
+    "metric type, one of \"cell\", \"gene\", or \"umi\" [required]",
     "file listing gene names, one per line, that the program should care about. [required, may omit if you want mouse or human]"
   };
 
