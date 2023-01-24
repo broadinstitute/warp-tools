@@ -116,7 +116,7 @@ LineFields::LineFields(std::string const& s)
   cell_barcode_perfect =                p.getNextFieldInt(); // 15
   molecule_barcode_base_above_30 =      p.getNextFieldFloat(); // 16
   if (p.hasMore())
-    crash("Found more than the expected 17 fields in line. The bad line:\n" + s);
+    p.crashLF("Found more than the expected 17 fields in line.");
 }
 
 void LineFields::writeTabbedToFile(std::ofstream& outfile)
@@ -140,6 +140,11 @@ void LineFields::writeTabbedToFile(std::ofstream& outfile)
           << molecule_barcode_base_above_30 << "\n";
 }
 
+void LineFieldsParser::crashLF(std::string msg)
+{
+  crash(msg + "\nThe bad line:\n" + s_);
+}
+
 int LineFieldsParser::getNextFieldInt()
 {
   std::string field = getNextField();
@@ -150,12 +155,12 @@ int LineFieldsParser::getNextFieldInt()
     if (chars_converted < field.length())
       for (int i = chars_converted; i < field.length(); i++)
         if (!isspace(field[i]))
-          crash("Not an int: '"+field+"'");
+          crashLF("Extra characters after int: '"+field+"'");
     return ret;
   }
   catch (std::exception const& e)
   {
-    crash("std::stoi threw an exception. The bad field: '" + field + "'\nThe bad line:\n" + s_);
+    crashLF("int parsing (std::stoi) threw an exception. The bad field: '" + field + "'");
     return 123456;
   }
 }
@@ -170,12 +175,12 @@ float LineFieldsParser::getNextFieldFloat()
     if (chars_converted < field.length())
       for (int i = chars_converted; i < field.length(); i++)
         if (!isspace(field[i]))
-          crash("Not a float: '"+field+"'");
+          crashLF("Extra characters after float: '"+field+"'");
     return ret;
   }
   catch (std::exception const& e)
   {
-    crash("std::stof threw an exception. The bad field: '" + field + "'\nThe bad line:\n" + s_);
+    crashLF("float parsing (std::stof) threw an exception. The bad field: '" + field + "'");
     return 123456;
   }
 }
@@ -186,16 +191,13 @@ std::string LineFieldsParser::getNextField()
   if (cur_tab_ == std::string::npos)
   {
     if (fields_gotten_ != 16)
-    {
-      crash("Found " + std::to_string(fields_gotten_+1) +
-            " fields in line; expected 17. The bad line:\n" + s_);
-    }
+      crashLF("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 17.");
 
     cur_tab_ = s_.length();
     std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     fields_gotten_++;
     if (ret.empty())
-      crash("getNextField() found an empty field (i.e. two tab chars in a row)");
+      crashLF("getNextField() found an empty field (i.e. two tab chars in a row)");
     return ret;
   }
   else
@@ -204,7 +206,7 @@ std::string LineFieldsParser::getNextField()
     cur_start_ = cur_tab_ + 1;
     fields_gotten_++;
     if (ret.empty())
-      crash("getNextField() found an empty field (i.e. two tab chars in a row)");
+      crashLF("getNextField() found an empty field (i.e. two tab chars in a row)");
     return ret;
   }
 }

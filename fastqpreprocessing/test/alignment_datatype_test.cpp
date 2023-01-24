@@ -30,35 +30,35 @@ TEST(AlignmentDatatypeDeathTest, FailedParseNotValidFloat)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\tgibberish\t1.23"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("std::stof threw an exception"));
+              testing::HasSubstr("float parsing (std::stof) threw an exception"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenToInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\tBAD123\t2"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("std::stoi threw an exception"));
+              testing::HasSubstr("int parsing (std::stoi) threw an exception"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenAfterInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t123BAD\t2"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Not an int"));
+              testing::HasSubstr("Extra characters after int"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseFloatGivenToInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1.23\t2"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Not an int"));
+              testing::HasSubstr("Extra characters after int"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseCharsAfterFloat)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\t1.23e5f\t1"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Not a float"));
+              testing::HasSubstr("Extra characters after float"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FailedParseTooFewFields)

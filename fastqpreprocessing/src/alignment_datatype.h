@@ -62,6 +62,7 @@ public:
   float getNextFieldFloat();
   std::string getNextField();
   bool hasMore() const;
+  void crashLF(std::string msg);
 
 private:
   std::string const& s_;
