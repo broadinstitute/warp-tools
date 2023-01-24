@@ -4,8 +4,8 @@
 #include <queue>
 #include <string>
 
-#include "htslib_tagsort.h"
 #include "metricgatherer.h"
+#include "partial_sort.h"
 
 constexpr int kLinesToReadInAChunk = 1000;
 

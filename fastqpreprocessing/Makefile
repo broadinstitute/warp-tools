@@ -6,7 +6,7 @@ all: bin/fastqprocess bin/TagSort bin/fastq_slideseq bin/fastq_metrics bin/sampl
 
 COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_data.o
 
-TAGSORT_OBJ = obj/tagsort.o obj/htslib_tagsort.o obj/metricgatherer.o obj/mitochondrial_gene_selector.o obj/alignment_datatype.o obj/tagsort_input_options.o
+TAGSORT_OBJ = obj/tagsort.o obj/partial_sort.o obj/metricgatherer.o obj/mitochondrial_gene_selector.o obj/alignment_datatype.o obj/tagsort_input_options.o
 
 TAGSORT_LIBS = htslib/libhts.a -lz -lbz2 -llzma -Lgzstream -lgzstream -lstdc++fs -lpthread
 
