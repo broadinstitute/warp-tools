@@ -54,6 +54,7 @@ public:
   float molecule_barcode_base_above_30; // (16) fraction of umi qual score > 30
 };
 
+// Parses tab-separated fields from a line (std::string s).
 class LineFieldsParser
 {
 public:
