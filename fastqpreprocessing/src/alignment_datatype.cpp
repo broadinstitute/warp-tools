@@ -211,4 +211,4 @@ std::string LineFieldsParser::getNextField()
   }
 }
 
-bool LineFieldsParser::hasMore() const { return cur_tab_ < s_.length(); }
+bool LineFieldsParser::hasMore() const { return cur_tab_ < s_.length() - 1; }

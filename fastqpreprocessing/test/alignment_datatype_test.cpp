@@ -26,49 +26,54 @@ TEST(AlignmentDatatypeTest, BasicParsing)
   EXPECT_EQ(lf.molecule_barcode_base_above_30, 0);
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseNotValidFloat)
+TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
+{
+  LineFields lf("a\tbbb\tc\td\te\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
+}
+
+TEST(AlignmentDatatypeDeathTest, NotValidFloat)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\tgibberish\t1.23"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("float parsing (std::stof) threw an exception"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenToInt)
+TEST(AlignmentDatatypeDeathTest, CharsGivenToInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\tBAD123\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("int parsing (std::stoi) threw an exception"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseCharsGivenAfterInt)
+TEST(AlignmentDatatypeDeathTest, CharsGivenAfterInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t123BAD\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after int"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseFloatGivenToInt)
+TEST(AlignmentDatatypeDeathTest, FloatGivenToInt)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1.23\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after int"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseCharsAfterFloat)
+TEST(AlignmentDatatypeDeathTest, CharsAfterFloat)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\t1.23e5f\t1"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after float"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseTooFewFields)
+TEST(AlignmentDatatypeDeathTest, TooFewFields)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Found 16 fields in line; expected 17"));
 }
 
-TEST(AlignmentDatatypeDeathTest, FailedParseTooManyFields)
+TEST(AlignmentDatatypeDeathTest, TooManyFields)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
@@ -76,7 +81,7 @@ TEST(AlignmentDatatypeDeathTest, FailedParseTooManyFields)
 }
 
 // TODO or is this allowed?
-TEST(AlignmentDatatypeDeathTest, FailedParseEmptyStringField)
+TEST(AlignmentDatatypeDeathTest, EmptyStringField)
 {
   EXPECT_EXIT(LineFields lf("a\t\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
@@ -84,7 +89,7 @@ TEST(AlignmentDatatypeDeathTest, FailedParseEmptyStringField)
 }
 
 // TODO or is this allowed?
-TEST(AlignmentDatatypeDeathTest, FailedParseEmptyIntField)
+TEST(AlignmentDatatypeDeathTest, EmptyIntField)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
