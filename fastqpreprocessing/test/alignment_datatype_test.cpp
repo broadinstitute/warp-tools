@@ -98,18 +98,82 @@ TEST(AlignmentDatatypeDeathTest, EmptyIntField)
 
 TEST(TagTripleTest, TagOrderFromCommandLine)
 {
-  // TODO
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::BGU);
-//
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::BUG);
-//
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::GBU);
-//
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::GUB);
-//
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::UBG);
-//
-//   EXPECT_EQ(getTagOrder(readOptionsTagsort(int argc, char** argv)), TagOrder::UGB);
+  std::vector<std::string> argv_start{
+"TagSort","--bam-input","/dev/null","--metric-output","example-gene-metrics.csv",
+"--compute-metric","--metric-type","gene","--temp-folder","/dev/null","--alignments-per-thread",
+"1000000","--nthreads","1","--mitochondrial-gene-names-filename","/dev/null"};
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--barcode-tag","CB","--gene-tag","GX","--umi-tag","UB"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::BGU);
+  }
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--barcode-tag","CB","--umi-tag","UB","--gene-tag","GX"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::BUG);
+  }
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--gene-tag","GX","--barcode-tag","CB","--umi-tag","UB"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::GBU);
+  }
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--gene-tag","GX","--umi-tag","UB","--barcode-tag","CB"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::GUB);
+  }
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--umi-tag","UB","--barcode-tag","CB","--gene-tag","GX"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::UBG);
+  }
+
+  {
+    std::vector<char*> argv;
+    for (auto& x : argv_start)
+      argv.push_back(x.data());
+    std::vector<std::string> tag_order{
+        "--umi-tag","UB","--gene-tag","GX","--barcode-tag","CB"};
+    for (auto& x : tag_order)
+      argv.push_back(x.data());
+    optind = 1; // HACK ew yuck
+    EXPECT_EQ(getTagOrder(readOptionsTagsort(argv.size(), argv.data())), TagOrder::UGB);
+  }
 }
 
 TEST(TagTripleTest, MakeTagTriple)
