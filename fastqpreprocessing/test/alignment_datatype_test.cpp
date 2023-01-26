@@ -88,7 +88,6 @@ TEST(AlignmentDatatypeDeathTest, EmptyStringField)
               testing::HasSubstr("empty field"));
 }
 
-// TODO or is this allowed?
 TEST(AlignmentDatatypeDeathTest, EmptyIntField)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
