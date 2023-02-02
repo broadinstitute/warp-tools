@@ -13,11 +13,9 @@ RUN mkdir -p /sctools
 
 COPY . /sctools
 
-RUN cd /sctools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh
+RUN cd /sctools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /sctools/fastqpreprocessing/bin/* /usr/local/bin/
 
-RUN cd /sctools/fastqpreprocessing && make
-
-RUN cp /sctools/fastqpreprocessing/bin/* /usr/local/bin/
+RUN cd /sctools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /sctools/TagSort/bin/* /usr/local/bin/
 
 WORKDIR usr/local/bin/sctools
 
