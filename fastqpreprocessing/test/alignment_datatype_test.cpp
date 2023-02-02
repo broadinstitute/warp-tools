@@ -31,6 +31,19 @@ TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
   LineFields lf("a\tbbb\tc\td\te\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
 }
 
+TEST(AlignmentDatatypeTest, EmptyStringFieldAllowed)
+{
+  LineFields lf("a\t\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
+  EXPECT_EQ(lf.tag_triple.second, "");
+}
+
+TEST(AlignmentDatatypeDeathTest, EmptyIntFieldNotAllowed)
+{
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+              testing::ExitedWithCode(1),
+              testing::HasSubstr("empty field"));
+}
+
 TEST(AlignmentDatatypeDeathTest, NotValidFloat)
 {
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t1\t2\tgibberish\t1.23"),
@@ -78,21 +91,6 @@ TEST(AlignmentDatatypeDeathTest, TooManyFields)
   EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Found more than the expected 17 fields in line."));
-}
-
-// TODO or is this allowed?
-TEST(AlignmentDatatypeDeathTest, EmptyStringField)
-{
-  EXPECT_EXIT(LineFields lf("a\t\tc\td\te\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
-              testing::ExitedWithCode(1),
-              testing::HasSubstr("empty field"));
-}
-
-TEST(AlignmentDatatypeDeathTest, EmptyIntField)
-{
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\te\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
-              testing::ExitedWithCode(1),
-              testing::HasSubstr("empty field"));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)

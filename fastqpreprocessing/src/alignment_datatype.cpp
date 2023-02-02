@@ -148,6 +148,8 @@ void LineFieldsParser::crashLF(std::string msg)
 int LineFieldsParser::getNextFieldInt()
 {
   std::string field = getNextField();
+  if (field.empty())
+    crashLF("getNextFieldInt() found an empty field (i.e. two tab chars in a row)");
   try
   {
     size_t chars_converted;
@@ -168,6 +170,8 @@ int LineFieldsParser::getNextFieldInt()
 float LineFieldsParser::getNextFieldFloat()
 {
   std::string field = getNextField();
+  if (field.empty())
+    crashLF("getNextFieldFloat() found an empty field (i.e. two tab chars in a row)");
   try
   {
     size_t chars_converted;
@@ -196,8 +200,6 @@ std::string LineFieldsParser::getNextField()
     cur_tab_ = s_.length();
     std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     fields_gotten_++;
-    if (ret.empty())
-      crashLF("getNextField() found an empty field (i.e. two tab chars in a row)");
     return ret;
   }
   else
@@ -205,8 +207,6 @@ std::string LineFieldsParser::getNextField()
     std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     cur_start_ = cur_tab_ + 1;
     fields_gotten_++;
-    if (ret.empty())
-      crashLF("getNextField() found an empty field (i.e. two tab chars in a row)");
     return ret;
   }
 }
