@@ -109,7 +109,7 @@ protected:
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
 
   std::unordered_map<std::string, int> molecule_histogram_;
-  std::ofstream metrics_outfile_;
+  std::ofstream metrics_csv_outfile_;
 
   std::string prev_tag_;
 
@@ -200,7 +200,7 @@ private:
 class GeneMetricGatherer: public MetricGatherer
 {
 public:
-  GeneMetricGatherer(std::string metric_output_file);
+  explicit GeneMetricGatherer(std::string metric_output_file);
 
   void ingestLine(std::string const& str) override;
 
@@ -216,6 +216,21 @@ private:
     "number_cells_detected_multiple",
     "number_cells_expressing"
   };
+};
+
+class UmiMetricGatherer: public MetricGatherer
+{
+public:
+  UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order);
+  void ingestLine(std::string const& str) override;
+  void outputMetricsLine() override;
+
+protected:
+  void clear() override;
+
+private:
+  std::string cur_histogram_triple_{};
+  int cur_histogram_count_ = 0;
 };
 
 #endif
