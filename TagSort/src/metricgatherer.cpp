@@ -251,11 +251,8 @@ void CellMetricGatherer::outputMetricsLine()
     for (auto const& [gene, count] : genes_histogram_)
       tot_molecules += count;
 
-    // TODO BUG associativity and integer division combine to make this always 0
-    pct_mitochondrial_molecules = (n_mitochondrial_molecules/tot_molecules * 100.0f);
+    pct_mitochondrial_molecules = 100.0f * (n_mitochondrial_molecules/(float)tot_molecules);
   }
-  else
-    pct_mitochondrial_molecules = 0.0f;
 
   metrics_csv_outfile_
       << "," << perfect_cell_barcodes_
