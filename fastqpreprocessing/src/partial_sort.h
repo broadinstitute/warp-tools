@@ -1,5 +1,5 @@
-#ifndef __HTSLIB_TAG_SORT__
-#define __HTSLIB_TAG_SORT__
+#ifndef TAGSORT_PARTIAL_SORT_H_
+#define TAGSORT_PARTIAL_SORT_H_
 
 #include "tagsort_input_options.h"
 
@@ -11,4 +11,4 @@
 // Returns the file paths of the created sorted partial files.
 std::vector<std::string> splitAndPartialSortToFiles(INPUT_OPTIONS_TAGSORT options);
 
-#endif
+#endif // TAGSORT_PARTIAL_SORT_H_

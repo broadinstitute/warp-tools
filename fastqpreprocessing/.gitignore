@@ -11,3 +11,5 @@ htslib*
 libStatGen/
 *.tar.gz
 bin/
+googletest-1.13.0/
+gtest/

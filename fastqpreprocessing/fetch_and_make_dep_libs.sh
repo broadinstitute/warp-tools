@@ -24,4 +24,4 @@ echo "" && \
 echo "If you are reading this, then the preparations succeeded." && \
 echo "You should now be able to run make in this directory."
 
-mkdir bin obj 2>/dev/null
+mkdir -p bin obj

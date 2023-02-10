@@ -96,24 +96,27 @@ LineFields::LineFields(
 
 LineFields::LineFields(std::string const& s)
 {
-  std::string first_tag =                           getNextField(s); // 0
-  std::string second_tag =                          getNextField(s); // 1
-  std::string third_tag =                           getNextField(s); // 2
-  tag_triple = TagTriple(first_tag, second_tag, third_tag);
-  reference =                           getNextField(s); // 3
-  alignment_location =                  getNextField(s); // 4
-  position =                            std::stoi(getNextField(s)); // 5
-  is_strand =                           std::stoi(getNextField(s)); // 6
-  barcode_qual =                        std::stof(getNextField(s)); // 7 unused
-  cell_barcode_base_above_30 =          std::stof(getNextField(s)); // 8
-  genomic_read_quality =                std::stof(getNextField(s)); // 9
-  genomic_reads_base_quality_above_30 = std::stof(getNextField(s)); // 10
-  number_mappings =                     std::stoi(getNextField(s)); // 11
-  perfect_molecule_barcode =            std::stoi(getNextField(s)); // 12
-  read_spliced =                        std::stoi(getNextField(s)); // 13
-  read_is_duplicate =                   std::stoi(getNextField(s)); // 14
-  cell_barcode_perfect =                std::stoi(getNextField(s)); // 15
-  molecule_barcode_base_above_30 =      std::stof(getNextField(s)); // 16
+  LineFieldsParser p(s);
+  std::string first_tag =               p.getNextField(); // 0
+  std::string second_tag =              p.getNextField(); // 1
+  std::string third_tag =               p.getNextField(); // 2
+  tag_triple =                     TagTriple(first_tag, second_tag, third_tag);
+  reference =                           p.getNextField(); // 3
+  alignment_location =                  p.getNextField(); // 4
+  position =                            p.getNextFieldInt(); // 5
+  is_strand =                           p.getNextFieldInt(); // 6
+  barcode_qual =                        p.getNextFieldFloat(); // 7 unused
+  cell_barcode_base_above_30 =          p.getNextFieldFloat(); // 8
+  genomic_read_quality =                p.getNextFieldFloat(); // 9
+  genomic_reads_base_quality_above_30 = p.getNextFieldFloat(); // 10
+  number_mappings =                     p.getNextFieldInt(); // 11
+  perfect_molecule_barcode =            p.getNextFieldInt(); // 12
+  read_spliced =                        p.getNextFieldInt(); // 13
+  read_is_duplicate =                   p.getNextFieldInt(); // 14
+  cell_barcode_perfect =                p.getNextFieldInt(); // 15
+  molecule_barcode_base_above_30 =      p.getNextFieldFloat(); // 16
+  if (p.hasMore())
+    p.crashLF("Found more than the expected 17 fields in line.");
 }
 
 void LineFields::writeTabbedToFile(std::ofstream& outfile)
@@ -137,24 +140,75 @@ void LineFields::writeTabbedToFile(std::ofstream& outfile)
           << molecule_barcode_base_above_30 << "\n";
 }
 
-std::string LineFields::getNextField(std::string const& s)
+void LineFieldsParser::crashLF(std::string msg)
 {
-  cur_tab_ = s.find('\t', cur_start_);
+  crash(msg + "\nThe bad line:\n" + s_);
+}
+
+int LineFieldsParser::getNextFieldInt()
+{
+  std::string field = getNextField();
+  if (field.empty())
+    crashLF("getNextFieldInt() found an empty field (i.e. two tab chars in a row)");
+  try
+  {
+    size_t chars_converted;
+    int ret = std::stoi(field, &chars_converted);
+    if (chars_converted < field.length())
+      for (int i = chars_converted; i < field.length(); i++)
+        if (!isspace(field[i]))
+          crashLF("Extra characters after int: '"+field+"'");
+    return ret;
+  }
+  catch (std::exception const& e)
+  {
+    crashLF("int parsing (std::stoi) threw an exception. The bad field: '" + field + "'");
+    return 123456;
+  }
+}
+
+float LineFieldsParser::getNextFieldFloat()
+{
+  std::string field = getNextField();
+  if (field.empty())
+    crashLF("getNextFieldFloat() found an empty field (i.e. two tab chars in a row)");
+  try
+  {
+    size_t chars_converted;
+    float ret = std::stof(field, &chars_converted);
+    if (chars_converted < field.length())
+      for (int i = chars_converted; i < field.length(); i++)
+        if (!isspace(field[i]))
+          crashLF("Extra characters after float: '"+field+"'");
+    return ret;
+  }
+  catch (std::exception const& e)
+  {
+    crashLF("float parsing (std::stof) threw an exception. The bad field: '" + field + "'");
+    return 123456;
+  }
+}
+
+std::string LineFieldsParser::getNextField()
+{
+  cur_tab_ = s_.find('\t', cur_start_);
   if (cur_tab_ == std::string::npos)
   {
     if (fields_gotten_ != 16)
-      crash("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 17");
+      crashLF("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 17.");
 
-    cur_tab_ = s.length();
-    std::string ret(s.data() + cur_start_, cur_tab_ - cur_start_);
+    cur_tab_ = s_.length();
+    std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     fields_gotten_++;
     return ret;
   }
   else
   {
-    std::string ret(s.data() + cur_start_, cur_tab_ - cur_start_);
+    std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);
     cur_start_ = cur_tab_ + 1;
     fields_gotten_++;
     return ret;
   }
 }
+
+bool LineFieldsParser::hasMore() const { return cur_tab_ < s_.length() - 1; }

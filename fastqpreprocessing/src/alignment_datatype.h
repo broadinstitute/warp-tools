@@ -21,7 +21,10 @@ public:
 struct LineFields
 {
 public:
+  // Parses a LineFields from an ASCII string. 's' should be a single line of
+  // tab separated values, one for each field in this struct.
   explicit LineFields(std::string const& s);
+
   LineFields(
       TagTriple _tag_triple, std::string _reference, std::string _alignment_location,
       int _position, int _is_strand,
@@ -49,12 +52,23 @@ public:
   int read_is_duplicate; // (14) 1 for yes, 0 for no
   int cell_barcode_perfect; // (15) 1 for yes, 0 for no
   float molecule_barcode_base_above_30; // (16) fraction of umi qual score > 30
+};
+
+// Parses tab-separated fields from a line (std::string s).
+class LineFieldsParser
+{
+public:
+  explicit LineFieldsParser(std::string const& s) : s_(s) {}
+  int getNextFieldInt();
+  float getNextFieldFloat();
+  std::string getNextField();
+  bool hasMore() const;
+  void crashLF(std::string msg);
 
 private:
-  std::string getNextField(std::string const& s);
-
+  std::string const& s_;
   size_t cur_start_ = 0;
-  size_t cur_tab_ = std::string::npos;
+  size_t cur_tab_ = 0;
   int fields_gotten_ = 0;
 };
 

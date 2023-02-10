@@ -1,4 +1,4 @@
-#include "htslib_tagsort.h"
+#include "partial_sort.h"
 
 #include <algorithm>
 #include <cassert>
