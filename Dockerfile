@@ -17,6 +17,8 @@ RUN cd /sctools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp
 
 RUN cd /sctools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /sctools/TagSort/bin/* /usr/local/bin/
 
+RUN pip install loompy anndata
+
 WORKDIR usr/local/bin/sctools
 
 # Set tini as default entrypoint
