@@ -1,7 +1,6 @@
 import argparse
 import anndata as ad
 import loompy
-import scipy 
 import os
 
 def convertloomtoh5ad(args):
@@ -16,19 +15,8 @@ def convertloomtoh5ad(args):
     file_name = os.path.basename(args.loom_file)
     file_name = file_name.split(".")[0] 
 
-    #establish connection to loom file 
-    ds = loompy.connect(args.loom_file)
-
-    #adata.sparse() ouputs coo then convert to csr
-    coo = ds.sparse()
-    csr = coo.tocsr()
-
-    #save as h5ad
-    adata = ad.AnnData(csr)
+    adata = ad.read_loom(args.loom_file, sparse=True)
     adata.write(os.path.join(args.output_path, file_name + ".h5ad"))
-
-    #close loompy connection
-    ds.close()
 
 def main():
     description = """This script converts a loom file (http://linnarssonlab.org/loompy/index.html) into h5ad (https://anndata.readthedocs.io/en/latest/) format."""
