@@ -1,11 +1,16 @@
 # The default target: the actual binaries the code is supposed to be built into.
 all: bin/fastqprocess bin/fastq_slideseq bin/fastq_metrics bin/samplefastq
 
+# All tests produced by this Makefile. Add new tests you create to this list.
+# UNIT TESTS MUST BE NAMED foo_test, with a corresponding foo_test.cpp in the
+# test directory.
+test: bin/whitelist_corrector_test
+
 CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
 
 LIBS = -LlibStatGen -lStatGen -lz -lpthread -lstdc++fs -Lgzstream -lgzstream
 
-COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_data.o
+COMMON_OBJ = obj/input_options.o obj/fastq_common.o obj/whitelist_corrector.o
 
 bin/fastqprocess: $(COMMON_OBJ) obj/fastqprocess.o
 	$(CC) -o $@ $^  $(LIBS)
@@ -68,7 +73,7 @@ gtest_main.a : gtest-all.o gtest_main.o
 obj/%_test.o : test/%_test.cpp $(GTEST_HEADERS)
 	$(CC) -Igtest/include -o $@ $< -c
 
-bin/%_test : $(TAGSORT_OBJ) obj/%.o obj/%_test.o gtest_main.a
-	$(CC) -lpthread $^ -o $@ $(TAGSORT_LIBS)
+bin/%_test : $(COMMON_OBJ) obj/%.o obj/%_test.o gtest_main.a
+	$(CC) -lpthread $^ -o $@ $(LIBS)
 
 #==================END GOOGLE TEST STUFF===================

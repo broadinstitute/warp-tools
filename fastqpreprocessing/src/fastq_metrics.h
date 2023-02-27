@@ -11,7 +11,7 @@
 #include "FastQStatus.h"
 
 #include "input_options.h"
-#include "whitelist_data.h"
+#include "whitelist_corrector.h"
 
 
 class PositionWeightMatrix
@@ -35,7 +35,7 @@ public:
   FastQMetricsShard(std::string read_structure);
   void ingestBarcodeAndUMI(std::string_view raw_seq);
   void processShard(String filenameR1, std::string read_structure,
-                    const WhiteListData* white_list_data);
+                    const WhiteListCorrector* whitelist);
   static void mergeMetricsShardsToFile(std::string filename_prefix,
                                        std::vector<FastQMetricsShard> shards,
                                        int umi_length, int CB_length);
