@@ -10,7 +10,8 @@ The fastqpreprocessing suite comprises four programs:
 * `fastq_metrics`, summarizes total counts of UMIs and cell barcodes, and
   position weight matrices of UMIs and cell barcodes, from all reads.
 * `samplefastq`, a filter, keeping just the reads matching a user-specified cell
-  barcode whitelist.
+  barcode whitelist. Requires read structure of 8C18X6C9M1X with a fixed spacer
+  sequence.
 
 In production, this code is expected to be built and deployed by the
 `docker_build.sh` script one directory up from here. To compile and run locally,
