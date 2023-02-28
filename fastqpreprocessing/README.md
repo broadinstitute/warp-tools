@@ -44,7 +44,7 @@ Examples:
 ./bin/fastq_slideseq  \
   --bam-size 30.0 \
   --white-list WhiteList.txt \
-  --read-structure C11M22 \
+  --read-structure 11C22M \
   --sample-id EXAMPLEID \
   --output-format FASTQ \
   --I1 data/EXAMPLEID/A_I1.fastq.gz \
@@ -58,7 +58,7 @@ Examples:
 ```
 ./bin/fastq_metrics \
   --white-list WhiteList.txt \
-  --read-structure C11M22 \
+  --read-structure 11C22M \
   --sample-id EXAMPLEID \
   --R1 data/EXAMPLEID/A_R1.fastq.gz \
   --R1 data/EXAMPLEID/B_R1.fastq.gz
