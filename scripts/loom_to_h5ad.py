@@ -15,7 +15,17 @@ def convertloomtoh5ad(args):
     file_name = os.path.basename(args.loom_file)
     file_name = file_name.split(".")[0] 
 
+    #reads loom file as sparse csr matrix
     adata = ad.read_loom(args.loom_file, sparse=True)
+    
+    #connect to loom file to save the global attributes in the h5ad file
+    ds = loompy.connect(args.loom_file)
+    
+    #loop through global attributes and save in adata
+    for global_attr, value in ds.attrs.items():
+        adata.uns[global_attr] = value
+    ds.close()
+    
     adata.write(os.path.join(args.output_path, file_name + ".h5ad"))
 
 def main():
