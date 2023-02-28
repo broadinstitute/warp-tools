@@ -4,7 +4,7 @@ all: bin/TagSort
 # All tests produced by this Makefile. Add new tests you create to this list.
 # UNIT TESTS MUST BE NAMED foo_test, with a corresponding foo_test.cpp in the
 # test directory.
-test: bin/alignment_datatype_test
+test: bin/alignment_datatype_test bin/partial_file_merge_test
 
 CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
 

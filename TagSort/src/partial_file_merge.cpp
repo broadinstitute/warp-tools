@@ -79,6 +79,11 @@ public:
   bool empty() const { return heap_.empty(); }
 
 private:
+  // A custom comparator to tell our priority_queue how to deal with our std::pairs.
+  // It is correct that this comparator is a > rather than <, because priority_queue
+  // is a max-heap, and so wants to return the "largest" (i.e. having the comparator
+  // seeing it as "before" no other item) first. So if you want 'A' to be returned
+  // before 'B', your comparator needs to report 'B' as being "before" 'A'.
   std::function<bool(std::pair<std::string, int> const&,
                      std::pair<std::string, int> const&)>
       greater_than_ =

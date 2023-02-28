@@ -157,18 +157,6 @@ std::unique_ptr<LineFields> parseOneAlignment(
       frac_umi_qual_above_threshold);
 }
 
-inline bool sortAlignmentsByTagTriple(std::unique_ptr<LineFields> const& a,
-                                      std::unique_ptr<LineFields> const& b)
-{
-  int comp0 = a->tag_triple.first .compare( b->tag_triple.first);
-  if (comp0 != 0)
-    return comp0 < 0;
-  int comp1 = a->tag_triple.second .compare( b->tag_triple.second);
-  if (comp1 != 0)
-    return comp1 < 0;
-  return a->tag_triple.third .compare( b->tag_triple.third) < 0;
-}
-
 // Generates a random alphanumeric string (AZaz09) of a fixed length.
 constexpr int kStringLen = 40;
 std::string randomString()
