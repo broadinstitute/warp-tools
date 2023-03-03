@@ -12,8 +12,7 @@ def convertloomtoh5ad(args):
     
     """
 
-    file_name = os.path.basename(args.loom_file)
-    file_name = file_name.split(".")[0] 
+    file_name = os.path.basename(args.loom_file).split(".")[0] 
 
     #reads loom file as sparse csr matrix
     adata = ad.read_loom(args.loom_file, sparse=True)
