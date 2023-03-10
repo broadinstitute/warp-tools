@@ -26,6 +26,29 @@ TEST(AlignmentDatatypeTest, BasicParsing)
   EXPECT_NEAR(lf.molecule_barcode_base_above_30, 0.9f, 0.001f);
 }
 
+TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
+{
+  LineFields lf("\t\t\td\te\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+
+  EXPECT_EQ(lf.tag_triple.first, "");
+  EXPECT_EQ(lf.tag_triple.second, "");
+  EXPECT_EQ(lf.tag_triple.third, "");
+  EXPECT_EQ(lf.reference, "d");
+  EXPECT_EQ(lf.alignment_location, "e");
+  EXPECT_EQ(lf.position, 123);
+  EXPECT_EQ(lf.is_strand, 1);
+  EXPECT_NEAR(lf.barcode_qual, 0.12f, 0.001f);
+  EXPECT_NEAR(lf.cell_barcode_base_above_30, 4.56e10f, 1.0f);
+  EXPECT_NEAR(lf.genomic_read_quality, 0.6f, 0.001f);
+  EXPECT_NEAR(lf.genomic_reads_base_quality_above_30, 0.7f, 0.001f);
+  EXPECT_EQ(lf.number_mappings, 8);
+  EXPECT_EQ(lf.perfect_molecule_barcode, 0);
+  EXPECT_EQ(lf.read_spliced, 1);
+  EXPECT_EQ(lf.read_is_duplicate, 0);
+  EXPECT_EQ(lf.cell_barcode_perfect, 1);
+  EXPECT_NEAR(lf.molecule_barcode_base_above_30, 0.9f, 0.001f);
+}
+
 TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
 {
   LineFields lf("a\tbbb\tc\td\te\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
