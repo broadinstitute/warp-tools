@@ -2,6 +2,7 @@
 #define TAGSORT_ALIGNMENT_DATATYPE_H_
 
 #include <fstream>
+#include <memory>
 #include <string>
 
 #include "tagsort_input_options.h"
@@ -34,6 +35,8 @@ public:
       int _read_is_duplicate, int _cell_barcode_perfect,
       float _molecule_barcode_base_above_30);
 
+  LineFields() {}
+
   void writeTabbedToFile(std::ofstream& outfile);
 
   TagTriple tag_triple; // (0,1,2) barcode umi and gene_id, not necessarily in that order
@@ -53,6 +56,9 @@ public:
   int cell_barcode_perfect; // (15) 1 for yes, 0 for no
   float molecule_barcode_base_above_30; // (16) fraction of umi qual score > 30
 };
+
+bool sortAlignmentsByTagTriple(std::unique_ptr<LineFields> const& a,
+                               std::unique_ptr<LineFields> const& b);
 
 // Parses tab-separated fields from a line (std::string s).
 class LineFieldsParser
