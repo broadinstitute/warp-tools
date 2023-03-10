@@ -7,7 +7,7 @@
 // number of samrecords per buffer in each reader
 constexpr size_t kSamRecordBufferSize = 10000;
 #include "input_options.h"
-#include "whitelist_data.h"
+#include "whitelist_corrector.h"
 
 #include "FastQFile.h"
 #include "FastQStatus.h"
@@ -216,7 +216,7 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
 // Returns the index of the bamfile bucket / writer thread where sam_record
 // should be sent.
 int32_t correctBarcodeToWhitelist(
-    const std::string& barcode, SamRecord* sam_record, const WhiteListData* white_list_data,
+    const std::string& barcode, SamRecord* sam_record, const WhiteListCorrector* corrector,
     int* n_barcode_corrected, int* n_barcode_correct, int* n_barcode_errors, int num_writer_threads)
 {
   std::string correct_barcode;
@@ -227,7 +227,7 @@ int32_t correctBarcodeToWhitelist(
   // sequences into one particular. Incorregible barcodes are simply
   // added withouth the CB tag
   std::string bucket_barcode;
-  if (auto it = white_list_data->mutations.find(barcode) ; it != white_list_data->mutations.end())
+  if (auto it = corrector->mutations.find(barcode) ; it != corrector->mutations.end())
   {
     int64_t mutation_index = it->second;
     if (mutation_index == -1) // -1 means raw barcode is correct
@@ -239,7 +239,7 @@ int32_t correctBarcodeToWhitelist(
     {
       // it is a 1-mutation of some whitelist barcode so get the
       // barcode by indexing into the vector of whitelist barcodes
-      correct_barcode = white_list_data->barcodes[mutation_index];
+      correct_barcode = corrector->whitelist[mutation_index];
       *n_barcode_corrected += 1;
     }
     // is used for computing the file index
@@ -273,7 +273,7 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
 
 void fastQFileReaderThread(
     int reader_thread_index, std::string filenameI1, String filenameR1,
-    String filenameR2, const WhiteListData* white_list_data,
+    String filenameR2, const WhiteListCorrector* corrector,
     std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> sam_record_filler,
     std::function <std::string(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> barcode_getter,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
@@ -332,7 +332,7 @@ void fastQFileReaderThread(
       // sequences into one particular. Incorregible barcodes are simply
       // added withouth the CB tag
       int32_t bam_bucket = correctBarcodeToWhitelist(
-          barcode, samrec, white_list_data, &n_barcode_corrected, &n_barcode_correct,
+          barcode, samrec, corrector, &n_barcode_corrected, &n_barcode_correct,
           &n_barcode_errors, g_write_queues.size());
 
       output_handler(g_write_queues[bam_bucket].get(), samrec, reader_thread_index);
@@ -369,7 +369,7 @@ void mainCommon(
 {
   std::cout << "reading whitelist file " << white_list_file << "...";
   // stores barcode correction map and vector of correct barcodes
-  WhiteListData white_list_data = readWhiteList(white_list_file);
+  WhiteListCorrector corrector = readWhiteListFile(white_list_file);
   std::cout << "done" << std::endl;
 
 
@@ -397,7 +397,7 @@ void mainCommon(
     assert(I1s.empty() || I1s.size() == R1s.size());
     // if there is no I1 file then send an empty file name
     readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
-                         R2s[i].c_str(), &white_list_data, sam_record_filler, barcode_getter, output_handler);
+                         R2s[i].c_str(), &corrector, sam_record_filler, barcode_getter, output_handler);
   }
 
   for (auto& reader : readers)

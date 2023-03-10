@@ -104,12 +104,12 @@ void FastQMetricsShard::ingestBarcodeAndUMI(std::string_view raw_seq)
 
 // This is a wrapper to use std thread
 void processShard(FastQMetricsShard* fastq_metrics_shard, String filenameR1,
-                  std::string read_structure, const WhiteListData* white_list_data)
+                  std::string read_structure, const WhiteListCorrector* whitelist)
 {
-  fastq_metrics_shard->processShard(filenameR1, read_structure, white_list_data);
+  fastq_metrics_shard->processShard(filenameR1, read_structure, whitelist);
 }
 void FastQMetricsShard::processShard(String filenameR1, std::string read_structure,
-                                     const WhiteListData* white_list_data)
+                                     const WhiteListCorrector* whitelist)
 {
   /// setting the shortest sequence allowed to be read
   FastQFile fastQFileR1(4, 4);
@@ -166,7 +166,7 @@ FastQMetricsShard& FastQMetricsShard::operator+=(const FastQMetricsShard& rhs)
 
 /** @copydoc process_inputs */
 void process_inputs(const INPUT_OPTIONS_FASTQ_READ_STRUCTURE& options,
-                    const WhiteListData* white_list_data)
+                    const WhiteListCorrector* whitelist)
 {
   // number of files based on the input size
   int num_files = options.R1s.size();
@@ -189,7 +189,7 @@ void process_inputs(const INPUT_OPTIONS_FASTQ_READ_STRUCTURE& options,
                          &fastqMetrics[i],
                          options.R1s[i].c_str(),
                          options.read_structure.c_str(),
-                         white_list_data);
+                         whitelist);
 
   }
 
@@ -239,9 +239,9 @@ int main(int argc, char** argv)
 {
   INPUT_OPTIONS_FASTQ_READ_STRUCTURE options = readOptionsFastqMetrics(argc, argv);
   std::cout << "reading whitelist file " << options.white_list_file << "...";
-  WhiteListData white_list_data = readWhiteList(options.white_list_file);
+  WhiteListCorrector whitelist = readWhiteListFile(options.white_list_file);
   std::cout << "done" << std::endl;
 
-  process_inputs(options, &white_list_data);
+  process_inputs(options, &whitelist);
   return 0;
 }
