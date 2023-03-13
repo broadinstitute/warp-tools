@@ -23,7 +23,7 @@ def create_gene_id_name_map(gtf_file):
 
     # loop through the lines and find the gene_id and gene_name pairs
     with gzip.open(gtf_file, "rt") if gtf_file.endswith(".gz") else open(
-        gtf_file, "r"
+            gtf_file, "r"
     ) as fpin:
         for _line in fpin:
             line = _line.strip()
@@ -135,16 +135,16 @@ def generate_col_attr(args):
     if metrics_df.shape[0] == 0 or metrics_df.shape[1] == 0:
         logging.error("Cell metrics table is not valid")
         raise ValueError()
-    metrics_df = metrics_df.rename(columns={"Unnamed: 0": "cell_id"})
+    metrics_df = metrics_df.rename(columns={"barcode": "cell_id"})
 
     add_emptydrops_results = args.add_emptydrops_results
     if add_emptydrops_results == 'yes':
-       emptydrops_df = pd.read_csv(args.empty_drops_file, dtype=str)
-       if emptydrops_df.shape[0] == 0 or emptydrops_df.shape[1] == 0:
-           logging.error("EmptyDrops table is not valid")
-           raise ValueError()
-      # Rename cell columns for both datasets to cell_id
-       emptydrops_df = emptydrops_df.rename(columns={"CellId": "cell_id"})
+        emptydrops_df = pd.read_csv(args.empty_drops_file, dtype=str)
+        if emptydrops_df.shape[0] == 0 or emptydrops_df.shape[1] == 0:
+            logging.error("EmptyDrops table is not valid")
+            raise ValueError()
+        # Rename cell columns for both datasets to cell_id
+        emptydrops_df = emptydrops_df.rename(columns={"CellId": "cell_id"})
 
     # Order the cells by merging with cell_ids
     cellorder_df = pd.DataFrame(data={"cell_id": cell_ids})
@@ -154,9 +154,6 @@ def generate_col_attr(args):
         "n_reads",
         "noise_reads",
         "perfect_molecule_barcodes",
-        "reads_mapped_exonic",
-        "reads_mapped_intronic",
-        "reads_mapped_utr",
         "reads_mapped_uniquely",
         "reads_mapped_multiple",
         "duplicate_reads",
@@ -167,12 +164,10 @@ def generate_col_attr(args):
         "fragments_with_single_read_evidence",
         "molecules_with_single_read_evidence",
         "perfect_cell_barcodes",
-        "reads_mapped_intergenic",
-        "reads_unmapped",
         "reads_mapped_too_many_loci",
         "n_genes",
         "genes_detected_multiple_observations"
-    ] 
+    ]
 
     FloatColumnNames = [ # Float32
         "molecule_barcode_fraction_bases_above_30_mean",
@@ -202,7 +197,7 @@ def generate_col_attr(args):
 
         emptydrops_df = emptydrops_df.rename(columns=namemap)
 
-    # Confirm that the emptydrops table is a subset of the cell metadata table, fail if not
+        # Confirm that the emptydrops table is a subset of the cell metadata table, fail if not
         if not emptydrops_df.cell_id.isin(metrics_df.cell_id).all():
             logging.error(
                 "Not all emptydrops cells can be found in the metrics table."
@@ -215,12 +210,12 @@ def generate_col_attr(args):
         final_df = cellorder_df.merge(merged_df, on="cell_id", how="left")
 
         ColumnNames = IntColumnNames + ["emptydrops_Total"] + FloatColumnNames + \
-            [ "emptydrops_LogProb", "emptydrops_PValue", "emptydrops_FDR" ]
+                      [ "emptydrops_LogProb", "emptydrops_PValue", "emptydrops_FDR" ]
         BoolColumnNames = ["emptydrops_Limited", "emptydrops_IsCell"]
-       
+
     else:
         final_df = cellorder_df.merge(metrics_df, on="cell_id", how="left")
-        ColumnNames = IntColumnNames + FloatColumnNames 
+        ColumnNames = IntColumnNames + FloatColumnNames
         BoolColumnNames = []
 
     # Split the dataframe
@@ -238,7 +233,7 @@ def generate_col_attr(args):
                 final_df_bool[index, 0] = False
             else:
                 final_df_bool[index, 0] = np.nan
-    
+
             if row["emptydrops_IsCell"] == "TRUE":
                 final_df_bool[index, 1] = True
             elif row["emptydrops_IsCell"] == "FALSE":
@@ -259,14 +254,14 @@ def generate_col_attr(args):
         name = bool_field_names[i]
         data = final_df_bool[:, i]
         col_attrs[name] = data
-    
+
     # Create metadata tables and their headers for float
     float_field_names = list(final_df_non_boolean.columns)
 
     for i in range(len(float_field_names)):
         name = float_field_names[i]
         data = final_df_non_boolean[name].to_numpy()
-        col_attrs[name] = data 
+        col_attrs[name] = data
 
     if args.verbose:
         logging.info(
@@ -338,14 +333,14 @@ def create_loom_files(args):
 
 
     # generate a dictionary of row attributes
-    row_attrs =  generate_row_attr(args) 
-    
+    row_attrs =  generate_row_attr(args)
+
     # generate a dictionarty of column attributes
-    col_attrs =  generate_col_attr(args) 
+    col_attrs =  generate_col_attr(args)
 
     # add the expression count matrix data
     expr_sp_t = generate_matrix(args)
-    
+
     # add input_id to col_attrs
     col_attrs['input_id'] = np.repeat(args.input_id, expr_sp_t.shape[1])
 
@@ -467,7 +462,7 @@ def main():
         action="store_true",
         help="whether to output verbose debugging messages",
     )
-    
+
     parser.add_argument(
         "--expression_data_type",
         dest="expression_data_type",
