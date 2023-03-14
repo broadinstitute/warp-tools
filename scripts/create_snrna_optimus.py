@@ -196,16 +196,16 @@ def generate_col_attr(args):
     # Create metadata tables and their headers for bool
     for i in range(0, bool_field_names.shape[0]):
         name = bool_field_names[i]
-    data = final_df_bool[:, i]
-    col_attrs[name] = data
+        data = final_df_bool[:, i]
+        col_attrs[name] = data
 
     # Create metadata tables and their headers for float
     float_field_names = list(final_df_non_boolean.columns)
 
     for i in range(len(float_field_names)):
         name = float_field_names[i]
-    data = final_df_non_boolean[name].to_numpy()
-    col_attrs[name] = data
+        data = final_df_non_boolean[name].to_numpy()
+        col_attrs[name] = data
 
     if args.verbose:
         logging.info(

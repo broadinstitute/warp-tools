@@ -298,7 +298,7 @@ def create_loom_files(args):
     barcode_2 = np.load(args.cell_id_2)
     expr_sp_t, exon_sp_t = changeCoord(sp1,sp2,barcode_1,barcode_2)
 
-    # add input_id to col_attrs
+# add input_id to col_attrs
     col_attrs['input_id'] = np.repeat(args.input_id, expr_sp_t.shape[1])
 
     # generate global attributes
