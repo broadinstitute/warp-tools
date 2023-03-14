@@ -48,18 +48,22 @@ function main(){
         ;;
     esac
     done
-    if [ -v $TAG ]; 
+    if [ -z $1 ]; 
     then
         IMAGE_TAG="$TAG"
+        echo "Tag is set. Overriding default."
     else
+        echo "Tag is unset. Using default."
         IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TIMESTAMP"
     fi
 
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
 
     if [[ "$CACHING" == "ON" ]]; then
+        echo "Caching is on."
         docker build -t "$GCR_URL:$IMAGE_TAG" "$DIR"
     else
+        echo "Caching is off."
         docker build -t "$GCR_URL:$IMAGE_TAG" --no-cache "$DIR"
     fi
     docker push "$GCR_URL:$IMAGE_TAG"
