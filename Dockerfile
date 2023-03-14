@@ -4,22 +4,23 @@
 FROM --platform="linux/amd64" python:3.7.7
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.0" \
+  software="warp-tools  v.1.0.1" \
   description="A collection of tools for WARP pipelines."
 
+#separating run commands to utilize some caching - each run takes a significant amount of time when not utilizing caching
+#create workdir, update package manager, install prerequisite libraries, install python libraries
+RUN set -eux && \
+    mkdir -p /warptools && \
+    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev && \
+    pip install --upgrade pip && \
+    pip install loompy anndata numpy scipy h5py
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev
-RUN mkdir -p /sctools
+COPY . /warptools
+#build C/C++ code and add binaries to usr's bin
+RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /warptools/fastqpreprocessing/bin/* /usr/local/bin/
+RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
 
-COPY . /sctools
-
-RUN cd /sctools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /sctools/fastqpreprocessing/bin/* /usr/local/bin/
-
-RUN cd /sctools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /sctools/TagSort/bin/* /usr/local/bin/
-
-RUN pip install loompy anndata
-
-WORKDIR usr/local/bin/sctools
+WORKDIR /warptools
 
 # Set tini as default entrypoint
 # ENTRYPOINT ["/usr/bin/tini", "--"]
