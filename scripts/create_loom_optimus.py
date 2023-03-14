@@ -135,7 +135,7 @@ def generate_col_attr(args):
     if metrics_df.shape[0] == 0 or metrics_df.shape[1] == 0:
         logging.error("Cell metrics table is not valid")
         raise ValueError()
-    metrics_df = metrics_df.rename(columns={"barcode": "cell_id"})
+    metrics_df = metrics_df.rename(columns={"CellID": "cell_id"})
 
     add_emptydrops_results = args.add_emptydrops_results
     if add_emptydrops_results == 'yes':
@@ -325,7 +325,7 @@ def generate_matrix(args):
 def create_loom_files(args):
     """This function creates the loom file or folder structure in output_loom_path in format file_format,
        with input_id from the input folder analysis_output_path
-    
+
     Args:
         args (argparse.Namespace): input arguments for the run
     """
@@ -356,7 +356,7 @@ def create_loom_files(args):
     if args.input_name_metadata_field is not None:
         attrDict['input_name_metadata_field'] = args.input_name_metadata_field
     attrDict['pipeline_version'] = args.pipeline_version
-    #generate loom file 
+    #generate loom file
     loompy.create(args.output_loom_path, expr_sp_t, row_attrs, col_attrs, file_attrs=attrDict)
 
 def main():
