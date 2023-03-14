@@ -3,7 +3,7 @@
 set -e -x
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.0
+DOCKER_IMAGE_VERSION=1.0.1
 TIMESTAMP=$(date +"%s")
 DIR=$(cd "$(dirname "$0")" && pwd)
 TAG=$1
@@ -48,7 +48,7 @@ function main(){
         ;;
     esac
     done
-    if [ -v TAG ]; 
+    if [ -v $TAG ]; 
     then
         IMAGE_TAG="$TAG"
     else

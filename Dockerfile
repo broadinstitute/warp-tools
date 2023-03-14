@@ -1,22 +1,24 @@
 # Adding a platform tag to ensure that images built on ARM-based machines
 # (ex. M-series macs) won't cause issues with our automated PR test suite.
 # However, this is not relevant for automated builds in a CI/CD pipeline that is AMD-based.
-FROM --platform="linux/amd64" python:3.11
+FROM --platform="linux/amd64" python:3.7.7
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.0" \
+  software="warp-tools  v.1.0.1" \
   description="A collection of tools for WARP pipelines."
 
-COPY . /warptools
-
-RUN set -eux; \
-    pip install --upgrade pip; \
-    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev && \
+#separating run commands into two to utilize some caching
+#create workdir, update package manager, install prerequisite libraries, install python libraries
+RUN set -eux && \
     mkdir -p /warptools && \
-    cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /warptools/fastqpreprocessing/bin/* /usr/local/bin/ && \
-    cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/ && \
-    pip install loompy anndata \
-    pip install -r /warptools/requirements.txt
+    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev && \
+    pip install --upgrade pip && \
+    pip install loompy anndata numpy scipy h5py
+
+COPY . /warptools
+#build C/C++ code and add binaries to usr's bin
+RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /warptools/fastqpreprocessing/bin/* /usr/local/bin/
+RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
 
 WORKDIR /warptools
 
