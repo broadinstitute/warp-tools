@@ -48,10 +48,10 @@ function main(){
         ;;
     esac
     done
-    if [ -z $1 ]; 
+    if [ -n "$TAG" ]; 
     then
         IMAGE_TAG="$TAG"
-        echo "Tag is set. Overriding default."
+        echo "Tag is set to $TAG. Overriding default."
     else
         echo "Tag is unset. Using default."
         IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TIMESTAMP"
