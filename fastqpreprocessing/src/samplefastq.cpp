@@ -84,14 +84,43 @@ int main(int argc, char** argv)
              {
                if (sam->getStringTag("CB"))
                {
-                   // Assumed read structure of 8C18X6C9M1X with a fixed spacer sequence
+                   // Read structure can be 8C18X6C9M1X, 16C10M or 16C12M 
                    const char* barcode = sam->getString("CR").c_str();
                    const char* quality_score = sam->getString("CY").c_str();
-                   outfile_r1 << "@" << sam->getReadName() << "\n"
-                          << std::string_view(barcode, 8) << "CTTCAGCGTTCCCGAGAG" << std::string_view(barcode+8, 6) << sam->getString("UR") <<"T\n"
-                          << "+\n"
-                          << std::string_view(quality_score, 8)<<"FFFFFFFFFFFFFFFFFF" << std::string_view(quality_score+8, 6) << sam->getString("UY") <<"F"<< "\n";
-
+                  
+                   // Barcode 
+                   int barcode_index = 0;        
+                   outfile_r1 << "@" <<  sam->getReadName() << "\n";
+                   for (auto [tag, length] : g_parsed_read_structure)
+                   {
+                      if (tag == 'C')
+                      {
+                            outfile_r1 << std::string_view(barcode + barcode_index, length);
+                            barcode_index = length;
+                      }
+                      else if (tag == 'M')
+                            outfile_r1 << sam->getString("UR");
+                      else if (tag == 'X')
+                            outfile_r1 << std::string_view("CTTCAGCGTTCCCGAGAG", length);        
+                   } 
+                   outfile_r1 << "\n" << "+\n";
+                   
+                   // Quality 
+                   barcode_index = 0;
+                   for (auto [tag, length] : g_parsed_read_structure)
+                   {
+                      if (tag == 'C')
+                      {
+                            outfile_r1 << std::string_view(quality_score + barcode_index, length);
+                            barcode_index = length;
+                      }
+                      else if (tag == 'M')
+                            outfile_r1 << sam->getString("UY");
+                      else if (tag == 'X')
+                            outfile_r1 << std::string_view("FFFFFFFFFFFFFFFFFF", length);
+                   }       
+                   outfile_r1 << "\n";
+                 
                    outfile_r2 << "@" << sam->getReadName() << "\n"
                           << sam->getSequence() << "\n"
                           << "+\n"
