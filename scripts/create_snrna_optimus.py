@@ -146,7 +146,6 @@ def generate_col_attr(args):
         "perfect_molecule_barcodes",
         "reads_mapped_uniquely",
         "reads_mapped_multiple",
-        "duplicate_reads",
         "spliced_reads",
         "antisense_reads",
         "n_molecules",
