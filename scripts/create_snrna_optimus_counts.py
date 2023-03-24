@@ -281,7 +281,7 @@ def create_loom_files(args):
     Args:
         args (argparse.Namespace): input arguments for the run
     """
-    version = "1.0.0"
+    version = "1.0.1"
 
 
     # generate a dictionary of row attributes
