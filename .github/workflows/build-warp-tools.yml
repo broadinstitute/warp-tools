@@ -5,11 +5,18 @@ name: Warp Tools CI
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   push:
-    branches: [ "develop", "master" ]
+    branches: [ "develop", "master", "kp_github_actions_pd-2113" ]
+    paths-ignore:
+      - '**/README.md'
   pull_request:
     branches: [ "develop", "master" ]
+    paths-ignore:
+      - '**/README.md'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker Image Tag (default: dev)' 
 
 env:
   PROJECT_NAME: WARP Tools
@@ -17,6 +24,7 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io/broad-gotc-prod/warp-tools
+  TAG: ${{ github.event.inputs.image_tag || 'dev' }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -28,4 +36,4 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}:${TAG}
