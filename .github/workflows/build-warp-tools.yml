@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker Image Tag (default: dev)' 
+        description: 'Docker Image Tag (default: branch_name)' 
 
 env:
   PROJECT_NAME: WARP Tools
