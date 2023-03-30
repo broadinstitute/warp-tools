@@ -4,10 +4,11 @@ name: Warp Tools CI
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
-  push:
-    branches: [ "kp_github_actions_pd-2113" ]
-    paths-ignore:
-      - '**/README.md'
+  # Uncomment this block and add your branch name to test without creating a PR
+  #push:
+    #branches: [ "kp_github_actions_pd-2113" ] 
+    #paths-ignore:
+    #  - '**/README.md'
   pull_request:
     branches: [ "develop", "master" ]
     paths-ignore:
