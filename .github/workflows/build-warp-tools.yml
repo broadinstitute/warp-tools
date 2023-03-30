@@ -45,7 +45,7 @@ jobs:
       with:
         registry: us.gcr.io
         username: _json_key
-        password: ${{ secrets.GCR_JSON_KEY }}
+        password: ${{ secrets.GCR_CI_KEY }}
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}:${TAG}"
