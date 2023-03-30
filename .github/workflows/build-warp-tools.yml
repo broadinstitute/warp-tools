@@ -24,7 +24,8 @@ env:
   # Github repo name
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
-  DOCKER_REGISTRY: us.gcr.io/broad-gotc-prod/warp-tools
+  DOCKER_REGISTRY: us.gcr.io
+  GCR_PATH: broad-gotc-prod/warp-tools
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -37,13 +38,13 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}:${TAG}
+      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
     # Log into the Google Docker registry
     - id: 'Auth'
       name: Login to GCR
       uses: docker/login-action@v2
       with:
-        registry: us.gcr.io
+        registry: ${{ env.DOCKER_REGISTRY }}
         username: _json_key
         password: ${{ secrets.GCR_CI_KEY }}
     # Push the image to the Google Docker registry
