@@ -9,7 +9,7 @@ void crash(std::string msg);
 struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
 {
   // I1, R1 and R2 files name
-  std::vector<std::string> I1s, R1s, R2s;
+  std::vector<std::string> I1s, R1s, R2s, R3s;
 
   // Bead Barcode list
   std::string white_list_file;
@@ -28,7 +28,7 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
 struct InputOptionsFastqProcess
 {
   // I1, R1 and R2 files name
-  std::vector<std::string> I1s, R1s, R2s;
+  std::vector<std::string> I1s, R1s, R2s, R3s;
 
   // Barcode white list file
   std::string white_list_file;
