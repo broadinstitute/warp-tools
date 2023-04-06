@@ -384,6 +384,8 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
       printFileInfo(options.R1s, string("R1"));
     if (!options.R2s.empty())
       printFileInfo(options.R2s, string("R2"));
+    if (!options.R3s.empty())
+      printFileInfo(options.R3s, string("R3"));  
   }
 
   return options;
