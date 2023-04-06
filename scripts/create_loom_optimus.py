@@ -73,6 +73,7 @@ def  generate_row_attr(args):
 
     # ignore the first line with the metric names in text
     ncols = 0
+    print(ncols)
     gene_id_to_metric_values = {}
     for row in gene_metrics:
         # only consider genes that are in the count matrix
