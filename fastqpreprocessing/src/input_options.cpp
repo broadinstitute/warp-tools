@@ -51,9 +51,10 @@ void printFileInfo(std::vector<string> const& fastqs,
 
 int64_t get_num_blocks(std::vector<string> const& I1s,
                      std::vector<string> const& R1s,
-                     std::vector<string> const& R2s, double bam_size)
+                     std::vector<string> const& R2s, 
+                     std::vector<string> const& R3s, double bam_size)
 {
-  assert(R1s.size() == R2s.size());
+  assert(R1s.size() == R2s.size() && R1s.size() == R3s.size());
   double tot_size = 0;
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
@@ -64,6 +65,7 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
     std::cout << "file " << R1s[i] << " : " << filesize(R1s[i]) << " bytes" << std::endl;
     tot_size += filesize(R1s[i]);
     tot_size += filesize(R2s[i]);
+    tot_size += filesize(R3s[i]);
   }
 
   const int GiB = 1024*1024*1024;
@@ -72,12 +74,12 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
 
 int64_t get_num_blocks(InputOptionsFastqProcess const& options)
 {
-  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.bam_size);
+  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.R3s, options.bam_size);
 }
 
 int64_t get_num_blocks(INPUT_OPTIONS_FASTQ_READ_STRUCTURE const& options)
 {
-  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.bam_size);
+  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.R3s, options.bam_size);
 }
 
 InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
