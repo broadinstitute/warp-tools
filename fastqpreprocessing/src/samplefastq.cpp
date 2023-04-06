@@ -21,12 +21,12 @@ std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_str
 std::vector<std::pair<char, int>> g_parsed_read_structure;
 
 void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
-                                    FastQFile* fastQFileR1, FastQFile* fastQFileR2,
+                                    FastQFile* fastQFileCB, FastQFile* fastQFileR2,
                                     bool has_I1_file_list)
 {
   // check the sequence names matching
-  std::string a = std::string(fastQFileR1->myRawSequence.c_str());
-  std::string b = std::string(fastQFileR1->myQualityString.c_str());
+  std::string a = std::string(fastQFileCB->myRawSequence.c_str());
+  std::string b = std::string(fastQFileCB->myQualityString.c_str());
   // extract the raw barcode and UMI 8C18X6C9M1X and raw barcode and UMI quality string
 
   std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
@@ -48,12 +48,12 @@ void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
     }
     cur_ind += length;
   }
-  fillSamRecordCommon(sam, fastQFileI1, fastQFileR1, fastQFileR2, has_I1_file_list,
+  fillSamRecordCommon(sam, fastQFileI1, fastQFileCB, fastQFileR2, has_I1_file_list,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);
 }
 
 std::string slideseqBarcodeGetter(SamRecord* sam, FastQFile* fastQFileI1,
-                                  FastQFile* fastQFileR1, FastQFile* fastQFileR2,
+                                  FastQFile* fastQFileCB, FastQFile* fastQFileR2,
                                   bool has_I1_file_list)
 {
   return std::string(sam->getString("CR").c_str());
@@ -69,18 +69,18 @@ int main(int argc, char** argv)
 {
   INPUT_OPTIONS_FASTQ_READ_STRUCTURE options = readOptionsFastqSlideseq(argc, argv);
 
-  std::ofstream outfile_r1("sampled_down.R1");
-  if (!outfile_r1)
-    crash("Failed to open output file sampled_down.R1");
+  std::ofstream outfile_cb("sampled_down.CB");
+  if (!outfile_cb)
+    crash("Failed to open output file sampled_down.CB");
   std::ofstream outfile_r2("sampled_down.R2");
   if (!outfile_r2)
     crash("Failed to open output file sampled_down.R2");
 
   g_parsed_read_structure = parseReadStructure(options.read_structure);
   mainCommon(options.white_list_file, /*num_writer_threads=*/1, options.output_format,
-             options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id,
+             options.I1s, options.CBs, options.R2s, options.R3s, options.sample_id,
              fillSamRecordWithReadStructure, slideseqBarcodeGetter,
-             [&outfile_r1, &outfile_r2](WriteQueue* ignored1, SamRecord* sam, int reader_thread_index)
+             [&outfile_cb, &outfile_r2](WriteQueue* ignored1, SamRecord* sam, int reader_thread_index)
              {
                if (sam->getStringTag("CB"))
                {
@@ -90,20 +90,20 @@ int main(int argc, char** argv)
                   
                    // Barcode 
                    int barcode_index = 0;        
-                   outfile_r1 << "@" <<  sam->getReadName() << "\n";
+                   outfile_cb << "@" <<  sam->getReadName() << "\n";
                    for (auto [tag, length] : g_parsed_read_structure)
                    {
                       if (tag == 'C')
                       {
-                            outfile_r1 << std::string_view(barcode + barcode_index, length);
+                            outfile_cb << std::string_view(barcode + barcode_index, length);
                             barcode_index = length;
                       }
                       else if (tag == 'M')
-                            outfile_r1 << sam->getString("UR");
+                            outfile_cb << sam->getString("UR");
                       else if (tag == 'X')
-                            outfile_r1 << std::string_view("CTTCAGCGTTCCCGAGAG", length);        
+                            outfile_cb << std::string_view("CTTCAGCGTTCCCGAGAG", length);        
                    } 
-                   outfile_r1 << "\n" << "+\n";
+                   outfile_cb << "\n" << "+\n";
                    
                    // Quality 
                    barcode_index = 0;
@@ -111,15 +111,15 @@ int main(int argc, char** argv)
                    {
                       if (tag == 'C')
                       {
-                            outfile_r1 << std::string_view(quality_score + barcode_index, length);
+                            outfile_cb << std::string_view(quality_score + barcode_index, length);
                             barcode_index = length;
                       }
                       else if (tag == 'M')
-                            outfile_r1 << sam->getString("UY");
+                            outfile_cb << sam->getString("UY");
                       else if (tag == 'X')
-                            outfile_r1 << std::string_view("FFFFFFFFFFFFFFFFFF", length);
+                            outfile_cb << std::string_view("FFFFFFFFFFFFFFFFFF", length);
                    }       
-                   outfile_r1 << "\n";
+                   outfile_cb << "\n";
                  
                    outfile_r2 << "@" << sam->getReadName() << "\n"
                           << sam->getSequence() << "\n"

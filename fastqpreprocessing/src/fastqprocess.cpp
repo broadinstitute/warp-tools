@@ -5,12 +5,12 @@ unsigned int g_barcode_length;
 unsigned int g_umi_length;
 
 void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
-                   FastQFile* fastQFileR1, FastQFile* fastQFileR2,
+                   FastQFile* fastQFileCB, FastQFile* fastQFileR2,
                    bool has_I1_file_list)
 {
   // check the sequence names matching
-  std::string a = std::string(fastQFileR1->myRawSequence.c_str());
-  std::string b = std::string(fastQFileR1->myQualityString.c_str());
+  std::string a = std::string(fastQFileCB->myRawSequence.c_str());
+  std::string b = std::string(fastQFileCB->myQualityString.c_str());
 
   // extract the raw barcode and UMI
   std::string barcode_seq = a.substr(0, g_barcode_length);
@@ -20,15 +20,15 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   std::string barcode_quality = b.substr(0, g_barcode_length);
   std::string umi_quality = b.substr(g_barcode_length, g_umi_length);
 
-  fillSamRecordCommon(samRecord, fastQFileI1, fastQFileR1, fastQFileR2, has_I1_file_list,
+  fillSamRecordCommon(samRecord, fastQFileI1, fastQFileCB, fastQFileR2, has_I1_file_list,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);
 }
 
 std::string barcodeGetter(SamRecord* samRecord, FastQFile* fastQFileI1,
-                          FastQFile* fastQFileR1, FastQFile* fastQFileR2,
+                          FastQFile* fastQFileCB, FastQFile* fastQFileR2,
                           bool has_I1_file_list)
 {
-  return std::string(fastQFileR1->myRawSequence.c_str()).substr(0, g_barcode_length);
+  return std::string(fastQFileCB->myRawSequence.c_str()).substr(0, g_barcode_length);
 }
 
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   g_umi_length = options.umi_length;
 
   mainCommon(options.white_list_file, num_writer_threads, options.output_format,
-             options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id,
+             options.I1s, options.CBs, options.R2s, options.R3s, options.sample_id,
              fillSamRecord, barcodeGetter, outputHandler);
   return 0;
 }
