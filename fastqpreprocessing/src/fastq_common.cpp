@@ -259,7 +259,8 @@ int32_t correctBarcodeToWhitelist(
 
 // Returns true if successfully read a sequence.
 bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
-                   FastQFile& fastQFileR1, FastQFile& fastQFileR2)
+                   FastQFile& fastQFileR1, FastQFile& fastQFileR2,
+                   FastQFile& fastQFileR3, bool has_R3_file_list)
 {
   return (!has_I1_file_list ||
       (
@@ -268,7 +269,13 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
       )
   )
   && fastQFileR1.readFastQSequence() == FastQStatus::FASTQ_SUCCESS
-  && fastQFileR2.readFastQSequence() == FastQStatus::FASTQ_SUCCESS;
+  && fastQFileR2.readFastQSequence() == FastQStatus::FASTQ_SUCCESS
+  && (!has_R3_file_list || 
+        (
+          has_R3_file_list &&
+          fastQFileR3.readFastQSequence() == FastQStatus::FASTQ_SUCCESS
+        )
+  );
 }
 
 void fastQFileReaderThread(
