@@ -20,12 +20,12 @@ std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_str
 std::vector<std::pair<char, int>> g_parsed_read_structure;
 
 void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
-                                    FastQFile* fastQFileCB, FastQFile* fastQFileR2,
+                                    FastQFile* fastQFileR1, FastQFile* fastQFileR2,
                                     bool has_I1_file_list)
 {
   // check the sequence names matching
-  std::string a = std::string(fastQFileCB->myRawSequence.c_str());
-  std::string b = std::string(fastQFileCB->myQualityString.c_str());
+  std::string a = std::string(fastQFileR1->myRawSequence.c_str());
+  std::string b = std::string(fastQFileR1->myQualityString.c_str());
   // extract the raw barcode and UMI 8C18X6C9M1X and raw barcode and UMI quality string
 
   std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
@@ -47,12 +47,12 @@ void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
     }
     cur_ind += length;
   }
-  fillSamRecordCommon(sam, fastQFileI1, fastQFileCB, fastQFileR2, has_I1_file_list,
+  fillSamRecordCommon(sam, fastQFileI1, fastQFileR1, fastQFileR2, has_I1_file_list,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);
 }
 
 std::string slideseqBarcodeGetter(SamRecord* sam, FastQFile* fastQFileI1,
-                                  FastQFile* fastQFileCB, FastQFile* fastQFileR2,
+                                  FastQFile* fastQFileR1, FastQFile* fastQFileR2,
                                   bool has_I1_file_list)
 {
   return std::string(sam->getString("CR").c_str());
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
   g_parsed_read_structure = parseReadStructure(options.read_structure);
 
   mainCommon(options.white_list_file, num_writer_threads, options.output_format,
-             options.I1s, options.CBs, options.R2s, options.R3s, options.sample_id,
+             options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id,
              fillSamRecordWithReadStructure, slideseqBarcodeGetter, outputHandler);
   return 0;
 }
