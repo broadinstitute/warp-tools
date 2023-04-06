@@ -216,8 +216,9 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
 // Returns the index of the bamfile bucket / writer thread where sam_record
 // should be sent.
 int32_t correctBarcodeToWhitelist(
-    const std::string& barcode, SamRecord* sam_record, const WhiteListCorrector* corrector,
-    int* n_barcode_corrected, int* n_barcode_correct, int* n_barcode_errors, int num_writer_threads)
+    const std::string& barcode, SamRecord* sam_record, SamRecord* sam_record_atac, bool has_R3_file_list,
+    const WhiteListCorrector* corrector, int* n_barcode_corrected, int* n_barcode_correct, 
+    int* n_barcode_errors, int num_writer_threads)
 {
   std::string correct_barcode;
   // bucket barcode is used to pick the target bam file
@@ -247,6 +248,8 @@ int32_t correctBarcodeToWhitelist(
 
     // corrected barcode should be added to the samrecord
     sam_record->addTag("CB", 'Z', correct_barcode.c_str());
+    if (has_R3_file_list)
+      sam_record_atac->addTag("CB", 'Z', correct_barcode.c_str()); 
   }
   else     // not possible to correct the raw barcode
   {
