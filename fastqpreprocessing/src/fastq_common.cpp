@@ -361,7 +361,8 @@ void fastQFileReaderThread(
 
 void mainCommon(
     std::string white_list_file, int num_writer_threads, std::string output_format,
-    std::vector<std::string> I1s, std::vector<std::string> R1s, std::vector<std::string> R2s,
+    std::vector<std::string> I1s, std::vector<std::string> R1s, 
+    std::vector<std::string> R2s, std::vector<std::string> R3s,
     std::string sample_id,
     std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> sam_record_filler,
     std::function <std::string(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> barcode_getter,
@@ -397,7 +398,8 @@ void mainCommon(
     assert(I1s.empty() || I1s.size() == R1s.size());
     // if there is no I1 file then send an empty file name
     readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
-                         R2s[i].c_str(), &corrector, sam_record_filler, barcode_getter, output_handler);
+                         R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), &corrector, 
+                         sam_record_filler, barcode_getter, output_handler);
   }
 
   for (auto& reader : readers)
