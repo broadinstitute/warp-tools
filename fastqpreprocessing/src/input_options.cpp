@@ -102,6 +102,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     {"I1",                required_argument, 0, 'I'},
     {"R1",                required_argument, 0, 'R'},
     {"R2",                required_argument, 0, 'r'},
+    {"R3",                required_argument, 0, 'A'},
     {"white-list",        required_argument, 0, 'w'},
     {"output-format",     required_argument, 0, 'F'},
     {0, 0, 0, 0}
@@ -118,6 +119,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     "I1 [optional]",
     "R1 [required]",
     "R2 [required]",
+    "R3 [optional -- needed for ATAC]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -167,6 +169,9 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     case 'r':
       options.R2s.push_back(string(optarg));
       break;
+    case 'A':
+      options.R3s.push_back(string(optarg));
+      break;
     case 'w':
       options.white_list_file = string(optarg);
       break;
@@ -204,6 +209,9 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   if (options.I1s.size() != options.R1s.size() && !options.I1s.empty())
     crash("ERROR: Must provide as many I1 input files as R1 input files, or else no I1 input files at all.");
 
+  if (options.R3s.size() != options.R1s.size() && !options.R3s.empty())
+    crash("ERROR: Must provide as many R3 input files as R1 input files.");
+
   if (options.bam_size <= 0)
     crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
 
@@ -227,6 +235,8 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       printFileInfo(options.R1s, string("R1"));
     if (!options.R2s.empty())
       printFileInfo(options.R2s, string("R2"));
+    if (!options.R3s.empty())
+      printFileInfo(options.R3s, string("R3"));  
   }
 
   return options;
@@ -251,6 +261,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     {"I1",                required_argument, 0, 'I'},
     {"R1",                required_argument, 0, 'R'},
     {"R2",                required_argument, 0, 'r'},
+    {"R3",                required_argument, 0, 'A'},
     {"white-list",        required_argument, 0, 'w'},
     {"output-format",     required_argument, 0, 'F'},
     {0, 0, 0, 0}
@@ -266,6 +277,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     "I1 [optional]",
     "R1 [required]",
     "R2 [required]",
+    "R3 [optional -- needed for ATAC]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -311,6 +323,9 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     case 'r':
       options.R2s.push_back(string(optarg));
       break;
+    case 'A':
+      options.R3s.push_back(string(optarg));
+      break;
     case 'w':
       options.white_list_file = string(optarg);
       break;
@@ -347,6 +362,9 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
 
   if (options.I1s.size() != options.R1s.size() && !options.I1s.empty())
     crash("ERROR: Must provide as many I1 input files as R1 input files, or else no I1 input files at all.");
+
+  if (options.R3s.size() != options.R1s.size() && !options.R3s.empty())
+    crash("ERROR: Must provide as many R3 input files as R1 input files.");
 
   if (options.bam_size <= 0)
     crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
