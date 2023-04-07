@@ -54,7 +54,11 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
                      std::vector<string> const& R2s, 
                      std::vector<string> const& R3s, double bam_size)
 {
-  assert(R1s.size() == R2s.size() && R1s.size() == R3s.size());
+  assert(R1s.size() == R2s.size());
+
+  if (!R3s.empty())
+    assert(R1s.size() == R3s.size());
+
   double tot_size = 0;
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
@@ -65,7 +69,9 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
     std::cout << "file " << R1s[i] << " : " << filesize(R1s[i]) << " bytes" << std::endl;
     tot_size += filesize(R1s[i]);
     tot_size += filesize(R2s[i]);
-    tot_size += filesize(R3s[i]);
+    
+    if (!R3s.empty())
+      tot_size += filesize(R3s[i]);
   }
 
   const int GiB = 1024*1024*1024;
