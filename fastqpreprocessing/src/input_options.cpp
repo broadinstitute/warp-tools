@@ -230,7 +230,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   if (options.barcode_length <= 0)
     crash("ERROR: Barcode length must be a positive integer");
 
-  if (options.umi_length <= 0)
+  if (options.umi_length < 0)
     crash("ERROR: UMI length must be a positive integer");
 
   if (verbose_flag)
