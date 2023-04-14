@@ -424,12 +424,13 @@ void fastQFileReaderThread(
 }
 
 void mainCommon(
-    std::string white_list_file, int num_writer_threads, std::string output_format,
+    std::string white_list_file, std::string barcode_orientation,
+    int num_writer_threads, std::string output_format,
     std::vector<std::string> I1s, std::vector<std::string> R1s, 
     std::vector<std::string> R2s, std::vector<std::string> R3s,
     std::string sample_id,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> sam_record_filler,
-    std::function <std::string(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> barcode_getter,
+    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string, std::string)> sam_record_filler,
+    std::function <std::string(SamRecord*, FastQFile*, std::string)> barcode_getter,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   std::cout << "reading whitelist file " << white_list_file << "...";
@@ -450,7 +451,10 @@ void mainCommon(
       writers.emplace_back(bamWriterThread, i, sample_id);
   else if (output_format == "FASTQ")
     for (int i = 0; i < num_writer_threads; i++)
-      writers.emplace_back(fastqWriterThread, i);
+      if (R3s.empty())
+          writers.emplace_back(fastqWriterThread, i, false);
+      else
+          writers.emplace_back(fastqWriterThread, i, true);
   else
     crash("ERROR: Output-format must be either FASTQ or BAM");
 
@@ -460,9 +464,9 @@ void mainCommon(
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
     assert(I1s.empty() || I1s.size() == R1s.size());
-    // if there is no I1 file then send an empty file name
+    // if there is no I1/R3 file then send an empty file name
     readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
-                         R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), &corrector, 
+                         R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), &corrector, barcode_orientation,
                          sam_record_filler, barcode_getter, output_handler);
   }
 
