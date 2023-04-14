@@ -120,6 +120,20 @@ void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam)
          << sam->getQuality() << "\n";
 }
 
+void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_out, 
+                          SamRecord* sam)
+{
+  //R1
+  r2_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
+         << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+  //R2
+  r1_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
+         << sam->getQuality() << "\n";
+  //R3
+  r3_out << "@" << sam->getReadName() << "\n" << sam->getString("RS").c_str() << "\n+\n"
+         << sam->getString("RQ").c_str() <<  "\n";
+}
+
 void fastqWriterThread(int write_thread_index)
 {
   std::string r1_output_fname = "fastq_R1_" + std::to_string(write_thread_index) + ".fastq.gz";
