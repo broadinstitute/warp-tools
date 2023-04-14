@@ -55,11 +55,55 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);                
 }
 
-std::string barcodeGetter(SamRecord* samRecord, FastQFile* fastQFileI1,
-                          FastQFile* fastQFileR1, FastQFile* fastQFileR2,
-                          bool has_I1_file_list)
+std::string reverseComplement(std::string sequence)
 {
-  return std::string(fastQFileR1->myRawSequence.c_str()).substr(0, g_barcode_length);
+  // get reverse complement of dna sequence 
+  reverse(sequence.begin(), sequence.end());
+  for (std::size_t i = 0; i < sequence.length(); ++i){
+      switch (sequence[i]){
+      case 'A':
+        sequence[i] = 'T';
+        break;    
+      case 'C':
+        sequence[i] = 'G';
+        break;
+      case 'G':
+        sequence[i] = 'C';
+        break;
+      case 'T':
+        sequence[i] = 'A';
+        break;
+        }
+    }
+  return sequence;
+}
+
+std::string barcodeGetter(SamRecord* sam, FastQFile* fastQFileR1, std::string orientation)
+{
+
+  std::vector<std::string> barcode_lists; 
+  std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
+  std::string barcode = "";
+
+  // First 16bp of original sequence
+  if (strcmp(orientation.c_str(), "FIRST_BP") == 0)
+      barcode = sequence.substr(0, g_barcode_length);
+  // Last 16bp of original sequence  
+  else if (strcmp(orientation.c_str(), "LAST_BP") == 0)
+      barcode = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
+  // First 16bp of reverse complement sequence
+  else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
+      barcode = reverseComplement(sequence).substr(0, g_barcode_length);
+  // Last 16bp of reverse complement sequence
+  else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
+  {     
+      std::string reverse_complement = reverseComplement(sequence);
+      barcode = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
+  }
+  else 
+      crash(std::string("Incorrect barcode orientation format.\n"));
+  
+  return barcode;   
 }
 
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
