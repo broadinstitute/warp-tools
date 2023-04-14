@@ -14,6 +14,9 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
   // Bead Barcode list
   std::string white_list_file;
 
+   // Barcode orientation 
+  std::string barcode_orientation = "FIRST_BP";
+
   std::string output_format;
 
   // Bam file size to split by (in GB)
@@ -32,6 +35,9 @@ struct InputOptionsFastqProcess
 
   // Barcode white list file
   std::string white_list_file;
+
+  // Barcode orientation 
+  std::string barcode_orientation = "FIRST_BP";
 
   std::string output_format;
 

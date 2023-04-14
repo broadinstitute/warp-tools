@@ -98,19 +98,20 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   static struct option long_options[] =
   {
     /* These options set a flag. */
-    {"verbose",           no_argument,       0, 'v'},
+    {"verbose",            no_argument,       0, 'v'},
     /* These options don’t set a flag.
        We distinguish them by their indices. */
-    {"barcode-length",    required_argument, 0, 'b'},
-    {"umi-length",        required_argument, 0, 'u'},
-    {"bam-size",          required_argument, 0, 'B'},
-    {"sample-id",         required_argument, 0, 's'},
-    {"I1",                required_argument, 0, 'I'},
-    {"R1",                required_argument, 0, 'R'},
-    {"R2",                required_argument, 0, 'r'},
-    {"R3",                required_argument, 0, 'A'},
-    {"white-list",        required_argument, 0, 'w'},
-    {"output-format",     required_argument, 0, 'F'},
+    {"barcode-length",      required_argument, 0, 'b'},
+    {"umi-length",          required_argument, 0, 'u'},
+    {"bam-size",            required_argument, 0, 'B'},
+    {"sample-id",           required_argument, 0, 's'},
+    {"I1",                  required_argument, 0, 'I'},
+    {"R1",                  required_argument, 0, 'R'},
+    {"R2",                  required_argument, 0, 'r'},
+    {"R3",                  required_argument, 0, 'A'},
+    {"barcode-orientation", required_argument, 0, 'O'},
+    {"white-list",          required_argument, 0, 'w'},
+    {"output-format",       required_argument, 0, 'F'},
     {0, 0, 0, 0}
   };
 
@@ -126,6 +127,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     "R1 [required -- File that contains the barcodes. This corresponds to R1 for v2/v3/multiome GEX/slideseq and R2 for scATAC.]",
     "R2 [required -- File that contains the reads. This corresponds to R2 for v2/v3/multiome GEX/slideseq. However, it corresponds to R1 in scATAC.]",
     "R3 [optional -- This file is needed for scATAC and corresponds to R2.]",
+    "barcode-orientation [optional: default FIRST_BP. Other options include LAST_BP, FIRST_BP_RC or LAST_BP_RC.]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -177,6 +179,9 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       break;
     case 'A':
       options.R3s.push_back(string(optarg));
+      break;
+    case 'O':
+      options.barcode_orientation = string(optarg);
       break;
     case 'w':
       options.white_list_file = string(optarg);
@@ -258,18 +263,19 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
   static struct option long_options[] =
   {
     /* These options set a flag. */
-    {"verbose",           no_argument,       0, 'v'},
+    {"verbose",             no_argument,       0, 'v'},
     /* These options don’t set a flag.
        We distinguish them by their indices. */
-    {"bam-size",          required_argument, 0, 'B'},
-    {"read-structure",    required_argument, 0, 'S'},
-    {"sample-id",         required_argument, 0, 's'},
-    {"I1",                required_argument, 0, 'I'},
-    {"R1",                required_argument, 0, 'R'},
-    {"R2",                required_argument, 0, 'r'},
-    {"R3",                required_argument, 0, 'A'},
-    {"white-list",        required_argument, 0, 'w'},
-    {"output-format",     required_argument, 0, 'F'},
+    {"bam-size",            required_argument, 0, 'B'},
+    {"read-structure",      required_argument, 0, 'S'},
+    {"sample-id",           required_argument, 0, 's'},
+    {"I1",                  required_argument, 0, 'I'},
+    {"R1",                  required_argument, 0, 'R'},
+    {"R2",                  required_argument, 0, 'r'},
+    {"R3",                  required_argument, 0, 'A'},
+    {"barcode-orientation", required_argument, 0, 'O'},
+    {"white-list",          required_argument, 0, 'w'},
+    {"output-format",       required_argument, 0, 'F'},
     {0, 0, 0, 0}
   };
 
@@ -284,6 +290,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     "R1 [required -- File that contains the barcodes. This corresponds to R1 for v2/v3/multiome GEX/slideseq and R2 for scATAC.]",
     "R2 [required -- File that contains the reads. This corresponds to R2 for v2/v3/multiome GEX/slideseq. However, it corresponds to R1 in scATAC.]",
     "R3 [optional -- This file is needed for scATAC and corresponds to R2.]", 
+    "barcode-orientation [optional: default FIRST_BP. Other options include LAST_BP, FIRST_BP_RC or LAST_BP_RC.]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -331,6 +338,9 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
       break;
     case 'A':
       options.R3s.push_back(string(optarg));
+      break;
+    case 'O':
+      options.barcode_orientation = string(optarg);
       break;
     case 'w':
       options.white_list_file = string(optarg);
