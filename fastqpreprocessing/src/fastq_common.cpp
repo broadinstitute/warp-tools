@@ -315,9 +315,9 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
 
 void fastQFileReaderThread(
     int reader_thread_index, std::string filenameI1, String filenameR1,
-    String filenameR2, std::string filenameR3, const WhiteListCorrector* corrector,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> sam_record_filler,
-    std::function <std::string(SamRecord*, FastQFile*, FastQFile*, FastQFile*, bool)> barcode_getter,
+    String filenameR2, std::string filenameR3, const WhiteListCorrector* corrector, std::string barcode_orientation,
+    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string, std::string)> sam_record_filler,
+    std::function <std::string(SamRecord*, FastQFile*, std::string)> barcode_getter,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   /// setting the shortest sequence allowed to be read
@@ -377,18 +377,12 @@ void fastQFileReaderThread(
 
       SamRecord* samrec = g_read_arenas[reader_thread_index]->acquireSamRecordMemory();
 
+      // get barcode 
+      std::string barcode = barcode_getter(samrec, &fastQFileR1, barcode_orientation);
+
       // prepare the samrecord with the sequence, barcode, UMI, and their quality sequences
-      sam_record_filler(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, has_I1_file_list);
-
-      // prepare samrecord for the 3rd atacseq fastq file. if not there, it is set to null
-      SamRecord* samrec_atac = NULL;
-      if (has_R3_file_list)
-      {
-        SamRecord* samrec_atac = g_read_arenas[reader_thread_index]->acquireSamRecordMemory();
-        sam_record_filler(samrec_atac, &fastQFileI1, &fastQFileR1, &fastQFileR3, has_I1_file_list);
-      }
-
-      std::string barcode = barcode_getter(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, has_I1_file_list);
+      sam_record_filler(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, &fastQFileR3, has_I1_file_list,
+                        has_R3_file_list, barcode_orientation, barcode);                   
 
       // bucket barcode is used to pick the target bam file
       // This is done because in the case of incorrigible barcodes
@@ -397,12 +391,10 @@ void fastQFileReaderThread(
       // sequences into one particular. Incorregible barcodes are simply
       // added withouth the CB tag
       int32_t bam_bucket = correctBarcodeToWhitelist(
-          barcode, samrec, samrec_atac, has_R3_file_list, corrector, 
-          &n_barcode_corrected, &n_barcode_correct, &n_barcode_errors, g_write_queues.size());
+          barcode, samrec, corrector, &n_barcode_corrected, 
+          &n_barcode_correct, &n_barcode_errors, g_write_queues.size());
 
       output_handler(g_write_queues[bam_bucket].get(), samrec, reader_thread_index);
-      if (has_R3_file_list)
-        output_handler(g_write_queues[bam_bucket].get(), samrec_atac, reader_thread_index);
 
       if (total_reads % 10000000 == 0)
       {
