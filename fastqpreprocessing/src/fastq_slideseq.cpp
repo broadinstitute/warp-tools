@@ -19,9 +19,10 @@ std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_str
 
 std::vector<std::pair<char, int>> g_parsed_read_structure;
 
-void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
-                                    FastQFile* fastQFileR1, FastQFile* fastQFileR2,
-                                    bool has_I1_file_list)
+void fillSamRecordWithReadStructure(SamRecord* samRecord, FastQFile* fastQFileI1,
+                                    FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
+                                    bool has_I1_file_list, bool has_R3_file_list,
+                                    std::string orientation, std::string barcode_seq) 
 {
   // check the sequence names matching
   std::string a = std::string(fastQFileR1->myRawSequence.c_str());
@@ -47,13 +48,13 @@ void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
     }
     cur_ind += length;
   }
-  fillSamRecordCommon(sam, fastQFileI1, fastQFileR1, fastQFileR2, has_I1_file_list,
-                      barcode_seq, barcode_quality, umi_seq, umi_quality);
+
+  fillSamRecordCommon(samRecord, fastQFileI1, fastQFileR1, fastQFileR2, 
+                      fastQFileR3, has_I1_file_list, has_R3_file_list,
+                      barcode_seq, barcode_quality, umi_seq, umi_quality); 
 }
 
-std::string slideseqBarcodeGetter(SamRecord* sam, FastQFile* fastQFileI1,
-                                  FastQFile* fastQFileR1, FastQFile* fastQFileR2,
-                                  bool has_I1_file_list)
+std::string slideseqBarcodeGetter(SamRecord* sam, FastQFile* fastQFileR1, std::string orientation)
 {
   return std::string(sam->getString("CR").c_str());
 }
@@ -71,8 +72,9 @@ int main(int argc, char** argv)
 
   g_parsed_read_structure = parseReadStructure(options.read_structure);
 
-  mainCommon(options.white_list_file, num_writer_threads, options.output_format,
+  mainCommon(options.white_list_file, options.barcode_orientation, num_writer_threads, options.output_format,
              options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id,
              fillSamRecordWithReadStructure, slideseqBarcodeGetter, outputHandler);
+
   return 0;
 }
