@@ -134,7 +134,7 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
          << sam->getString("RQ").c_str() <<  "\n";
 }
 
-void fastqWriterThread(int write_thread_index)
+void fastqWriterThread(int write_thread_index, bool is_atac)
 {
   std::string r1_output_fname = "fastq_R1_" + std::to_string(write_thread_index) + ".fastq.gz";
   ogzstream r1_out(r1_output_fname.c_str());
@@ -146,19 +146,34 @@ void fastqWriterThread(int write_thread_index)
   if (!r2_out)
     crash("ERROR: Failed to open R2 fastq file " + r2_output_fname + " for writing");
 
+  ogzstream r3_out("");
+  if (is_atac)
+  {
+    std::string r3_output_fname = "fastq_R3_" + std::to_string(write_thread_index) + ".fastq.gz";
+    ogzstream r3_out(r3_output_fname.c_str());
+    if (!r3_out)
+      printf("ERROR: Failed to open R3 fastq file %s for writing.\n", r3_output_fname.c_str());   
+  }
+
   while (true)
   {
     auto [sam, source_reader_index] = g_write_queues[write_thread_index]->dequeueWrite();
     if (source_reader_index == WriteQueue::kShutdown)
       break;
 
-    writeFastqRecord(r1_out, r2_out, sam);
+    if (is_atac)
+      writeFastqRecordATAC(r1_out, r2_out, r3_out, sam);    
+    else
+      writeFastqRecord(r1_out, r2_out, sam);
+
     g_read_arenas[source_reader_index]->releaseSamRecordMemory(sam);
   }
 
   // close the fastq files
   r1_out.close();
   r2_out.close();
+  if (is_atac)
+    r3_out.close();
 }
 
 void bamWriterThread(int write_thread_index, std::string sample_id)
