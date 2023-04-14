@@ -213,8 +213,8 @@ void bamWriterThread(int write_thread_index, std::string sample_id)
 }
 
 void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
-                         FastQFile* fastQFileR1, FastQFile* fastQFileR2,
-                         bool has_I1_file_list,
+                         FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
+                         bool has_I1_file_list, bool has_R3_file_list,
                          std::string const& barcode_seq, std::string const& barcode_quality,
                          std::string const& umi_seq, std::string const& umi_quality)
 {
@@ -238,6 +238,12 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
   {
     samRecord->addTag("SR", 'Z', fastQFileI1->myRawSequence.c_str());
     samRecord->addTag("SY", 'Z', fastQFileI1->myQualityString.c_str());
+  }
+  // add raw sequence and quality sequence for the R3 atac fastq file 
+  if (has_R3_file_list)
+  { 
+    samRecord->addTag("RS", 'Z', fastQFileR3->myRawSequence.c_str());
+    samRecord->addTag("RQ", 'Z', fastQFileR3->myQualityString.c_str());
   }
 }
 
