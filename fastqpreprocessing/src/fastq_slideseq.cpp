@@ -29,7 +29,7 @@ void fillSamRecordWithReadStructure(SamRecord* samRecord, FastQFile* fastQFileI1
   std::string b = std::string(fastQFileR1->myQualityString.c_str());
   // extract the raw barcode and UMI 8C18X6C9M1X and raw barcode and UMI quality string
 
-  std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
+  std::string barcode_quality, umi_seq, umi_quality;
   int cur_ind = 0;
   for (auto [tag, length] : g_parsed_read_structure)
   {
