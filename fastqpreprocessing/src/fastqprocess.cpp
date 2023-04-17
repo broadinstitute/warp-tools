@@ -67,7 +67,7 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
   {     
       std::string reverse_complement = reverseComplement(sequence);
-      barcode = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
+      barcode_seq = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
       
       reverse(quality_sequence.begin(), quality_sequence.end());
       barcode_quality = quality_sequence.substr(0, g_barcode_length);
