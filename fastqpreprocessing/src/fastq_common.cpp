@@ -429,8 +429,8 @@ void mainCommon(
     std::vector<std::string> I1s, std::vector<std::string> R1s, 
     std::vector<std::string> R2s, std::vector<std::string> R3s,
     std::string sample_id,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string, std::string)> sam_record_filler,
-    std::function <std::string(SamRecord*, FastQFile*, std::string)> barcode_getter,
+    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string)> sam_record_filler,
+    std::function <std::string(SamRecord*)> barcode_getter,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   std::cout << "reading whitelist file " << white_list_file << "...";
