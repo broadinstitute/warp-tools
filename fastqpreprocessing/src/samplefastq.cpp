@@ -23,15 +23,14 @@ std::vector<std::pair<char, int>> g_parsed_read_structure;
 void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
                                     FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
                                     bool has_I1_file_list, bool has_R3_file_list,
-                                    std::string orientation, std::string barcode_seq)
+                                    std::string orientation)
 {
   // check the sequence names matching
   std::string a = std::string(fastQFileR1->myRawSequence.c_str());
   std::string b = std::string(fastQFileR1->myQualityString.c_str());
   
   // extract the raw barcode and UMI 8C18X6C9M1X and raw barcode and UMI quality string
-  barcode_seq = "";
-  std::string barcode_quality, umi_seq, umi_quality;
+  std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
   int cur_ind = 0;
   
   for (auto [tag, length] : g_parsed_read_structure)
@@ -56,7 +55,7 @@ void fillSamRecordWithReadStructure(SamRecord* sam, FastQFile* fastQFileI1,
                       barcode_seq, barcode_quality, umi_seq, umi_quality); 
 }
 
-std::string slideseqBarcodeGetter(SamRecord* sam, FastQFile* fastQFileR1, std::string orientation)
+std::string slideseqBarcodeGetter(SamRecord* sam)
 {
   return std::string(sam->getString("CR").c_str());
 }
