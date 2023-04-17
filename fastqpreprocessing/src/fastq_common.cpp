@@ -316,8 +316,8 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
 void fastQFileReaderThread(
     int reader_thread_index, std::string filenameI1, String filenameR1,
     String filenameR2, std::string filenameR3, const WhiteListCorrector* corrector, std::string barcode_orientation,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string, std::string)> sam_record_filler,
-    std::function <std::string(SamRecord*, FastQFile*, std::string)> barcode_getter,
+    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string)> sam_record_filler,
+    std::function <std::string(SamRecord*)> barcode_getter,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   /// setting the shortest sequence allowed to be read
@@ -382,7 +382,7 @@ void fastQFileReaderThread(
                         has_R3_file_list, barcode_orientation); 
 
       // get barcode 
-      std::string barcode = barcode_getter(samrec, &fastQFileR1, barcode_orientation);
+      std::string barcode = barcode_getter(samrec);
                                     
       // bucket barcode is used to pick the target bam file
       // This is done because in the case of incorrigible barcodes

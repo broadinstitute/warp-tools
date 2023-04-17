@@ -7,40 +7,14 @@ unsigned int g_umi_length;
 void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
                    FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
                    bool has_I1_file_list, bool has_R3_file_list,
-                   std::string orientation, std::string barcode_seq)  
+                   std::string orientation)  
 {
   // check the sequence names matching
   std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
   std::string quality_sequence = std::string(fastQFileR1->myQualityString.c_str());
 
-  std::string barcode_quality, umi_seq, umi_quality;
+  std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
 
-  // extract the raw barcode and barcode quality 
-  if (strcmp(orientation.c_str(), "FIRST_BP") == 0)
-  {
-      //barcode_seq = sequence.substr(0, g_barcode_length);
-      barcode_quality = quality_sequence.substr(0, g_barcode_length);
-  }
-  else if (strcmp(orientation.c_str(), "LAST_BP") == 0)
-  {
-      //barcode_seq = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
-      barcode_quality = quality_sequence.substr(quality_sequence.length() - g_barcode_length, quality_sequence.length());
-  }
-  else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
-  {
-      //barcode_seq = reverseComplement(sequence).substr(0, g_barcode_length);
-      reverse(quality_sequence.begin(), quality_sequence.end());
-      barcode_quality = quality_sequence.substr(0, g_barcode_length);
-  }
-  else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
-  {     
-      //std::string reverse_complement = reverseComplement(sequence);
-      //barcode = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
-      
-      reverse(quality_sequence.begin(), quality_sequence.end());
-      barcode_quality = quality_sequence.substr(0, g_barcode_length);
-  }
-  
   // in the case of gex data -- not atac -- does not apply for slideseq (will need to change later on)
   if (!has_R3_file_list)
   {
@@ -50,6 +24,34 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
       umi_quality = quality_sequence.substr(g_barcode_length, g_umi_length);
   }
 
+  // extract the raw barcode and barcode quality 
+  if (strcmp(orientation.c_str(), "FIRST_BP") == 0)
+  {
+      barcode_seq = sequence.substr(0, g_barcode_length);
+      barcode_quality = quality_sequence.substr(0, g_barcode_length);
+  }
+  else if (strcmp(orientation.c_str(), "LAST_BP") == 0)
+  {
+      barcode_seq = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
+      barcode_quality = quality_sequence.substr(quality_sequence.length() - g_barcode_length, quality_sequence.length());
+  }
+  else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
+  {
+      barcode_seq = reverseComplement(sequence).substr(0, g_barcode_length);
+      reverse(quality_sequence.begin(), quality_sequence.end());
+      barcode_quality = quality_sequence.substr(0, g_barcode_length);
+  }
+  else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
+  {     
+      std::string reverse_complement = reverseComplement(sequence);
+      barcode = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
+      
+      reverse(quality_sequence.begin(), quality_sequence.end());
+      barcode_quality = quality_sequence.substr(0, g_barcode_length);
+  }
+  else 
+      crash(std::string("Incorrect barcode orientation format.\n"));
+  
   fillSamRecordCommon(samRecord, fastQFileI1, fastQFileR1, fastQFileR2, fastQFileR3, 
                       has_I1_file_list, has_R3_file_list,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);                
@@ -78,32 +80,9 @@ std::string reverseComplement(std::string sequence)
   return sequence;
 }
 
-std::string barcodeGetter(SamRecord* sam, FastQFile* fastQFileR1, std::string orientation)
+std::string barcodeGetter(SamRecord* sam)
 {
-
-  std::vector<std::string> barcode_lists; 
-  std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
-  std::string barcode = "";
-
-  // First 16bp of original sequence
-  if (strcmp(orientation.c_str(), "FIRST_BP") == 0)
-      barcode = sequence.substr(0, g_barcode_length);
-  // Last 16bp of original sequence  
-  else if (strcmp(orientation.c_str(), "LAST_BP") == 0)
-      barcode = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
-  // First 16bp of reverse complement sequence
-  else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
-      barcode = reverseComplement(sequence).substr(0, g_barcode_length);
-  // Last 16bp of reverse complement sequence
-  else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
-  {     
-      std::string reverse_complement = reverseComplement(sequence);
-      barcode = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
-  }
-  else 
-      crash(std::string("Incorrect barcode orientation format.\n"));
-  
-  return barcode;   
+  return std::string(sam->getString("CR").c_str());
 }
 
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
