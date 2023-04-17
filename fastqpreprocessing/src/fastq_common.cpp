@@ -377,13 +377,13 @@ void fastQFileReaderThread(
 
       SamRecord* samrec = g_read_arenas[reader_thread_index]->acquireSamRecordMemory();
 
-      // get barcode 
-      std::string barcode = barcode_getter(samrec, &fastQFileR1, barcode_orientation);
-
       // prepare the samrecord with the sequence, barcode, UMI, and their quality sequences
       sam_record_filler(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, &fastQFileR3, has_I1_file_list,
-                        has_R3_file_list, barcode_orientation, barcode);                   
+                        has_R3_file_list, barcode_orientation); 
 
+      // get barcode 
+      std::string barcode = barcode_getter(samrec, &fastQFileR1, barcode_orientation);
+                                    
       // bucket barcode is used to pick the target bam file
       // This is done because in the case of incorrigible barcodes
       // we need a mechanism to uniformly distribute the alignments
