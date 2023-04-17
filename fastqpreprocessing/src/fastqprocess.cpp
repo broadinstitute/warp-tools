@@ -4,6 +4,29 @@
 unsigned int g_barcode_length;
 unsigned int g_umi_length;
 
+std::string reverseComplement(std::string sequence)
+{
+  // get reverse complement of dna sequence 
+  reverse(sequence.begin(), sequence.end());
+  for (std::size_t i = 0; i < sequence.length(); ++i){
+      switch (sequence[i]){
+      case 'A':
+        sequence[i] = 'T';
+        break;    
+      case 'C':
+        sequence[i] = 'G';
+        break;
+      case 'G':
+        sequence[i] = 'C';
+        break;
+      case 'T':
+        sequence[i] = 'A';
+        break;
+        }
+    }
+  return sequence;
+}
+
 void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
                    FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
                    bool has_I1_file_list, bool has_R3_file_list,
@@ -55,29 +78,6 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   fillSamRecordCommon(samRecord, fastQFileI1, fastQFileR1, fastQFileR2, fastQFileR3, 
                       has_I1_file_list, has_R3_file_list,
                       barcode_seq, barcode_quality, umi_seq, umi_quality);                
-}
-
-std::string reverseComplement(std::string sequence)
-{
-  // get reverse complement of dna sequence 
-  reverse(sequence.begin(), sequence.end());
-  for (std::size_t i = 0; i < sequence.length(); ++i){
-      switch (sequence[i]){
-      case 'A':
-        sequence[i] = 'T';
-        break;    
-      case 'C':
-        sequence[i] = 'G';
-        break;
-      case 'G':
-        sequence[i] = 'C';
-        break;
-      case 'T':
-        sequence[i] = 'A';
-        break;
-        }
-    }
-  return sequence;
 }
 
 std::string barcodeGetter(SamRecord* sam)
