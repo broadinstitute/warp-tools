@@ -306,7 +306,7 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
   std::string quality_sequence = std::string(fastQFileR1->myQualityString.c_str());
   std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
-  
+  int g_barcode_length = 16;
   printf("%s\n", g_parsed_read_structure.front()[0]);
   printf("%d\n", g_parsed_read_structure.front()[1]);
   
