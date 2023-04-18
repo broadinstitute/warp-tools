@@ -43,9 +43,7 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
 void mainCommon(
     std::string white_list_file, std::string barcode_orientation, int num_writer_threads, std::string output_format,
     std::vector<std::string> I1s, std::vector<std::string> R1s, std::vector<std::string> R2s, std::vector<std::string> R3s,
-    std::string sample_id,
-    std::function<void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string)> sam_record_filler,
-    std::function<std::string(SamRecord*)> barcode_getter,
+    std::string sample_id, std::vector<std::pair<char, int>> g_parsed_read_structure,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler);
 
 #endif // __SCTOOLS_FASTQPREPROCESSING_FASTQ_COMMON_H_

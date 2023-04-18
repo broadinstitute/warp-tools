@@ -61,7 +61,6 @@ void WriteQueue::enqueueShutdownSignal()
   mutex_.unlock();
   cv_.notify_one();
 }
-std::vector<std::unique_ptr<WriteQueue>> g_write_queues;
 
 // I wrote this class to stay close to the performance characteristics of the
 // original code, but I suspect the large buffers might not be necessary.
@@ -105,12 +104,20 @@ private:
   std::stack<SamRecord*> available_samrecords_;
 };
 
-std::vector<std::unique_ptr<SamRecordArena>> g_read_arenas;
 void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord)
 {
   g_read_arenas[reader_thread_index]->releaseSamRecordMemory(samRecord);
 }
 
+// ---------------------------------------------------
+// Global variables
+// ----------------------------------------------------
+std::vector<std::unique_ptr<WriteQueue>> g_write_queues;
+std::vector<std::unique_ptr<SamRecordArena>> g_read_arenas;
+
+// ---------------------------------------------------
+// Write to output BAM OR FASTQ
+// ----------------------------------------------------
 
 void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam)
 {
@@ -176,6 +183,7 @@ void fastqWriterThread(int write_thread_index, bool is_atac)
     r3_out.close();
 }
 
+// need to change for atac
 void bamWriterThread(int write_thread_index, std::string sample_id)
 {
   std::string bam_out_fname = "subfile_" + std::to_string(write_thread_index) + ".bam";
@@ -212,6 +220,51 @@ void bamWriterThread(int write_thread_index, std::string sample_id)
   samOut.Close();
 }
 
+// ---------------------------------------------------
+// Parse read structure and fill sam record
+// ----------------------------------------------------
+
+// function moved from samplefastq.cpp and fastq_slideseq.cpp -- this parses the read structure
+std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_structure)
+{
+  std::vector<std::pair<char, int>> ret;
+  int next_ind = 0;
+  while (next_ind < read_structure.size())
+  {
+    int type_ind = read_structure.find_first_not_of("0123456789", next_ind);
+    assert(type_ind != std::string::npos);
+    char type = read_structure[type_ind];
+    int len = std::stoi(read_structure.substr(next_ind, type_ind - next_ind));
+    ret.emplace_back(type, len);
+    next_ind = type_ind + 1;
+  }
+  return ret;
+}
+
+// get reverse complement of dna sequence -- function mainly required for atacseq data
+std::string reverseComplement(std::string sequence)
+{
+  reverse(sequence.begin(), sequence.end());
+  for (std::size_t i = 0; i < sequence.length(); ++i){
+      switch (sequence[i]){
+      case 'A':
+        sequence[i] = 'T';
+        break;    
+      case 'C':
+        sequence[i] = 'G';
+        break;
+      case 'G':
+        sequence[i] = 'C';
+        break;
+      case 'T':
+        sequence[i] = 'A';
+        break;
+        }
+    }
+  return sequence;
+}
+
+// add tags to sam record 
 void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
                          FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
                          bool has_I1_file_list, bool has_R3_file_list,
@@ -246,6 +299,80 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
     samRecord->addTag("RQ", 'Z', fastQFileR3->myQualityString.c_str());
   }
 }
+
+// fill sam record -- this function was modified and moved from fastqprocess.cpp, samplefastq.cpp and fastq_slideseq.cpp
+void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
+                   FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
+                   bool has_I1_file_list, bool has_R3_file_list, std::string orientation, 
+                   std::vector<std::pair<char, int>> g_parsed_read_structure)  
+{
+  // check the sequence names matching
+  std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
+  std::string quality_sequence = std::string(fastQFileR1->myQualityString.c_str());
+  std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
+
+  // extract the raw barcode and barcode quality  
+  // when orientation is set to FIRST_BP use the g_parse_read_structure
+  // other cases are for other atac barcode variations which depends on other factors and does not need 
+  // (1) atac data (when has_R3_file_list is set to True) -- read_structure for atac will be 16C
+  // (2) with slideseq/gex data (when has_R3_file_list is set to False)
+  if (strcmp(orientation.c_str(), "FIRST_BP") == 0)
+  {
+      int cur_ind = 0;
+      for (auto [tag, length] : g_parsed_read_structure)
+      {
+        switch (tag)
+        {
+          case 'C':
+            barcode_seq += a.substr(cur_ind, length);
+            barcode_quality += b.substr(cur_ind, length);
+            break;
+          case 'M':
+            umi_seq += a.substr(cur_ind, length);
+            umi_quality += b.substr(cur_ind, length);
+            break;
+          default:
+            break;
+        }
+        cur_ind += length;
+      }
+  }
+  else if (strcmp(orientation.c_str(), "LAST_BP") == 0)
+  {
+      barcode_seq = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
+      barcode_quality = quality_sequence.substr(quality_sequence.length() - g_barcode_length, quality_sequence.length());
+  }
+  else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
+  {
+      barcode_seq = reverseComplement(sequence).substr(0, g_barcode_length);
+      reverse(quality_sequence.begin(), quality_sequence.end());
+      barcode_quality = quality_sequence.substr(0, g_barcode_length);
+  }
+  else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
+  {     
+      std::string reverse_complement = reverseComplement(sequence);
+      barcode_seq = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
+      
+      reverse(quality_sequence.begin(), quality_sequence.end());
+      barcode_quality = quality_sequence.substr(0, g_barcode_length);
+  }
+  else 
+      crash(std::string("Incorrect barcode orientation format.\n"));
+  
+  fillSamRecordCommon(samRecord, fastQFileI1, fastQFileR1, fastQFileR2, fastQFileR3, 
+                      has_I1_file_list, has_R3_file_list,
+                      barcode_seq, barcode_quality, umi_seq, umi_quality);                
+}
+
+// get barcode from sam record -- this function was modified and moved from fastqprocess.cpp, samplefastq.cpp and fastq_slideseq.cpp
+std::string barcodeGetter(SamRecord* sam)
+{
+  return std::string(sam->getString("CR").c_str());
+}
+
+// ---------------------------------------------------
+// Correct whitelist
+// ---------------------------------------------------
 
 // Computes the whitelist-corrected barcode and adds it to sam_record.
 // Returns the index of the bamfile bucket / writer thread where sam_record
@@ -292,6 +419,11 @@ int32_t correctBarcodeToWhitelist(
   return std::hash<std::string> {}(bucket_barcode) % num_writer_threads;
 }
 
+
+// ---------------------------------------------------
+// Read FASTQ one read at a time
+// ---------------------------------------------------
+
 // Returns true if successfully read a sequence.
 bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
                    FastQFile& fastQFileR1, FastQFile& fastQFileR2,
@@ -316,8 +448,7 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
 void fastQFileReaderThread(
     int reader_thread_index, std::string filenameI1, String filenameR1,
     String filenameR2, std::string filenameR3, const WhiteListCorrector* corrector, std::string barcode_orientation,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string)> sam_record_filler,
-    std::function <std::string(SamRecord*)> barcode_getter,
+    std::vector<std::pair<char, int>> g_parsed_read_structure,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   /// setting the shortest sequence allowed to be read
@@ -378,11 +509,11 @@ void fastQFileReaderThread(
       SamRecord* samrec = g_read_arenas[reader_thread_index]->acquireSamRecordMemory();
 
       // prepare the samrecord with the sequence, barcode, UMI, and their quality sequences
-      sam_record_filler(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, &fastQFileR3, has_I1_file_list,
-                        has_R3_file_list, barcode_orientation); 
+      fillSamRecord(samrec, &fastQFileI1, &fastQFileR1, &fastQFileR2, &fastQFileR3, has_I1_file_list,
+                        has_R3_file_list, barcode_orientation, g_parsed_read_structure); 
 
       // get barcode 
-      std::string barcode = barcode_getter(samrec);
+      std::string barcode = barcodeGetter(samrec);
                                     
       // bucket barcode is used to pick the target bam file
       // This is done because in the case of incorrigible barcodes
@@ -423,21 +554,22 @@ void fastQFileReaderThread(
          n_barcode_errors/static_cast<double>(total_reads) * 100);
 }
 
+// ---------------------------------------------------
+// Main 
+// ---------------------------------------------------
+
 void mainCommon(
     std::string white_list_file, std::string barcode_orientation,
     int num_writer_threads, std::string output_format,
     std::vector<std::string> I1s, std::vector<std::string> R1s, 
     std::vector<std::string> R2s, std::vector<std::string> R3s,
-    std::string sample_id,
-    std::function <void(SamRecord*, FastQFile*, FastQFile*, FastQFile*, FastQFile*, bool, bool, std::string)> sam_record_filler,
-    std::function <std::string(SamRecord*)> barcode_getter,
+    std::string sample_id,  std::vector<std::pair<char, int>> g_parsed_read_structure,
     std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
 {
   std::cout << "reading whitelist file " << white_list_file << "...";
   // stores barcode correction map and vector of correct barcodes
   WhiteListCorrector corrector = readWhiteListFile(white_list_file);
   std::cout << "done" << std::endl;
-
 
   for (int i = 0; i < R1s.size(); i++)
     g_read_arenas.push_back(std::make_unique<SamRecordArena>());
@@ -466,8 +598,11 @@ void mainCommon(
     assert(I1s.empty() || I1s.size() == R1s.size());
     // if there is no I1/R3 file then send an empty file name
     readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
-                         R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), &corrector, barcode_orientation,
-                         sam_record_filler, barcode_getter, output_handler);
+                         R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), 
+                         &corrector, barcode_orientation,
+                         g_parsed_read_structure,
+                         //sam_record_filler, barcode_getter, 
+                         output_handler);
   }
 
   for (auto& reader : readers)
