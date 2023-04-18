@@ -61,6 +61,7 @@ void WriteQueue::enqueueShutdownSignal()
   mutex_.unlock();
   cv_.notify_one();
 }
+std::vector<std::unique_ptr<WriteQueue>> g_write_queues;
 
 // I wrote this class to stay close to the performance characteristics of the
 // original code, but I suspect the large buffers might not be necessary.
@@ -104,16 +105,11 @@ private:
   std::stack<SamRecord*> available_samrecords_;
 };
 
+std::vector<std::unique_ptr<SamRecordArena>> g_read_arenas;
 void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord)
 {
   g_read_arenas[reader_thread_index]->releaseSamRecordMemory(samRecord);
 }
-
-// ---------------------------------------------------
-// Global variables
-// ----------------------------------------------------
-std::vector<std::unique_ptr<WriteQueue>> g_write_queues;
-std::vector<std::unique_ptr<SamRecordArena>> g_read_arenas;
 
 // ---------------------------------------------------
 // Write to output BAM OR FASTQ
@@ -310,7 +306,7 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
   std::string quality_sequence = std::string(fastQFileR1->myQualityString.c_str());
   std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
-
+  //g_parsed_read_structure.front() 
   // extract the raw barcode and barcode quality  
   // when orientation is set to FIRST_BP use the g_parse_read_structure
   // other cases are for other atac barcode variations which depends on other factors and does not need 
@@ -324,12 +320,12 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
         switch (tag)
         {
           case 'C':
-            barcode_seq += a.substr(cur_ind, length);
-            barcode_quality += b.substr(cur_ind, length);
+            barcode_seq += sequence.substr(cur_ind, length);
+            barcode_quality += quality_sequence.substr(cur_ind, length);
             break;
           case 'M':
-            umi_seq += a.substr(cur_ind, length);
-            umi_quality += b.substr(cur_ind, length);
+            umi_seq += sequence.substr(cur_ind, length);
+            umi_quality += quality_sequence.substr(cur_ind, length);
             break;
           default:
             break;
