@@ -335,7 +335,8 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   }
   else if (has_R3_file_list)
   {
-      g_barcode_length = std::get<1>(g_parsed_read_structure[0]);
+      g_barcode_length = 16;
+      std::cout << std::get<1>(g_parsed_read_structure[0]) << "\n";
       std::cout << "BARCODE LENGTH FOR ATAC " << g_barcode_length << "\n";
       
       if (strcmp(orientation.c_str(), "LAST_BP") == 0)
