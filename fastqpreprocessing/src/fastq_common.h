@@ -33,12 +33,7 @@ private:
 // This is a hack for the sake of samplefastq program.
 void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord);
 
-void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1, 
-                         FastQFile* fastQFileR1, FastQFile* fastQFileR2, FastQFile* fastQFileR3,
-                         bool has_I1_file_list, bool has_R3_file_list,
-                         std::string const& barcode_seq, std::string const& barcode_quality,
-                         std::string const& umi_seq, std::string const& umi_quality);
-
+std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_structure);
 
 void mainCommon(
     std::string white_list_file, std::string barcode_orientation, int num_writer_threads, std::string output_format,
