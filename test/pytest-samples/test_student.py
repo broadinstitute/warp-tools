@@ -25,6 +25,9 @@ def test_set_grade(student):
 	student.set_grade("Math", 95)
 	assert student.get_grade("Math") == 95
 
+def test_get_median_grade(student):
+	assert student.get_median_grade() == 90
+
 def test_add_subject(student):
 	student.add_subject("Science", 87)
 	assert student.get_subjects() == ["Math", "English", "History", "Science"]
@@ -36,5 +39,3 @@ def test_get_lowest_grade_subject(student):
 def test_get_highest_grade_subject(student):
 	assert student.get_highest_grade_subject() == "History"
 
-def test_get_median_grade(student):
-	assert student.get_median_grade() == 90
