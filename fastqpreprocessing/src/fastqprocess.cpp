@@ -25,7 +25,7 @@ int main(int argc, char** argv)
   g_umi_length = options.umi_length;
 
   mainCommon(options.white_list_file, options.barcode_orientation, num_writer_threads, options.output_format,
-             options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id, g_parsed_read_structure
+             options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id, g_parsed_read_structure,
              //fillSamRecord, barcodeGetter, 
              outputHandler);
 
