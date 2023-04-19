@@ -224,14 +224,11 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   if (options.sample_id.empty())
     crash("ERROR: Must provide a sample id or name");
 
+  if (options.read_structure.empty())
+    crash("ERROR: Must provide read structures");
+
   if (options.output_format!="FASTQ" && options.output_format!="BAM")
     crash("ERROR: output-format must be either FASTQ or BAM");
-
-  if (options.barcode_length <= 0)
-    crash("ERROR: Barcode length must be a positive integer");
-
-  if (options.umi_length < 0)
-    crash("ERROR: UMI length must be a positive integer");
 
   if (verbose_flag)
   {
