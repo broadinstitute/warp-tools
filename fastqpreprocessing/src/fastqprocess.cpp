@@ -1,9 +1,6 @@
 #include "fastq_common.h"
 #include "input_options.h"
 
-unsigned int g_barcode_length;
-unsigned int g_umi_length;
-
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
 {
   cur_write_queue->enqueueWrite(std::make_pair(samrec, reader_thread_index));
