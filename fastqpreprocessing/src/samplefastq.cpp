@@ -2,11 +2,23 @@
 #include "input_options.h"
 #include <fstream>
 
+// ---------------------------------------------------
+// Global Variable
+// ----------------------------------------------------
+std::vector<std::pair<char, int>> g_parsed_read_structure;
+
+
+// ---------------------------------------------------
+// Used to write files -- needs to be merged 
+// ----------------------------------------------------
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
 {
   cur_write_queue->enqueueWrite(std::make_pair(samrec, reader_thread_index));
 }
 
+// ---------------------------------------------------
+// Main
+// ----------------------------------------------------
 int main(int argc, char** argv)
 {
   INPUT_OPTIONS_FASTQ_READ_STRUCTURE options = readOptionsFastqSlideseq(argc, argv);
@@ -18,7 +30,6 @@ int main(int argc, char** argv)
   if (!outfile_r2)
     crash("Failed to open output file sampled_down.R2");
 
-  std::vector<std::pair<char, int>> g_parsed_read_structure;
   g_parsed_read_structure = parseReadStructure(options.read_structure);
 
   mainCommon(options.white_list_file, options.barcode_orientation, /*num_writer_threads=*/1, options.output_format,

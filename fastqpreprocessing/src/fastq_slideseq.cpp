@@ -12,8 +12,7 @@ int main(int argc, char** argv)
   // number of output bam files, and one writer thread per bam file
   int num_writer_threads = get_num_blocks(options);
 
-  std::vector<std::pair<char, int>> g_parsed_read_structure;
-  g_parsed_read_structure = parseReadStructure(options.read_structure);
+  std::vector<std::pair<char, int>> g_parsed_read_structure = parseReadStructure(options.read_structure);
 
   mainCommon(options.white_list_file, options.barcode_orientation, num_writer_threads, options.output_format,
              options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id, g_parsed_read_structure,

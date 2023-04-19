@@ -18,8 +18,7 @@ int main(int argc, char** argv)
   num_writer_threads =  (num_writer_threads > 1000) ? 1000 : num_writer_threads;
 
   // added this for consistency with other code
-  std::vector<std::pair<char, int>> g_parsed_read_structure;
-  g_parsed_read_structure = parseReadStructure(options.read_structure);
+  std::vector<std::pair<char, int>> g_parsed_read_structure = parseReadStructure(options.read_structure);
 
   g_barcode_length = options.barcode_length;
   g_umi_length = options.umi_length;
