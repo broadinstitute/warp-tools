@@ -337,7 +337,6 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   else if (has_R3_file_list)
   {
       g_barcode_length = std::get<1>(g_parsed_read_structure[0]);
-      std::cout << "BARCODE LENGTH FOR ATAC " << g_barcode_length << "\n";
       
       if (strcmp(orientation.c_str(), "LAST_BP") == 0)
       {
@@ -413,7 +412,7 @@ int32_t correctBarcodeToWhitelist(
     // corrected barcode should be added to the samrecord
     sam_record->addTag("CB", 'Z', correct_barcode.c_str());
   }
-  else     // not possible to correct the raw barcode
+  else     // not possible to correct the raw barcode -- aseel: is this raw?
   {
     *n_barcode_errors += 1;
     bucket_barcode = barcode;
@@ -421,7 +420,6 @@ int32_t correctBarcodeToWhitelist(
   // destination bam file index computed based on the bucket_barcode
   return std::hash<std::string> {}(bucket_barcode) % num_writer_threads;
 }
-
 
 // ---------------------------------------------------
 // Read FASTQ one read at a time
