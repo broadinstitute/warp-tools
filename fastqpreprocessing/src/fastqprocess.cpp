@@ -20,9 +20,6 @@ int main(int argc, char** argv)
   // added this for consistency with other code
   std::vector<std::pair<char, int>> g_parsed_read_structure = parseReadStructure(options.read_structure);
 
-  g_barcode_length = options.barcode_length;
-  g_umi_length = options.umi_length;
-
   mainCommon(options.white_list_file, options.barcode_orientation, num_writer_threads, options.output_format,
              options.I1s, options.R1s, options.R2s, options.R3s, options.sample_id, g_parsed_read_structure,
              outputHandler);

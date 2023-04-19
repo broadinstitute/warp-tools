@@ -336,6 +336,7 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   }
   else if (has_R3_file_list)
   {
+      //with atacseq data read strucuture will look like this "16C" -- where 16 is the barcode length
       g_barcode_length = std::get<1>(g_parsed_read_structure[0]);
       
       if (strcmp(orientation.c_str(), "LAST_BP") == 0)

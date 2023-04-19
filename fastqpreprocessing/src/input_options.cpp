@@ -101,8 +101,6 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     {"verbose",            no_argument,       0, 'v'},
     /* These options don’t set a flag.
        We distinguish them by their indices. */
-    {"barcode-length",      required_argument, 0, 'b'},
-    {"umi-length",          required_argument, 0, 'u'},
     {"bam-size",            required_argument, 0, 'B'},
     {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
@@ -120,8 +118,6 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   const char* help_messages[] =
   {
     "verbose messages  ",
-    "barcode length [required]",
-    "UMI length [required]",
     "output BAM file in GB [optional: default 1 GB]",
     "read structure [required]",
     "sample id [required]",
@@ -157,12 +153,6 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       if (optarg)
         printf(" with arg %s", optarg);
       printf("\n");
-      break;
-    case 'b':
-      options.barcode_length = atoi(optarg);
-      break;
-    case 'u':
-      options.umi_length = atoi(optarg);
       break;
     case 'B':
       options.bam_size = atof(optarg);

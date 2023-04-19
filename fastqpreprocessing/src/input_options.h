@@ -41,10 +41,6 @@ struct InputOptionsFastqProcess
 
   std::string output_format;
 
-  // chemistry dependent (V2/V3) barcode and UMI length
-  int barcode_length = -1;
-  int umi_length = -1;
-
   // Bam file size to split by (in GB)
   double bam_size = 1.0;
 
