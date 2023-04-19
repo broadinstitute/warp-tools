@@ -305,7 +305,8 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   // check the sequence names matching
   std::string sequence = std::string(fastQFileR1->myRawSequence.c_str());
   std::string quality_sequence = std::string(fastQFileR1->myQualityString.c_str());
-  std::string g_barcode_length, barcode_seq, barcode_quality, umi_seq, umi_quality;
+  std::string barcode_seq, barcode_quality, umi_seq, umi_quality;
+  int g_barcode_length;
 
   // extract the raw barcode and barcode quality  
   // when orientation is set to FIRST_BP use the g_parse_read_structure
@@ -335,8 +336,7 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
   }
   else if (has_R3_file_list)
   {
-      g_barcode_length = 16;
-      std::cout << std::get<1>(g_parsed_read_structure[0]) << "\n";
+      g_barcode_length std::get<1>(g_parsed_read_structure[0]);
       std::cout << "BARCODE LENGTH FOR ATAC " << g_barcode_length << "\n";
       
       if (strcmp(orientation.c_str(), "LAST_BP") == 0)
