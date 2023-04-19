@@ -104,6 +104,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     {"barcode-length",      required_argument, 0, 'b'},
     {"umi-length",          required_argument, 0, 'u'},
     {"bam-size",            required_argument, 0, 'B'},
+    {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
     {"I1",                  required_argument, 0, 'I'},
     {"R1",                  required_argument, 0, 'R'},
@@ -122,6 +123,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     "barcode length [required]",
     "UMI length [required]",
     "output BAM file in GB [optional: default 1 GB]",
+    "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
     "R1 [required -- File that contains the barcodes. This corresponds to R1 for v2/v3/multiome GEX/slideseq and R2 for scATAC.]",
@@ -167,6 +169,9 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       break;
     case 's':
       options.sample_id = string(optarg);
+      break;
+    case 'S':
+      options.read_structure = string(optarg);
       break;
     case 'I':
       options.I1s.push_back(string(optarg));

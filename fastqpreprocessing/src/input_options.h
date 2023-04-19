@@ -48,6 +48,8 @@ struct InputOptionsFastqProcess
   // Bam file size to split by (in GB)
   double bam_size = 1.0;
 
+  std::string read_structure;
+
   std::string sample_id;
 };
 
