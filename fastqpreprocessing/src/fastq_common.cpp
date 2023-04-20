@@ -114,7 +114,6 @@ void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord)
 // ---------------------------------------------------
 // Write to output BAM OR FASTQ
 // ----------------------------------------------------
-
 void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam)
 {
   r1_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
@@ -165,7 +164,7 @@ void fastqWriterThread(int write_thread_index)
 }
 
 //overload fastqWriterThread function for atac
-void fastqWriterThread(int write_thread_index, bool is_atac)
+void fastqWriterThreadATAC(int write_thread_index)
 {
   std::string r1_output_fname = "fastq_R1_" + std::to_string(write_thread_index) + ".fastq.gz";
   ogzstream r1_out(r1_output_fname.c_str());
@@ -179,8 +178,8 @@ void fastqWriterThread(int write_thread_index, bool is_atac)
 
   std::string r3_output_fname = "fastq_R3_" + std::to_string(write_thread_index) + ".fastq.gz";
   ogzstream r3_out(r3_output_fname.c_str());
-  if (is_atac and !r3_out)
-    crash("ERROR: Failed to open R3 fastq file %s for writing.\n", r3_output_fname.c_str());   
+  if (!r3_out)
+    crash("ERROR: Failed to open R3 fastq file " + r2_output_fname + " for writing");
   
   while (true)
   {
@@ -197,6 +196,7 @@ void fastqWriterThread(int write_thread_index, bool is_atac)
   r2_out.close();
   r3_out.close();
 }
+
 // need to change for atac
 void bamWriterThread(int write_thread_index, std::string sample_id)
 {
@@ -606,7 +606,7 @@ void mainCommon(
       if (R3s.empty())
           writers.emplace_back(fastqWriterThread, i);
       else
-          writers.emplace_back(fastqWriterThread, i, true);
+          writers.emplace_back(fastqWriterThreadATAC, i);
   else
     crash("ERROR: Output-format must be either FASTQ or BAM");
 
