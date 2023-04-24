@@ -125,15 +125,24 @@ void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam)
 void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_out, 
                           SamRecord* sam)
 {
+  std::string cb_barcode = sam->getString("CB").c_str();
+  std::string write_cb_barcode = "";
+  if (!cb_barcode.empty())
+    write_cb_barcode = ":CB:" + cb_barcode;
+  
   //R1
-  r2_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
-         << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+  r2_out << "@" << sam->getReadName() << write_cb_barcode
+          << "\n" << sam->getString("CR").c_str()
+          << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
   //R2
-  r1_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
-         << sam->getQuality() << "\n";
+  r1_out << "@" << sam->getReadName() << write_cb_barcode
+          << "\n" << sam->getSequence() << "\n+\n"
+          << sam->getQuality() << "\n";
   //R3
-  r3_out << "@" << sam->getReadName() << "\n" << sam->getString("RS").c_str() << "\n+\n"
-         << sam->getString("RQ").c_str() <<  "\n";
+  r3_out << "@" << sam->getReadName() << write_cb_barcode
+          << "\n" << sam->getString("RS").c_str() << "\n+\n"
+          << sam->getString("RQ").c_str() <<  "\n";
+  
 }
 
 void fastqWriterThread(int write_thread_index)
@@ -197,7 +206,6 @@ void fastqWriterThreadATAC(int write_thread_index)
   r3_out.close();
 }
 
-// need to change for atac
 void bamWriterThread(int write_thread_index, std::string sample_id)
 {
   std::string bam_out_fname = "subfile_" + std::to_string(write_thread_index) + ".bam";
@@ -404,11 +412,11 @@ int32_t correctBarcodeToWhitelist(
 {
   std::string correct_barcode;
   // bucket barcode is used to pick the target bam file
-  // This is done because in the case of incorrigible barcodes
+  // This is done because in the case of incorrectible barcodes
   // we need a mechanism to uniformly distribute the alignments
   // so that no bam is oversized to putting all such barcode less
-  // sequences into one particular. Incorregible barcodes are simply
-  // added withouth the CB tag
+  // sequences into one particular. Incorrectible barcodes are simply
+  // added without the CB tag
   std::string bucket_barcode;
   if (auto it = corrector->mutations.find(barcode) ; it != corrector->mutations.end())
   {
