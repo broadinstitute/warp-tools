@@ -126,20 +126,22 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
                           SamRecord* sam)
 {
   std::string cb_barcode = sam->getString("CB").c_str();
+  std::string cr_barcode = sam->getString("CR").c_str();
+
   std::string write_cb_barcode = "";
   if (!cb_barcode.empty())
-    write_cb_barcode = ":CB:" + cb_barcode;
+    write_cb_barcode = ":CB_" + cb_barcode; 
   
   //R1
-  r2_out << "@" << sam->getReadName() << write_cb_barcode
-          << "\n" << sam->getString("CR").c_str()
+  r2_out << "@" << sam->getReadName() << ":CR_" << cr_barcode << write_cb_barcode
+          << "\n" << cr_barcode
           << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
   //R2
-  r1_out << "@" << sam->getReadName() << write_cb_barcode
+  r1_out << "@" << sam->getReadName() << ":CR_" << cr_barcode << write_cb_barcode
           << "\n" << sam->getSequence() << "\n+\n"
           << sam->getQuality() << "\n";
   //R3
-  r3_out << "@" << sam->getReadName() << write_cb_barcode
+  r3_out << "@" << sam->getReadName() << ":CR_" << cr_barcode << write_cb_barcode
           << "\n" << sam->getString("RS").c_str() << "\n+\n"
           << sam->getString("RQ").c_str() <<  "\n";
   
