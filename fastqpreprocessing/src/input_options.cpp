@@ -51,9 +51,14 @@ void printFileInfo(std::vector<string> const& fastqs,
 
 int64_t get_num_blocks(std::vector<string> const& I1s,
                      std::vector<string> const& R1s,
-                     std::vector<string> const& R2s, double bam_size)
+                     std::vector<string> const& R2s, 
+                     std::vector<string> const& R3s, double bam_size)
 {
   assert(R1s.size() == R2s.size());
+
+  if (!R3s.empty())
+    assert(R1s.size() == R3s.size());
+
   double tot_size = 0;
   for (unsigned int i = 0; i < R1s.size(); i++)
   {
@@ -64,6 +69,9 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
     std::cout << "file " << R1s[i] << " : " << filesize(R1s[i]) << " bytes" << std::endl;
     tot_size += filesize(R1s[i]);
     tot_size += filesize(R2s[i]);
+    
+    if (!R3s.empty())
+      tot_size += filesize(R3s[i]);
   }
 
   const int GiB = 1024*1024*1024;
@@ -72,12 +80,12 @@ int64_t get_num_blocks(std::vector<string> const& I1s,
 
 int64_t get_num_blocks(InputOptionsFastqProcess const& options)
 {
-  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.bam_size);
+  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.R3s, options.bam_size);
 }
 
 int64_t get_num_blocks(INPUT_OPTIONS_FASTQ_READ_STRUCTURE const& options)
 {
-  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.bam_size);
+  return get_num_blocks(options.I1s, options.R1s, options.R2s, options.R3s, options.bam_size);
 }
 
 InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
@@ -90,18 +98,19 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   static struct option long_options[] =
   {
     /* These options set a flag. */
-    {"verbose",           no_argument,       0, 'v'},
+    {"verbose",            no_argument,       0, 'v'},
     /* These options don’t set a flag.
        We distinguish them by their indices. */
-    {"barcode-length",    required_argument, 0, 'b'},
-    {"umi-length",        required_argument, 0, 'u'},
-    {"bam-size",          required_argument, 0, 'B'},
-    {"sample-id",         required_argument, 0, 's'},
-    {"I1",                required_argument, 0, 'I'},
-    {"R1",                required_argument, 0, 'R'},
-    {"R2",                required_argument, 0, 'r'},
-    {"white-list",        required_argument, 0, 'w'},
-    {"output-format",     required_argument, 0, 'F'},
+    {"bam-size",            required_argument, 0, 'B'},
+    {"read-structure",      required_argument, 0, 'S'},
+    {"sample-id",           required_argument, 0, 's'},
+    {"I1",                  required_argument, 0, 'I'},
+    {"R1",                  required_argument, 0, 'R'},
+    {"R2",                  required_argument, 0, 'r'},
+    {"R3",                  required_argument, 0, 'A'},
+    {"barcode-orientation", required_argument, 0, 'O'},
+    {"white-list",          required_argument, 0, 'w'},
+    {"output-format",       required_argument, 0, 'F'},
     {0, 0, 0, 0}
   };
 
@@ -109,13 +118,14 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   const char* help_messages[] =
   {
     "verbose messages  ",
-    "barcode length [required]",
-    "UMI length [required]",
     "output BAM file in GB [optional: default 1 GB]",
+    "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
-    "R1 [required]",
-    "R2 [required]",
+    "R1 [required -- File that contains the barcodes. This corresponds to R1 for v2/v3/multiome GEX/slideseq and R2 for scATAC.]",
+    "R2 [required -- File that contains the reads. This corresponds to R2 for v2/v3/multiome GEX/slideseq. However, it corresponds to R1 in scATAC.]",
+    "R3 [optional -- This file is needed for scATAC and corresponds to R2.]",
+    "barcode-orientation [optional: default FIRST_BP. Other options include LAST_BP, FIRST_BP_RC or LAST_BP_RC.]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -144,17 +154,14 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
         printf(" with arg %s", optarg);
       printf("\n");
       break;
-    case 'b':
-      options.barcode_length = atoi(optarg);
-      break;
-    case 'u':
-      options.umi_length = atoi(optarg);
-      break;
     case 'B':
       options.bam_size = atof(optarg);
       break;
     case 's':
       options.sample_id = string(optarg);
+      break;
+    case 'S':
+      options.read_structure = string(optarg);
       break;
     case 'I':
       options.I1s.push_back(string(optarg));
@@ -164,6 +171,12 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       break;
     case 'r':
       options.R2s.push_back(string(optarg));
+      break;
+    case 'A':
+      options.R3s.push_back(string(optarg));
+      break;
+    case 'O':
+      options.barcode_orientation = string(optarg);
       break;
     case 'w':
       options.white_list_file = string(optarg);
@@ -202,20 +215,20 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   if (options.I1s.size() != options.R1s.size() && !options.I1s.empty())
     crash("ERROR: Must provide as many I1 input files as R1 input files, or else no I1 input files at all.");
 
+  if (options.R3s.size() != options.R1s.size() && !options.R3s.empty())
+    crash("ERROR: Must provide as many R3 input files as R1 input files.");
+
   if (options.bam_size <= 0)
     crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
 
   if (options.sample_id.empty())
     crash("ERROR: Must provide a sample id or name");
 
+  if (options.read_structure.empty())
+    crash("ERROR: Must provide read structures");
+
   if (options.output_format!="FASTQ" && options.output_format!="BAM")
     crash("ERROR: output-format must be either FASTQ or BAM");
-
-  if (options.barcode_length <= 0)
-    crash("ERROR: Barcode length must be a positive integer");
-
-  if (options.umi_length <= 0)
-    crash("ERROR: UMI length must be a positive integer");
 
   if (verbose_flag)
   {
@@ -225,6 +238,8 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
       printFileInfo(options.R1s, string("R1"));
     if (!options.R2s.empty())
       printFileInfo(options.R2s, string("R2"));
+    if (!options.R3s.empty())
+      printFileInfo(options.R3s, string("R3"));  
   }
 
   return options;
@@ -240,17 +255,19 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
   static struct option long_options[] =
   {
     /* These options set a flag. */
-    {"verbose",           no_argument,       0, 'v'},
+    {"verbose",             no_argument,       0, 'v'},
     /* These options don’t set a flag.
        We distinguish them by their indices. */
-    {"bam-size",          required_argument, 0, 'B'},
-    {"read-structure",    required_argument, 0, 'S'},
-    {"sample-id",         required_argument, 0, 's'},
-    {"I1",                required_argument, 0, 'I'},
-    {"R1",                required_argument, 0, 'R'},
-    {"R2",                required_argument, 0, 'r'},
-    {"white-list",        required_argument, 0, 'w'},
-    {"output-format",     required_argument, 0, 'F'},
+    {"bam-size",            required_argument, 0, 'B'},
+    {"read-structure",      required_argument, 0, 'S'},
+    {"sample-id",           required_argument, 0, 's'},
+    {"I1",                  required_argument, 0, 'I'},
+    {"R1",                  required_argument, 0, 'R'},
+    {"R2",                  required_argument, 0, 'r'},
+    {"R3",                  required_argument, 0, 'A'},
+    {"barcode-orientation", required_argument, 0, 'O'},
+    {"white-list",          required_argument, 0, 'w'},
+    {"output-format",       required_argument, 0, 'F'},
     {0, 0, 0, 0}
   };
 
@@ -262,8 +279,10 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
-    "R1 [required]",
-    "R2 [required]",
+    "R1 [required -- File that contains the barcodes. This corresponds to R1 for v2/v3/multiome GEX/slideseq and R2 for scATAC.]",
+    "R2 [required -- File that contains the reads. This corresponds to R2 for v2/v3/multiome GEX/slideseq. However, it corresponds to R1 in scATAC.]",
+    "R3 [optional -- This file is needed for scATAC and corresponds to R2.]", 
+    "barcode-orientation [optional: default FIRST_BP. Other options include LAST_BP, FIRST_BP_RC or LAST_BP_RC.]",
     "whitelist (from cellranger) of barcodes [required]",
     "output-format : either FASTQ or BAM [required]",
   };
@@ -309,6 +328,12 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     case 'r':
       options.R2s.push_back(string(optarg));
       break;
+    case 'A':
+      options.R3s.push_back(string(optarg));
+      break;
+    case 'O':
+      options.barcode_orientation = string(optarg);
+      break;
     case 'w':
       options.white_list_file = string(optarg);
       break;
@@ -346,6 +371,9 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
   if (options.I1s.size() != options.R1s.size() && !options.I1s.empty())
     crash("ERROR: Must provide as many I1 input files as R1 input files, or else no I1 input files at all.");
 
+  if (options.R3s.size() != options.R1s.size() && !options.R3s.empty())
+    crash("ERROR: Must provide as many R3 input files as R1 input files.");
+
   if (options.bam_size <= 0)
     crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
 
@@ -364,6 +392,8 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
       printFileInfo(options.R1s, string("R1"));
     if (!options.R2s.empty())
       printFileInfo(options.R2s, string("R2"));
+    if (!options.R3s.empty())
+      printFileInfo(options.R3s, string("R3"));  
   }
 
   return options;
