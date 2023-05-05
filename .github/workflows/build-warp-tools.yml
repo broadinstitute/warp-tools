@@ -50,6 +50,12 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
+    # Upload the image to the artifacts store
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: warptools
+        path: /tmp/warptools.tar
   
   test-python:
     needs: build
@@ -77,4 +83,17 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-
+  
+  # test-c:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install gtest manually
+  #     run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
+  #   - uses: actions/checkout@v1
+  #   - name: configure
+  #     run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Werror" ..
+    # - name: make
+    #   run: cd build && make
+    # - name: Run Test
+    #   run: /home/runner/work/github_actions_gtest_example/github_actions_gtest_example/build/test/github_actions_gtest_example.test
