@@ -9,6 +9,7 @@ std::vector<std::pair<char, int>> g_parsed_read_structure;
 
 // ---------------------------------------------------
 // Used to write files -- needs to be merged 
+// test this
 // ----------------------------------------------------
 void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
 {
