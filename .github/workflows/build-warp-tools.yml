@@ -34,7 +34,13 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
+    # Save the image path to an output
+    - id: 'saveImagePath'
+      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
     - name: Build the Docker image
@@ -102,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     container:
-      image: ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+      image: ${{needs.build.outputs.imagePath}}
       # volumes:
       #   - my_docker_volume:/volume_mount
       # options: --cpus 1
