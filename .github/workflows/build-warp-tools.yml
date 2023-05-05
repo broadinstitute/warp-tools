@@ -115,8 +115,12 @@ jobs:
     steps:
       - name: Check for dockerenv file
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+      - name: Check directory
+        run: |
+          whoami
+          ls -lht
+          pwd
       - name: Test TagSort
         run: |
-          pwd
-          /warptools/TagSort
+          cd /warptools/TagSort
           ./fetch_gtest.sh && make test
