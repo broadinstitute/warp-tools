@@ -124,3 +124,5 @@ jobs:
         run: |
           cd /warptools/TagSort
           ./fetch_gtest.sh && make test
+          cd /warptools/TagSort/bin
+          ls -lht
