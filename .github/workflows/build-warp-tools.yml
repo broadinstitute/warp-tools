@@ -115,3 +115,7 @@ jobs:
     steps:
       - name: Check for dockerenv file
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+      - name: Test TagSort
+        run: |
+          cd TagSort
+          ./fetch_gtest.sh && make test
