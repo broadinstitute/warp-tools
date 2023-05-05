@@ -117,5 +117,6 @@ jobs:
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
       - name: Test TagSort
         run: |
-          cd TagSort
+          pwd
+          /warptools/TagSort
           ./fetch_gtest.sh && make test
