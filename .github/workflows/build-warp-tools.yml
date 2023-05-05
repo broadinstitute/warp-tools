@@ -50,12 +50,12 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
-    # Upload the image to the artifacts store
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: warptools
-        path: /tmp/warptools.tar
+    # # Upload the image to the artifacts store
+    # - name: Upload artifact
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: warptools
+    #     path: /tmp/warptools.tar
   
   test-python:
     needs: build
@@ -101,15 +101,11 @@ jobs:
   test-c:
     runs-on: ubuntu-latest
     needs: build
+    container:
+      image: ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+      # volumes:
+      #   - my_docker_volume:/volume_mount
+      # options: --cpus 1
     steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: warptools
-          path: /tmp
-      - name: Load Docker image
-        run: |
-          docker load --input /tmp/warptools.tar
-          docker image ls -a
+      - name: Check for dockerenv file
+        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
