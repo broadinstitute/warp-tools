@@ -111,19 +111,36 @@ void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord)
   g_read_arenas[reader_thread_index]->releaseSamRecordMemory(samRecord);
 }
 
+void outputHandler(WriteQueue* cur_write_queue, SamRecord* samrec, int reader_thread_index)
+{
+  cur_write_queue->enqueueWrite(std::make_pair(samrec, reader_thread_index));
+}
 // ---------------------------------------------------
 // Write to output BAM OR FASTQ
 // ----------------------------------------------------
-void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam)
+void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam, bool sample_bool)
 {
-  r1_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
-         << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
-  r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
-         << sam->getQuality() << "\n";
+  // if sample_bool set to true, write reads with only corrected/correct barcodes 
+  // probably would need to change how this is done
+  if(sample_bool && sam->getStringTag("CB"))
+  {
+    r1_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
+           << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+    r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
+           << sam->getQuality() << "\n";    
+  }
+  // else print everything -- valid and invalid 
+  else
+  {
+    r1_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
+           << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+    r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
+           << sam->getQuality() << "\n"; 
+  }
 }
 
 void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_out, 
-                          SamRecord* sam)
+                          SamRecord* sam, bool sample_bool)
 {
   std::string cb_barcode = sam->getString("CB").c_str();
   std::string cr_barcode = sam->getString("CR").c_str();
@@ -132,25 +149,48 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
   if (!cb_barcode.empty())
     write_cb_barcode = cb_barcode + ":CB:"; 
   
-  //R1
-  r2_out << "@" << write_cb_barcode
-          << sam->getReadName() << ":CR:" << cr_barcode
-          << "\n" << cr_barcode
-          << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
-  //R2
-  r1_out << "@" << write_cb_barcode
-          << sam->getReadName() << ":CR:" << cr_barcode
-          << "\n" << sam->getSequence() << "\n+\n"
-          << sam->getQuality() << "\n";
-  //R3
-  r3_out << "@" << write_cb_barcode
-          << sam->getReadName() << ":CR:" << cr_barcode
-          << "\n" << sam->getString("RS").c_str() << "\n+\n"
-          << sam->getString("RQ").c_str() <<  "\n";
+  // if sample_bool set to true, write reads with only corrected/correct barcodes 
+  if(sample_bool && sam->getStringTag("CB"))
+  {
+    //R1
+    r2_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << cr_barcode
+            << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+    //R2
+    r1_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << sam->getSequence() << "\n+\n"
+            << sam->getQuality() << "\n";
+    //R3
+    r3_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << sam->getString("RS").c_str() << "\n+\n"
+            << sam->getString("RQ").c_str() <<  "\n";
+  }
+  // else print everything -- valid and invalid 
+  else
+  {
+    //R1
+    r2_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << cr_barcode
+            << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+    //R2
+    r1_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << sam->getSequence() << "\n+\n"
+            << sam->getQuality() << "\n";
+    //R3
+    r3_out << "@" << write_cb_barcode
+            << sam->getReadName() << ":CR:" << cr_barcode
+            << "\n" << sam->getString("RS").c_str() << "\n+\n"
+            << sam->getString("RQ").c_str() <<  "\n";
+  }
   
 }
 
-void fastqWriterThread(int write_thread_index)
+void fastqWriterThread(int write_thread_index, bool sample_bool)
 {
   std::string r1_output_fname = "fastq_R1_" + std::to_string(write_thread_index) + ".fastq.gz";
   ogzstream r1_out(r1_output_fname.c_str());
@@ -168,7 +208,7 @@ void fastqWriterThread(int write_thread_index)
     if (source_reader_index == WriteQueue::kShutdown)
       break;
 
-    writeFastqRecord(r1_out, r2_out, sam);
+    writeFastqRecord(r1_out, r2_out, sam, sample_bool);
     g_read_arenas[source_reader_index]->releaseSamRecordMemory(sam);
   }
 
@@ -177,8 +217,8 @@ void fastqWriterThread(int write_thread_index)
   r2_out.close();
 }
 
-//overload fastqWriterThread function for atac
-void fastqWriterThreadATAC(int write_thread_index)
+// write fastq for atac
+void fastqWriterThreadATAC(int write_thread_index, bool sample_bool)
 {
   std::string r1_output_fname = "fastq_R1_" + std::to_string(write_thread_index) + ".fastq.gz";
   ogzstream r1_out(r1_output_fname.c_str());
@@ -201,7 +241,7 @@ void fastqWriterThreadATAC(int write_thread_index)
     if (source_reader_index == WriteQueue::kShutdown)
       break;
 
-    writeFastqRecordATAC(r1_out, r2_out, r3_out, sam);    
+    writeFastqRecordATAC(r1_out, r2_out, r3_out, sam, sample_bool);    
     g_read_arenas[source_reader_index]->releaseSamRecordMemory(sam);
   }
 
@@ -481,8 +521,7 @@ bool readOneItem(FastQFile& fastQFileI1, bool has_I1_file_list,
 void fastQFileReaderThread(
     int reader_thread_index, std::string filenameI1, String filenameR1,
     String filenameR2, std::string filenameR3, const WhiteListCorrector* corrector, std::string barcode_orientation,
-    std::vector<std::pair<char, int>> g_parsed_read_structure,
-    std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
+    std::vector<std::pair<char, int>> g_parsed_read_structure)
 {
   /// setting the shortest sequence allowed to be read
   FastQFile fastQFileI1(4, 4);
@@ -597,7 +636,7 @@ void mainCommon(
     std::vector<std::string> I1s, std::vector<std::string> R1s, 
     std::vector<std::string> R2s, std::vector<std::string> R3s,
     std::string sample_id,  std::vector<std::pair<char, int>> g_parsed_read_structure,
-    std::function<void(WriteQueue*, SamRecord*, int)> output_handler)
+    bool sample_bool)
 {
   std::cout << "reading whitelist file " << white_list_file << "...";
   // stores barcode correction map and vector of correct barcodes
@@ -617,9 +656,9 @@ void mainCommon(
   else if (output_format == "FASTQ")
     for (int i = 0; i < num_writer_threads; i++)
       if (R3s.empty())
-          writers.emplace_back(fastqWriterThread, i);
+          writers.emplace_back(fastqWriterThread, i, sample_bool);
       else
-          writers.emplace_back(fastqWriterThreadATAC, i);
+          writers.emplace_back(fastqWriterThreadATAC, i, sample_bool);
   else
     crash("ERROR: Output-format must be either FASTQ or BAM");
 
@@ -633,9 +672,7 @@ void mainCommon(
     readers.emplace_back(fastQFileReaderThread, i, I1s.empty() ? "" : I1s[i], R1s[i].c_str(),
                          R2s[i].c_str(), R3s.empty() ? "" : R3s[i].c_str(), 
                          &corrector, barcode_orientation,
-                         g_parsed_read_structure,
-                         //sam_record_filler, barcode_getter, 
-                         output_handler);
+                         g_parsed_read_structure);
   }
 
   for (auto& reader : readers)
