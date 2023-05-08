@@ -126,4 +126,4 @@ jobs:
           ./fetch_gtest.sh && make test
           cd /warptools/TagSort/bin
           ls -lht
-          for f in *test; do bash "$f"; done;
+          for f in *test; do ./"$f"; done;
