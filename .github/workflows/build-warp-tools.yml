@@ -127,3 +127,10 @@ jobs:
           cd /warptools/TagSort/bin
           ls -lht
           for f in *test; do ./"$f"; done;
+      - name: Test FastqPreprocessing
+        run: |
+          cd /warptools/fastqpreprocessing
+          ./fetch_gtest.sh && make test
+          cd /warptools/fastqpreprocessing/bin
+          ls -lht
+          for f in *test; do ./"$f"; done;
