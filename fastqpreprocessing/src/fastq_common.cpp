@@ -597,7 +597,7 @@ void fastQFileReaderThread(
           barcode, samrec, corrector, &n_barcode_corrected, 
           &n_barcode_correct, &n_barcode_errors, g_write_queues.size());
 
-      output_handler(g_write_queues[bam_bucket].get(), samrec, reader_thread_index);
+      outputHandler(g_write_queues[bam_bucket].get(), samrec, reader_thread_index);
 
       if (total_reads % 10000000 == 0)
       {
