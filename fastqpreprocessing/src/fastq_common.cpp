@@ -124,8 +124,11 @@ void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam, bool
   // probably would need to change how this is done
   if(sample_bool && sam->getStringTag("CB"))
   {
-    r1_out << "@" << sam->getReadName() << "\n" << sam->getString("CR").c_str()
-           << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+    //R1 -- S1 for read + Q1 for quality 
+    r1_out << "@" << sam->getReadName() << "\n" 
+          << sam->getString("S1")
+          <<"\n+\n" 
+          << sam->getString("Q1") << "\n";
     r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
            << sam->getQuality() << "\n";    
   }
@@ -152,11 +155,11 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
   // if sample_bool set to true, write reads with only corrected/correct barcodes 
   if(sample_bool && sam->getStringTag("CB"))
   {
-    //R1
+    //R1 -- S1 for read + Q1 for quality 
     r2_out << "@" << write_cb_barcode
             << sam->getReadName() << ":CR:" << cr_barcode
-            << "\n" << cr_barcode
-            << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
+            << "\n" << sam->getString("S1")
+            << "\n+\n" << sam->getString("Q1") << "\n";
     //R2
     r1_out << "@" << write_cb_barcode
             << sam->getReadName() << ":CR:" << cr_barcode
@@ -347,6 +350,11 @@ void fillSamRecordCommon(SamRecord* samRecord, FastQFile* fastQFileI1,
   samRecord->setReadName(fastQFileR2->mySequenceIdentifier.c_str());
   samRecord->setSequence(fastQFileR2->myRawSequence.c_str());
   samRecord->setQuality(fastQFileR2->myQualityString.c_str());
+  
+  // add raw sequence from R1 -- this is for the downsampling
+  samRecord->addTag("S1", 'Z', fastQFileR1->myRawSequence.c_str());
+  samRecord->addTag("Q1", 'Z', fastQFileR1->myQualityString.c_str());
+  
   // add barcode and quality
   samRecord->addTag("CR", 'Z', barcode_seq.c_str());
   samRecord->addTag("CY", 'Z', barcode_quality.c_str());
