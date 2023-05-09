@@ -122,15 +122,18 @@ void writeFastqRecord(ogzstream& r1_out, ogzstream& r2_out, SamRecord* sam, bool
 {
   // if sample_bool set to true, write reads with only corrected/correct barcodes 
   // probably would need to change how this is done
-  if(sample_bool && sam->getStringTag("CB"))
+  if(sample_bool)
   {
-    //R1 -- S1 for read + Q1 for quality 
-    r1_out << "@" << sam->getReadName() << "\n" 
-          << sam->getString("S1")
-          <<"\n+\n" 
-          << sam->getString("Q1") << "\n";
-    r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
-           << sam->getQuality() << "\n";    
+    if (sam->getStringTag("CB"))
+    {
+      //R1 -- S1 for read + Q1 for quality 
+      r1_out << "@" << sam->getReadName() << "\n" 
+            << sam->getString("S1")
+            <<"\n+\n" 
+            << sam->getString("Q1") << "\n";
+      r2_out << "@" << sam->getReadName() << "\n" << sam->getSequence() << "\n+\n"
+            << sam->getQuality() << "\n";    
+    }
   }
   // else print everything -- valid and invalid 
   else
@@ -153,23 +156,26 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
     write_cb_barcode = cb_barcode + ":CB:"; 
   
   // if sample_bool set to true, write reads with only corrected/correct barcodes 
-  if(sample_bool && sam->getStringTag("CB"))
+  if(sample_bool) 
   {
-    //R1 -- S1 for read + Q1 for quality 
-    r2_out << "@" << write_cb_barcode
+    if (sam->getStringTag("CB"))
+    {
+      //R1 -- S1 for read + Q1 for quality 
+      r2_out << "@" << write_cb_barcode
             << sam->getReadName() << ":CR:" << cr_barcode
             << "\n" << sam->getString("S1")
             << "\n+\n" << sam->getString("Q1") << "\n";
-    //R2
-    r1_out << "@" << write_cb_barcode
+      //R2
+      r1_out << "@" << write_cb_barcode
             << sam->getReadName() << ":CR:" << cr_barcode
             << "\n" << sam->getSequence() << "\n+\n"
             << sam->getQuality() << "\n";
-    //R3
-    r3_out << "@" << write_cb_barcode
+      //R3
+      r3_out << "@" << write_cb_barcode
             << sam->getReadName() << ":CR:" << cr_barcode
             << "\n" << sam->getString("RS").c_str() << "\n+\n"
             << sam->getString("RQ").c_str() <<  "\n";
+    }
   }
   // else print everything -- valid and invalid 
   else
