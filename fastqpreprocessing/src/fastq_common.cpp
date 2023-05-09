@@ -161,18 +161,18 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
     if (sam->getStringTag("CB"))
     {
       //R1 -- S1 for read + Q1 for quality 
-      r2_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+      r2_out << "@" 
+            << sam->getReadName()
             << "\n" << sam->getString("S1")
             << "\n+\n" << sam->getString("Q1") << "\n";
       //R2
-      r1_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+      r1_out << "@" 
+            << sam->getReadName()
             << "\n" << sam->getSequence() << "\n+\n"
             << sam->getQuality() << "\n";
       //R3
-      r3_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+      r3_out << "@" 
+            << sam->getReadName() 
             << "\n" << sam->getString("RS").c_str() << "\n+\n"
             << sam->getString("RQ").c_str() <<  "\n";
     }
