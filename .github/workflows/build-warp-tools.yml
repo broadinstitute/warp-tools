@@ -34,7 +34,13 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
+    # Save the image path to an output
+    - id: 'saveImagePath'
+      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
     - name: Build the Docker image
@@ -50,6 +56,12 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
+    # # Upload the image to the artifacts store
+    # - name: Upload artifact
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: warptools
+    #     path: /tmp/warptools.tar
   
   test-python:
     needs: build
@@ -77,4 +89,48 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+  
+  # test-c:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install gtest manually
+  #     run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
+  #   - uses: actions/checkout@v1
+  #   - name: configure
+  #     run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Werror" ..
+    # - name: make
+    #   run: cd build && make
+    # - name: Run Test
+    #   run: /home/runner/work/github_actions_gtest_example/github_actions_gtest_example/build/test/github_actions_gtest_example.test
 
+  test-c:
+    runs-on: ubuntu-latest
+    needs: build
+    container:
+      image: ${{needs.build.outputs.imagePath}}
+      # volumes:
+      #   - my_docker_volume:/volume_mount
+      # options: --cpus 1
+    steps:
+      - name: Check for dockerenv file
+        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+      - name: Check directory
+        run: |
+          whoami
+          ls -lht
+          pwd
+      - name: Test TagSort
+        run: |
+          cd /warptools/TagSort
+          ./fetch_gtest.sh && make test
+          cd /warptools/TagSort/bin
+          ls -lht
+          for f in *test; do ./"$f"; done;
+      - name: Test FastqPreprocessing
+        run: |
+          cd /warptools/fastqpreprocessing
+          ./fetch_gtest.sh && make test
+          cd /warptools/fastqpreprocessing/bin
+          ls -lht
+          for f in *test; do ./"$f"; done;
