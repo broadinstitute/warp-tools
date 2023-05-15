@@ -25,6 +25,9 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
   std::string read_structure;
 
   std::string sample_id;
+
+  // if set to false we print out all valid/invalid barcodes.
+  bool sample_bool = false;
 };
 
 // Structure to hold input options for fastqprocess
@@ -47,6 +50,9 @@ struct InputOptionsFastqProcess
   std::string read_structure;
 
   std::string sample_id;
+
+  // if set to false we print out all valid/invalid barcodes.
+  bool sample_bool = false; 
 };
 
 InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv);
