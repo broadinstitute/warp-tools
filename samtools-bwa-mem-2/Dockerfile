@@ -16,14 +16,12 @@ RUN set -eux; \
             libc6-compat \
             openjdk8 \
     ; \
-# Install bwa-mem2 \
+    # Install bwa-mem2 \
     mkdir temp; \
     cd temp; \
-    wget -O "bwa.tar.bz2" ${BWA_URL}; \
-    tar -xvjf bwa.tar.bz2; \
+    curl -L ${BWA_URL} | tar jxf -;
     cd bwa-mem2-${BWA_VERSION}; \
-    make; \
-    cp bwa /usr/local/bin \
+    cp bwa-mem2  /usr/local/bin; \
     ; 
 
 # Set tini as default entrypoint
