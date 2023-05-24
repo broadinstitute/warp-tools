@@ -20,8 +20,9 @@ RUN set -eux; \
     mkdir temp; \
     cd temp; \
     curl -L ${BWA_URL} | tar jxf -;
-    cd bwa-mem2-${BWA_VERSION}; \
-    cp bwa-mem2  /usr/local/bin; \
+    cd bwa-mem2-${BWA_VERSION}; \    
+    chmod +x ./bwa-mem2; \
+    cp ./bwa-mem2 /usr/local/bin; \
     ; 
 
 # Set tini as default entrypoint
