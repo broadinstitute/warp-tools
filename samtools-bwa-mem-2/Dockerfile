@@ -15,15 +15,17 @@ RUN set -eux; \
             gcompat \
             libc6-compat \
             openjdk8 \
+            curl \
     ; \
     # Install bwa-mem2 \
     mkdir temp; \
     cd temp; \
-    curl -L ${BWA_URL} | tar jxf -;
+    curl -L ${BWA_URL} | tar jxf -; \
     cd bwa-mem2-${BWA_VERSION}; \    
     chmod +x ./bwa-mem2; \
     cp ./bwa-mem2 /usr/local/bin; \
-    ; 
+    rm -r /usr/gitc/temp; \
+
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
