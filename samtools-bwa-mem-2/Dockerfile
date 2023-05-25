@@ -17,7 +17,7 @@ RUN set -eux; \
             openjdk8 \
             curl \
             git \
-            apk add build-base \
+            build-base \
     ; \
     # Install bwa-mem2 \
     mkdir temp; \
