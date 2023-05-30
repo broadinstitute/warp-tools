@@ -30,7 +30,7 @@ env:
 
 defaults:
   run:
-    working-directory: warp-tools/tools
+    working-directory: tools
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
@@ -41,6 +41,11 @@ jobs:
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
+    - name: Check working directory'
+      run: |
+        echo "Current directory: "
+        pwd
+        ls -lht
     # Save the image path to an output
     - id: 'saveImagePath'
       run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
