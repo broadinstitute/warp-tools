@@ -41,6 +41,10 @@ jobs:
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
     - name: Check working directory'
       run: |
         echo "Current directory: "
@@ -49,10 +53,6 @@ jobs:
     # Save the image path to an output
     - id: 'saveImagePath'
       run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
     # Log into the Google Docker registry
     - id: 'Auth'
       name: Login to GCR
