@@ -6,11 +6,11 @@ on:
     branches: [ "develop", "master" ]
     paths-ignore:
       - '**/README.md'
+defaults:
+  run:
+    working-directory: 3rd-party-tools
 jobs:
   build-and-scan:
-    defaults:
-      run:
-        working-directory: 3rd-party-tools
     name: DSP AppSec Trivy check
     runs-on: ubuntu-latest
     strategy:
