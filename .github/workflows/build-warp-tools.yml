@@ -30,7 +30,7 @@ env:
 
 defaults:
   run:
-    working-directory: tools
+    working-directory: warp-tools/tools
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
