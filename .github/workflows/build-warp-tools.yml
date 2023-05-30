@@ -32,6 +32,9 @@ env:
 jobs:
   # The job that builds our container
   build:
+    defaults:
+      run:
+        working-directory: tools
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Map a step output to a job output
@@ -56,12 +59,6 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
-    # # Upload the image to the artifacts store
-    # - name: Upload artifact
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: warptools
-    #     path: /tmp/warptools.tar
   
   test-python:
     needs: build
