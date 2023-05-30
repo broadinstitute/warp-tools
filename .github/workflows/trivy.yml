@@ -8,6 +8,9 @@ on:
       - '**/README.md'
 jobs:
   build-and-scan:
+    defaults:
+      run:
+        working-directory: 3rd-party-tools
     name: DSP AppSec Trivy check
     runs-on: ubuntu-latest
     strategy:
