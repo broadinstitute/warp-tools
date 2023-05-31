@@ -11,7 +11,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/star"
 #QUAY_URL="quay.io/broadinstitute/gotc-prod-star" # Update and uncomment push block below after setting up quay repo
 
 # STAR version
-STAR_VERSION="2.7.9a"
+STAR_VERSION="2.7.10b"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
