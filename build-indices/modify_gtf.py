@@ -63,21 +63,22 @@ def modify_attr(features_dic):
         else:
             modified_features = modified_features + key + " "+ features_dic[key] + "; "
     return modified_features
-    
-    
+
+
 def get_gene_ids_Refseq(input_gtf, biotypes):
     gene_ids =[]
     with open(input_gtf, 'r') as input_file:
         for line in input_file:
             if not line.startswith('#'):
                 fields = [x.strip() for x in line.strip().split('\t')]
-                if fields[2]=='gene':
+                if fields[2] == 'gene' or fields[2] == 'transcript':
                     features = re.sub('"', '', line.strip().split('\t')[8].strip())
                     features_dic = get_features(features)
-                    if ('gene_biotype' in features_dic.keys()) and (features_dic['gene_biotype'] in biotypes):
-                        gene=features_dic['gene_id'].split('.',1)[0]
-                        if gene not in gene_ids:
-                            gene_ids.append(gene)
+                    if (('gene_biotype' in features_dic.keys()) and (features_dic['gene_biotype'] not in biotypes)) or (('transcript_biotype' in features_dic.keys()) and (features_dic['transcript_biotype'] not in biotypes)):
+                        continue
+                    gene=features_dic['gene_id'].split('.',1)[0]
+                    if gene not in gene_ids:
+                        gene_ids.append(gene)
     input_file.close()
     return gene_ids
 
@@ -177,6 +178,38 @@ def main():
                         modified_fields = fields.copy()
                         modified_fields[8] = modify_attr(features_dic)
                         output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
+
+    unique_biotypes_input = set()
+    with open(args.input_gtf, 'r') as input_file:
+        for line in input_file:
+            if not line.startswith('#'):
+                features = re.sub('"', '', line.strip().split('\t')[8].strip())
+                features_dic = get_features(features)
+                if 'gene_biotype' in features_dic:
+                    unique_biotypes_input.add(features_dic['gene_biotype'])
+                if 'transcript_biotype' in features_dic:
+                    unique_biotypes_input.add(features_dic['transcript_biotype'])
+
+    # Printing the unique biotypes
+    print("Unique gene_biotypes and transcript_biotypes in the input GTF:")
+    for biotype in unique_biotypes_input:
+        print(biotype)
+
+    unique_biotypes = set()
+    with open(args.output_gtf, 'r') as output_file:
+        for line in output_file:
+            if not line.startswith('#'):
+                features = re.sub('"', '', line.strip().split('\t')[8].strip())
+                features_dic = get_features(features)
+                if 'gene_biotype' in features_dic:
+                    unique_biotypes.add(features_dic['gene_biotype'])
+                if 'transcript_biotype' in features_dic:
+                    unique_biotypes.add(features_dic['transcript_biotype'])
+
+    # Printing the unique biotypes
+    print("Unique gene_biotypes and transcript_biotypes in the output GTF:")
+    for biotype in unique_biotypes:
+        print(biotype)
 
 if __name__ == "__main__":
     main()
