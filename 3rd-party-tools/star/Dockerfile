@@ -1,6 +1,6 @@
 FROM --platform=linux/amd64 alpine:latest
 
-ARG STAR_VERSION=2.7.9a
+ARG STAR_VERSION=2.7.10b
 
 ENV TERM=xterm-256color \
         STAR_URL=https://github.com/alexdobin/STAR/archive/${STAR_VERSION}.tar.gz
