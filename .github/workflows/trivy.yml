@@ -1,0 +1,51 @@
+#This action was copied over from WARP's repo.
+#It is used to scan docker images for vulnerabilities.
+name: DSP AppSec Trivy Checks
+on:
+  pull_request:
+    branches: [ "develop", "master" ]
+    paths-ignore:
+      - '**/README.md'
+jobs:
+  build-and-scan:
+    name: DSP AppSec Trivy check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+        - 3rd-party-tools/arrays_picard_private
+        - 3rd-party-tools/dragmap
+        - 3rd-party-tools/gatk
+        - 3rd-party-tools/illumina_iaap_autocall
+        - 3rd-party-tools/picard_python
+        - 3rd-party-tools/verify_bam_id
+        - 3rd-party-tools/samtools
+        - 3rd-party-tools/samtools_picard_bwa
+        - 3rd-party-tools/samtools_star
+        - 3rd-party-tools/zcall
+        - 3rd-party-tools/bcftools_vcftools
+        - 3rd-party-tools/eagle
+        - 3rd-party-tools/minimac4
+        - 3rd-party-tools/fgbio
+        - 3rd-party-tools/umi_tools
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          context: ${{ matrix.context }}
+
+  #TODO: Check if we really need this. This seems to scan a prebuilt image that we didn't build.   
+  prebuilt-scan:
+    name: DSP AppSec Trivy check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+        - us.gcr.io/broad-gotc-prod/picard-cloud:2.26.10
+    steps:
+      - uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ matrix.image }}

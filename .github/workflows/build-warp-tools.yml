@@ -28,23 +28,32 @@ env:
   GCR_PATH: broad-gotc-prod/warp-tools
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
-    # Save the image path to an output
-    - id: 'saveImagePath'
-      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+    - name: Check working directory'
+      run: |
+        echo "Current directory: "
+        pwd
+        ls -lht
+    # Save the image path to an output
+    - id: 'saveImagePath'
+      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
     # Log into the Google Docker registry
     - id: 'Auth'
       name: Login to GCR
@@ -56,16 +65,13 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
-    # # Upload the image to the artifacts store
-    # - name: Upload artifact
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: warptools
-    #     path: /tmp/warptools.tar
   
   test-python:
     needs: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
     strategy:
       matrix:
         python-version: ["3.9", "3.10"]
