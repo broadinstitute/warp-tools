@@ -7,6 +7,8 @@ LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-developmen
   software="warp-tools  v.1.0.1" \
   description="A collection of tools for WARP pipelines."
 
+ENV PATH $PATH:/root/google-cloud-sdk/bin 
+
 #separating run commands to utilize some caching - each run takes a significant amount of time when not utilizing caching
 #create workdir, update package manager, install prerequisite libraries, install python libraries
 RUN set -eux && \
