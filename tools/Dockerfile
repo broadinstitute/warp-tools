@@ -13,7 +13,8 @@ RUN set -eux && \
     mkdir -p /warptools && \
     apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev && \
     pip install --upgrade pip && \
-    pip install loompy==3.0.6 anndata numpy scipy h5py==2.10.0
+    pip install loompy==3.0.6 anndata numpy scipy h5py==2.10.0 && \
+    curl -sSL https://sdk.cloud.google.com | bash 
 
 COPY . /warptools
 #build C/C++ code and add binaries to usr's bin
