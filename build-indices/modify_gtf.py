@@ -81,9 +81,9 @@ def get_gene_ids_Refseq(input_gtf, biotypes):
                     if gene not in gene_ids:
                         gene_ids.append(gene)
 
-                    # we have multiple entries for one gene id -- 
+                    # we have multiple entries for one gene id --
                     if 'gene_biotype' in features_dic.keys():
-                        if gene not in all_biotypes.keys():  
+                        if gene not in all_biotypes.keys():
                             all_biotypes[gene] = [".gene_biotype." + features_dic['gene_biotype']]
                         else:
                             all_biotypes[gene].append(".gene_biotype." + features_dic['gene_biotype'])
@@ -91,8 +91,8 @@ def get_gene_ids_Refseq(input_gtf, biotypes):
                         if gene not in all_biotypes.keys():
                             all_biotypes[gene] = [".transcript_biotype." + features_dic['transcript_biotype']]
                         else:
-                            all_biotypes[gene].append(".transcript_biotype." + features_dic['transcript_biotype']) 
-                    
+                            all_biotypes[gene].append(".transcript_biotype." + features_dic['transcript_biotype'])
+
     input_file.close()
     return gene_ids, all_biotypes
 
@@ -169,7 +169,7 @@ def main():
     print("Filtering the gtf for biotypes:", allowable_biotypes)
     ref_source = get_ref_source(input_gtf=args.input_gtf)
     all_biotypes = {}
-    
+
     if ref_source == "Refseq":
         gene_ids, all_biotypes = get_gene_ids_Refseq(input_gtf=args.input_gtf, biotypes=allowable_biotypes)
     elif ref_source == "Gencode":
@@ -192,17 +192,20 @@ def main():
                         # testing for ref -- only ref has all_biotypes
 
                         to_write = False
-                        if ref_source == "Refseq": 
+                        if ref_source == "Refseq":
                             geneID_biotype = all_biotypes[features_dic['gene_id']]
+                            #print(geneID_biotype)
 
                             gene_biotypes_geneid = set()
                             transcript_biotypes_gene_id = set()
 
                             for i in range(len(geneID_biotype)):
-                                if geneID_biotype.split(".")[0] == "gene_biotype":
-                                    gene_biotypes_geneid.add(geneID_biotype.split(".")[1])
-                                if geneID_biotype.split(".")[0] == "transcript_biotype":
-                                    transcript_biotypes_gene_id.add(geneID_biotype.split(".")[1])
+                                if geneID_biotype[i].split(".")[1] == "gene_biotype":
+                                    #print(geneID_biotype[i].split(".")[0])
+                                    gene_biotypes_geneid.add(geneID_biotype[i].split(".")[2])
+                                    #print(geneID_biotype[i].split(".")[1])
+                                if geneID_biotype[i].split(".")[1] == "transcript_biotype":
+                                    transcript_biotypes_gene_id.add(geneID_biotype[i].split(".")[2])
 
                             if 'gene_biotype' in features_dic.keys() and features_dic['gene_biotype'] in list(gene_biotypes_geneid):
                                 to_write = True
@@ -212,10 +215,10 @@ def main():
                         else:
                             # gencode - true
                             to_write = True
-                            
+
                         if to_write:
                             # The two lines below for modified filed were moved into this if statement
-                            # We want to find the valid genes first and then modify the GTF fields 
+                            # We want to find the valid genes first and then modify the GTF fields
                             modified_fields = fields.copy()
                             modified_fields[8] = modify_attr(features_dic)
                             output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
