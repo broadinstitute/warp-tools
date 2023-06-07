@@ -299,7 +299,7 @@ def create_h5ad_files(args):
     if args.input_name_metadata_field is not None:
         attrDict['input_name_metadata_field'] = args.input_name_metadata_field
     attrDict['pipeline_version'] = args.pipeline_version
-    #generate h5ad file
+    # generate h5ad file
 
     # import the expr_sp_t and exon_sp_t matrices as CSR and transpose
     counts = csr_matrix(expr_sp_t).transpose()
