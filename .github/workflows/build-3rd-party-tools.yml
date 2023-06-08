@@ -1,4 +1,4 @@
-name: Warp Tools CI
+name: Warp 3rd Party Tools CI
 
 # Controls when the workflow will run
 on:
