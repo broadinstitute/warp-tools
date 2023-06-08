@@ -5,6 +5,7 @@ import re
 import numpy as np
 import loompy
 from scipy import sparse
+from scipy.sparse import csr_matrix
 import pandas as pd
 import scipy as sc
 import logging
