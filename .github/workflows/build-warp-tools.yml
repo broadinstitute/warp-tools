@@ -11,8 +11,8 @@ on:
     #  - '**/README.md'
   pull_request:
     branches: [ "develop", "master" ]
-    paths-ignore:
-      - '**/README.md'
+    paths:
+      - 'tools/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -65,7 +65,7 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
-  
+  #Runs pytest on all python code in warp-tools/tools
   test-python:
     needs: build
     runs-on: ubuntu-latest

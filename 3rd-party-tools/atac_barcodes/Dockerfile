@@ -1,3 +1,4 @@
+# Adding a platform tag to ensure that images built on ARM-based machines.
 FROM --platform=linux/amd64 python:3.9.2
 
 ENV TERM=xterm-256color \
