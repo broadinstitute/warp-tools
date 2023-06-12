@@ -1,4 +1,5 @@
-FROM adoptopenjdk/openjdk8:debian-slim
+# Adding a platform tag to ensure that images built on ARM-based machines
+FROM --platform="linux/amd64" adoptopenjdk/openjdk8:debian-slim
 
 ARG PICARD_PRIVATE_VERSION=c24d8e2dfd6de9c663416278040a9f91b6a5e3eb
 
