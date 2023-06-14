@@ -1,4 +1,4 @@
-FROM python:3.7.7
+FROM --platform=linux/amd64 python:3.7.7
 
 LABEL maintainer="DSP Data Centers <monster@broadinstitute.org>"
 
