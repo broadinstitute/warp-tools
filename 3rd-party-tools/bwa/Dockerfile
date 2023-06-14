@@ -1,3 +1,4 @@
+# Adding a platform tag to ensure that images built on ARM-based machines.
 FROM --platform=linux/amd64 ubuntu:16.04
 
 ARG BWA_VERSION=0.7.17
