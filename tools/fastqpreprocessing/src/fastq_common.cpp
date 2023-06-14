@@ -153,7 +153,7 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
 
   std::string write_cb_barcode = "";
   if (!cb_barcode.empty())
-    write_cb_barcode = cb_barcode + ":CB:"; 
+    write_cb_barcode = " CB:Z:" + cb_barcode; 
   
   // if sample_bool set to true, write reads with only corrected/correct barcodes 
   if(sample_bool) 
@@ -181,18 +181,18 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
   else
   {
     //R1
-    r2_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+    r2_out << "@" 
+            << sam->getReadName() << " CR:Z:" << cr_barcode << write_cb_barcode
             << "\n" << cr_barcode
             << sam->getString("UR") << "\n+\n" << sam->getString("CY") << sam->getString("UY") << "\n";
     //R2
-    r1_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+    r1_out << "@" 
+            << sam->getReadName() << " CR:Z:" << cr_barcode << write_cb_barcode
             << "\n" << sam->getSequence() << "\n+\n"
             << sam->getQuality() << "\n";
     //R3
-    r3_out << "@" << write_cb_barcode
-            << sam->getReadName() << ":CR:" << cr_barcode
+    r3_out << "@" 
+            << sam->getReadName() << " CR:Z:" << cr_barcode << write_cb_barcode
             << "\n" << sam->getString("S3").c_str() << "\n+\n"
             << sam->getString("Q3").c_str() <<  "\n";
   }
