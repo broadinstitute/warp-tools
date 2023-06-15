@@ -120,7 +120,7 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
       std::string key = ltrim(attrib).substr(0,ltrim(attrib).find_first_of(" "));
       std::string value = ltrim(attrib).substr(ltrim(attrib).find_first_of(" ") +1);
 
-      // removed lines below b/c we found a different way to split strings
+      // removed the lines below b/c we found a different way to split strings
       // std::vector<std::string> key_and_val = splitStringToFields(ltrim(attrib), ' ');
       // if (key_and_val.size() != 2)
       //   crash("Expected 2 fields, found " + std::to_string(key_and_val.size()) + " fields");
