@@ -153,7 +153,7 @@ void writeFastqRecordATAC(ogzstream& r1_out, ogzstream& r2_out, ogzstream& r3_ou
 
   std::string write_cb_barcode = "";
   if (!cb_barcode.empty())
-    write_cb_barcode = " CB:Z:" + cb_barcode; 
+    write_cb_barcode = "\tCB:Z:" + cb_barcode; 
   
   // if sample_bool set to true, write reads with only corrected/correct barcodes 
   if(sample_bool) 
