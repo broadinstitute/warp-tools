@@ -1,0 +1,59 @@
+name: RSEM CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
+  pull_request:
+    branches: [ "develop", "master" ]
+    paths:
+      - '3rd-party-tools/rsem/**'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker Image Tag (default: branch_name)' 
+
+env:
+  PROJECT_NAME: WARP 3rd Party Tools
+  # Github repo name
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+  # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
+  DOCKER_REGISTRY: us.gcr.io
+  GCR_PATH: broad-gotc-prod/rsem
+  TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
+
+  # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # The job that builds our container
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 3rd-party-tools/rsem
+    # Map a step output to a job output
+    outputs:
+      imagePath: ${{ steps.saveImagePath.outputs.url }}
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+    - name: Check working directory'
+      run: |
+        echo "Current directory: "
+        pwd
+        ls -lht
+    # Save the image path to an output
+    - id: 'saveImagePath'
+      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
+    # Log into the Google Docker registry
+    - id: 'Auth'
+      name: Login to GCR
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: _json_key
+        password: ${{ secrets.GCR_CI_KEY }}
+    # Push the image to the Google Docker registry
+    - name: Push image
+      run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
