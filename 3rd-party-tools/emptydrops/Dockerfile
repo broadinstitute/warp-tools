@@ -1,5 +1,4 @@
-# Adding a platform tag to ensure that images built on ARM-based machines (ex. M-series macs) won't cause issues with our automated PR test suite.
-# However, this is not relevant for automated builds in a CI/CD pipeline that is AMD-based.
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" ubuntu:18.04
 
 # Avoid interaction during package install
