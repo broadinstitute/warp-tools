@@ -1,5 +1,6 @@
 # Have to use debian based image, many of the installed packages here are not available in Alpine
-FROM us.gcr.io/broad-dsp-gcr-public/base/python:debian
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
+FROM --platform="linux/amd64" us.gcr.io/broad-dsp-gcr-public/base/python:debian
 
 ARG GIT_HASH=c1cba76e979904eb69c31520a0d7f5be63c72253
 

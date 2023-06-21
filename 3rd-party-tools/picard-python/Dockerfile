@@ -1,3 +1,4 @@
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform=linux/amd64 python:3.8-alpine
 
 ARG PICARD_PUBLIC_VERSION=2.26.10

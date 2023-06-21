@@ -1,4 +1,5 @@
-FROM us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
+FROM --platform="linux/amd64" us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian
 
 ARG UMI_TOOLS_VERSION=1.1.1
 
