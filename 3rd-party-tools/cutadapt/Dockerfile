@@ -3,7 +3,7 @@ FROM --platform=linux/amd64 python:3.7.7
 
 LABEL maintainer="DSP Data Centers <monster@broadinstitute.org>"
 
-ARG CUTADAPT_VERSION
+ARG CUTADAPT_VERSION=4.4
 
 # get cutadapt
 RUN pip install --upgrade pip && \
