@@ -1,4 +1,5 @@
-FROM frolvlad/alpine-mono:5.4-glibc
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
+FROM --platform="linux/amd64" frolvlad/alpine-mono:5.4-glibc
 
 ARG IAAP_CLI_VERSION=iaap-cli-linux-x64-1.1.0-sha.80d7e5b3d9c1fdfc2e99b472a90652fd3848bbc7
 
