@@ -5,7 +5,7 @@ FROM --platform="linux/amd64" ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set parameters
-ARG R_VERSION=${R_VERSION}
+ARG R_VERSION=4.2.2
 
 # Image label
 LABEL maintainer="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
