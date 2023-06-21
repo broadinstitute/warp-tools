@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/arrays_picard_private/**'
+      - '3rd-party-tools/arrays-picard-private/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/arrays_picard_private
+        working-directory: 3rd-party-tools/arrays-picard-private
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
