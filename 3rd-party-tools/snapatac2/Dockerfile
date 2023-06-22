@@ -17,7 +17,7 @@ WORKDIR /usr/gitc
 RUN pip install cmake; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
-    pip install snapatac2; \
+    pip install snapatac2==${SNAPATAC2_VERSION}; \
     # Install TINI
     mkdir temp; \
     cd temp; \
