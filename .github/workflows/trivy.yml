@@ -14,21 +14,21 @@ jobs:
       fail-fast: false
       matrix:
         context:
-        - 3rd-party-tools/arrays_picard_private
+        - 3rd-party-tools/arrays-picard-private
         - 3rd-party-tools/dragmap
         - 3rd-party-tools/gatk
-        - 3rd-party-tools/illumina_iaap_autocall
-        - 3rd-party-tools/picard_python
-        - 3rd-party-tools/verify_bam_id
+        - 3rd-party-tools/illumina-iaap-autocall
+        - 3rd-party-tools/picard-python
+        - 3rd-party-tools/verify-bam-id
         - 3rd-party-tools/samtools
-        - 3rd-party-tools/samtools_picard_bwa
-        - 3rd-party-tools/samtools_star
+        - 3rd-party-tools/samtools-picard-bwa
+        - 3rd-party-tools/samtools-star
         - 3rd-party-tools/zcall
-        - 3rd-party-tools/bcftools_vcftools
+        - 3rd-party-tools/bcftools-vcftools
         - 3rd-party-tools/eagle
         - 3rd-party-tools/minimac4
         - 3rd-party-tools/fgbio
-        - 3rd-party-tools/umi_tools
+        - 3rd-party-tools/umi-tools
     steps:
       - uses: actions/checkout@v3
 

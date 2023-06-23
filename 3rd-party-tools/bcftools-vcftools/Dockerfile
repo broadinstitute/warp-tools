@@ -1,4 +1,4 @@
-# Adding a platform tag to ensure that images built on ARM-based machines.
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform=linux/amd64 python:3.8-alpine
 
 ARG BCFTOOLS_VERSION=1.10.2 \

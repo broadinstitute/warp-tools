@@ -1,5 +1,7 @@
 # Eagle needs to run on debian based system
-FROM us.gcr.io/broad-dsp-gcr-public/base/python:debian
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
+#TODO: Check if we really need this base image to be an unofficial one
+FROM --platform=linux/amd64 us.gcr.io/broad-dsp-gcr-public/base/python:debian
 
 ARG EAGLE_VERSION=2.4
 
