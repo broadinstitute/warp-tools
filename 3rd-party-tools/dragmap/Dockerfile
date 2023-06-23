@@ -1,4 +1,4 @@
-# Adding a platform tag to ensure that images built on ARM-based machines.
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 # Using rocky as temp replacement for CentOS
 # TODO: See if this container can be updated
 FROM --platform=linux/amd64 rockylinux:8.5 

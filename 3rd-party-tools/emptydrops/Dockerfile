@@ -1,12 +1,11 @@
-# Adding a platform tag to ensure that images built on ARM-based machines (ex. M-series macs) won't cause issues with our automated PR test suite.
-# However, this is not relevant for automated builds in a CI/CD pipeline that is AMD-based.
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" ubuntu:18.04
 
 # Avoid interaction during package install
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set parameters
-ARG R_VERSION=${R_VERSION}
+ARG R_VERSION=4.2.2
 
 # Image label
 LABEL maintainer="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \

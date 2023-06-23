@@ -1,3 +1,4 @@
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 # Minimac image uses bcftools
 FROM --platform=linux/amd64 us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:1.0.6-1.10.2-0.1.16-1663946207
 

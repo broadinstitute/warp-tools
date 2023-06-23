@@ -1,4 +1,4 @@
-name: Arrays Picard Private CI
+name: SnapTools BWA CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/arrays-picard-private/**'
+      - '3rd-party-tools/snaptools-bwa/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,18 +19,17 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/arrays-picard-private
+  GCR_PATH: broad-gotc-prod/snaptools-bwa
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/arrays-picard-private
+        working-directory: 3rd-party-tools/snaptools-bwa
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
