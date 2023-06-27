@@ -9,7 +9,7 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org"
 
 WORKDIR /usr/gitc
 
-# Copy scripts and dependencies into image
+# Copy scripts and dependencies into image.
 COPY atac_barcodes.py .
 
 RUN set -eux; \

@@ -5,6 +5,6 @@ LABEL maintainer="DSP Data Centers <monster@broadinstitute.org>"
 
 ARG CUTADAPT_VERSION=4.4
 
-# get cutadapt
+# get cutadapt.
 RUN pip install --upgrade pip && \
       pip install cutadapt==${CUTADAPT_VERSION}

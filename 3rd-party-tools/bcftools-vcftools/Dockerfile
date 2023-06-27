@@ -12,7 +12,7 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
 
 WORKDIR /usr/gitc
 
-# Install dependencies 
+# Install dependencies.
 RUN set -eux; \
         apk upgrade; \
         apk add --no-cache \
