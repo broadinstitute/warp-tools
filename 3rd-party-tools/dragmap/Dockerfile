@@ -1,5 +1,8 @@
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 # Using rocky as temp replacement for CentOS
-FROM rockylinux:8.5 
+# TODO: See if this container can be updated
+FROM --platform=linux/amd64 rockylinux:8.5 
+
 
 ARG DRAGMAP_VERSION=1.2.1 \
         PICARD_VERSION=2.26.10 \
