@@ -5,7 +5,7 @@ ENV TERM=xterm-256color \
         TINI_VERSION=v0.19.0\
         PATH=$PATH:/usr/gitc
 
-ARG SNAPATAC2_VERSION=2.3.0
+ARG SNAPATAC2_VERSION=2.3.1
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
         SNAPATAC2_VERSION=${SNAPATAC2_VERSION}
@@ -15,7 +15,7 @@ WORKDIR /usr/gitc
 RUN pip install cmake; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
-    pip install snapatac2; \
+    pip install snapatac2==${SNAPATAC2_VERSION}; \
     # Install TINI
     mkdir temp; \
     cd temp; \
