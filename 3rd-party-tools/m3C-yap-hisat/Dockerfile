@@ -1,4 +1,5 @@
-FROM mambaorg/micromamba:0.23.0
+# Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
+FROM --platform="linux/amd64" mambaorg/micromamba:0.23.0
 
 WORKDIR /usr/gitc
 RUN echo $PATH
