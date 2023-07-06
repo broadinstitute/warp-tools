@@ -5,6 +5,8 @@ RUN echo $PATH
 ENV PATH="$PATH:/opt/conda/bin:/root/pkg/hisat-3n"
 RUN echo $PATH
 
+
+
 COPY --chown=$MAMBA_USER:$MAMBA_USER hisat3n_env.yml /tmp/hisat3n_env.yml
 RUN micromamba install -y -f /tmp/hisat3n_env.yml && \
     micromamba clean --all --yes
