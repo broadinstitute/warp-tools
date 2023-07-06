@@ -19,7 +19,7 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/m3C-yap-hisat
+  GCR_PATH: broad-gotc-prod/m3c-yap-hisat
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
