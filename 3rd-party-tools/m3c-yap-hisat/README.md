@@ -6,7 +6,7 @@ Copy and paste to pull this image
 
 #### `docker pull us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616`
 
-- __What is this image:__ This image is a lightweight alpine-based image for running SAMTOOLS.
+- __What is this image:__ This image is a lightweight alpine-based image for running HISAT2.
 - __What is HISAT2-3N:__ HISAT2 is a fast and sensitive alignment program for mapping next-generation sequencing reads to the human genome. See [here](https://github.com/DaehwanKimLab/hisat2) more information.
 - __How to see HISAT2-3N version used in image:__ Please see below.
 
