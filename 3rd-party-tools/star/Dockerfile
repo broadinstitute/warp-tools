@@ -22,11 +22,11 @@ RUN set -eux; \
     cd temp; \
     \
     wget ${STAR_URL}; \
-    tar -xzf ${STAR_VERSION}.tar.gz; \
-    cd STAR-${STAR_VERSION}/bin/Linux_x86_64_static; \
+    #tar -xzf ${STAR_VERSION}.tar.gz; \
+    #cd STAR-${STAR_VERSION}/bin/Linux_x86_64_static; \
     \
-    chmod +x ./STAR; \
-    cp ./STAR /usr/local/bin; \
+    chmod +x ${STAR_VERSION}; \
+    cp ./${STAR_VERSION} /usr/local/bin/STAR; \
     \
     rm -r /usr/gitc/temp;
 
