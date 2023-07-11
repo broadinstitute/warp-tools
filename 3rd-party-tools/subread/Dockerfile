@@ -17,14 +17,17 @@ COPY requirements.txt .
 COPY remove-reads-on-junctions.py .
 
 RUN set -eux; \
-    apt-get update; \
-    apt-get install -y wget; \
-    python3 -m pip install --upgrade pip; \
-    pip3 install -r requirements.txt; \
+        apt-get update --fix-missing; \
+        apt-get install -y wget; \
+        python3 -m pip install --upgrade pip; \
+        pip3 install -r requirements.txt \
+    ; \
+# Install subread
     wget --no-check-certificate ${SUBREAD_URL}; \
     tar -xzvf subread-${SUBREAD_VERSION}-source.tar.gz; \
     cd /usr/gitc/subread-${SUBREAD_VERSION}-source/src; \
     make -f Makefile.Linux; \
+# Install TINI \
     cd /usr/gitc; \
     mkdir temp; \
     cd temp; \
@@ -33,4 +36,4 @@ RUN set -eux; \
     rm -r /usr/gitc/temp;
 
 # Set tini as default entrypoint
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/sbin/tini", "--" ]
