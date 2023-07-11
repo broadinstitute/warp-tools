@@ -4,7 +4,7 @@
 FROM --platform="linux/amd64" python:3.10.12-buster
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.1" \
+  software="warp-tools  v.1.0.4" \
   description="A collection of tools for WARP pipelines."
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin 
@@ -25,5 +25,6 @@ RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptoo
 
 WORKDIR /warptools
 
-# Set tini as default entrypoint
+# Set tini as default entrypoint - this is unfortunately not doable here because of the way this container 
+# is currently being used (WDLs assuming there is no entrypoint). TODO: Fix this.
 # ENTRYPOINT ["/usr/bin/tini", "--"]
