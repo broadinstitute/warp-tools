@@ -34,6 +34,7 @@ private:
 void releaseReaderThreadMemory(int reader_thread_index, SamRecord* samRecord);
 
 std::vector<std::pair<char, int>> parseReadStructure(std::string const& read_structure);
+std::string reverseComplement(std::string sequence);
 
 void mainCommon(
     std::string white_list_file, std::string barcode_orientation, int num_writer_threads, std::string output_format,
