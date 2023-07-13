@@ -4,9 +4,9 @@
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616`
+#### `docker pull us.gcr.io/broad-gotc-prod/m3c-yap-hisat:1.0.0-2.2.1`
 
-- __What is this image:__ This image is a lightweight alpine-based image for running SAMTOOLS.
+- __What is this image:__ This image is a lightweight alpine-based image for running HISAT2.
 - __What is HISAT2-3N:__ HISAT2 is a fast and sensitive alignment program for mapping next-generation sequencing reads to the human genome. See [here](https://github.com/DaehwanKimLab/hisat2) more information.
 - __How to see HISAT2-3N version used in image:__ Please see below.
 
@@ -21,8 +21,8 @@ We keep track of all past versions in [docker_versions](docker_versions.tsv) wit
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616
-$ docker inspect us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616
+$ docker pull us.gcr.io/broad-gotc-prod/m3c-yap-hisat:1.0.0-2.2.1
+$ docker inspect us.gcr.io/broad-gotc-prod/m3c-yap-hisat:1.0.0-2.2.1
 ```
 
 ## Usage
@@ -31,5 +31,5 @@ $ docker inspect us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616
 
 ```bash
 $ docker run --rm -it \
-    us.gcr.io/broad-gotc-prod/hisat3n:1.0.0-1.11-1624651616 hisat3n(?) 
+    us.gcr.io/broad-gotc-prod/m3c-yap-hisat:1.0.0-2.2.1 hisat3n(?) 
 ```
