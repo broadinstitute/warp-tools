@@ -4,7 +4,7 @@
 FROM --platform="linux/amd64" python:3.10.12-buster
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.1" \
+  software="warp-tools  v.1.0.4" \
   description="A collection of tools for WARP pipelines."
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin 
@@ -15,7 +15,7 @@ RUN set -eux && \
     mkdir -p /warptools && \
     apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev && \
     pip install --upgrade pip && \
-    pip install loompy==3.0.6 anndata==0.7.8 numpy==1.23.0 pandas==1.3.5 scipy h5py==2.10.0 && \
+    pip install loompy==3.0.6 anndata==0.7.8 numpy==1.23.0 pandas==1.3.5 scipy h5py==2.10.0 pysam==0.21 && \
     curl -sSL https://sdk.cloud.google.com | bash 
 
 COPY . /warptools
@@ -25,5 +25,6 @@ RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptoo
 
 WORKDIR /warptools
 
-# Set tini as default entrypoint
+# Set tini as default entrypoint - this is unfortunately not doable here because of the way this container 
+# is currently being used (WDLs assuming there is no entrypoint). TODO: Fix this.
 # ENTRYPOINT ["/usr/bin/tini", "--"]
