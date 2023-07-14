@@ -31,17 +31,14 @@ TEST(ReadOptionsFastqProcessTest, BasicParsing)
 	  ASSERT_EQ(options.R3s.size(), options.R1s.size());
    } 
 
-  // Test that only one input is given for whteilist 
-  ASSERT_EQ(options.white_list_file.size(), 1);
-
 }
 
 // Test readOptionsFastqProcess with toy example to ensure it outputs what we want it to output
 TEST(ReadOptionsFastqProcessTest, ValidInput) {
   int argc = 16;
   char* argv[] = {"program", "--R1", "file1.fastq", "--R2", "file2.fastq", "--I1", "file3.fastq", "--R3", "file4.fastq",
-                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white_list_file", "whitelist.txt",
-			            "--bam-size", "1.5"};
+                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt",
+			            "--bam-size", "1.5", "--read-structure", "16C12M"};
 
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
 
@@ -52,7 +49,6 @@ TEST(ReadOptionsFastqProcessTest, ValidInput) {
   ASSERT_EQ(options.R3s.size(), 1);
   ASSERT_EQ(options.sample_id, "sample1");
   ASSERT_EQ(options.output_format, "FASTQ");
-  ASSERT_EQ(options.white_list_file.size(), 1);
   ASSERT_EQ(options.bam_size, 1.5);
 }
 
@@ -69,18 +65,18 @@ TEST(ReadOptionsFastqProcessTest, DirectoryPathsExist) {
 
   // Check if the directory paths exist
   for (const auto& path : options.R1s) {
-    ASSERT_TRUE(std::filesystem::is_directory(path));
+    ASSERT_TRUE(std::filesystem::exists(path));
   }
   for (const auto& path : options.R2s) {
-    ASSERT_TRUE(std::filesystem::is_directory(path));
+    ASSERT_TRUE(std::filesystem::exists(path));
   }
   for (const auto& path : options.R3s) {
-    ASSERT_TRUE(std::filesystem::is_directory(path));
+    ASSERT_TRUE(std::filesystem::exists(path));
   }
   for (const auto& path : options.I1s) {
-    ASSERT_TRUE(std::filesystem::is_directory(path));
+    ASSERT_TRUE(std::filesystem::exists(path));
   }
-  ASSERT_TRUE(std::filesystem::is_directory(options.white_list_file));
+  ASSERT_TRUE(std::filesystem::exists(options.white_list_file));
 }
 
 // Tests the barcode orientation and makes sure that the variable is set to FIRST_BP, LAST_BP, FIRST_BP_RC or LAST_BP_RC.
