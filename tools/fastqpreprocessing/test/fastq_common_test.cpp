@@ -12,7 +12,7 @@ TEST(ParseReadStructureTest, EmptyStringTest) {
 
 // test to ensure that its working as expected when passing A3 as input
 TEST(ParseReadStructureTest, SingleElementTest) {
-  std::string read_structure = "A3";
+  std::string read_structure = "3A";
   std::vector<std::pair<char, int>> result = parseReadStructure(read_structure);
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(result[0].first, 'A');
