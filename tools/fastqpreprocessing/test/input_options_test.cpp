@@ -19,8 +19,8 @@ TEST(ReadOptionsFastqProcessTest, BasicParsing)
   ASSERT_TRUE((std::is_same_v<decltype(options.output_format), std::string>));
 
   // Additional assertions to check sizes of R1, R2, R3 and I1
-  ASSERT_DEATH(options.R1s.empty());
-  ASSERT_DEATH(options.R2s.empty());
+  ASSERT_GT(options.R1s.size(), 0);
+  ASSERT_GT(options.R2s.size(), 0);
   ASSERT_EQ(options.R1s.size(), options.R2s.size());
 
   if (!options.I1s.empty()) {
