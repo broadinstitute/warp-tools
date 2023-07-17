@@ -7,9 +7,10 @@
 // Tests if input parameters set are of correct type and size
 TEST(ReadOptionsFastqProcessTest, BasicParsing)
 {
-  int argc = 16;
+  int argc = 17;
   char* argv[] = {"program", "--R1", "file1.fastq", "--R2", "file2.fastq", "--I1", "file3.fastq", "--R3", "file4.fastq",
-                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt"};
+                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt", 
+                  "--read-structure", "16C10M"};
 
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
 	
@@ -38,11 +39,12 @@ TEST(ReadOptionsFastqProcessTest, BasicParsing)
 }
 
 // Test readOptionsFastqProcess with toy example to ensure it outputs what we want it to output
-TEST(ReadOptionsFastqProcessTest, ValidInput) {
-  int argc = 16;
+TEST(ReadOptionsFastqProcessTest, ValidInput) 
+{
+  int argc = 19;
   char* argv[] = {"program", "--R1", "file1.fastq", "--R2", "file2.fastq", "--I1", "file3.fastq", "--R3", "file4.fastq",
-                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt",
-			            "--bam-size", "1.5", "--read-structure", "16C12M"};
+                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt", 
+                  "--read-structure", "16C10M", "--bam-size", "1.5"};
 
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
 
