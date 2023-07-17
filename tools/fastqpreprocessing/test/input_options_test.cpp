@@ -58,31 +58,31 @@ TEST(ReadOptionsFastqProcessTest, ValidInput)
   ASSERT_EQ(options.bam_size, 1.5);
 }
 
-// Tests that the directory paths are correct and exist 
-TEST(ReadOptionsFastqProcessTest, DirectoryPathsExist) {
+// Tests that the file paths are correct and exist 
+TEST(ReadOptionsFastqProcessTest, FilePathsExist) {
   InputOptionsFastqProcess options;
 
-  // Set the directory paths
-  options.R1s = {"input_test_data/R1_1.fastq"};
-  options.R2s = {"input_test_data/R2_1.fastq"};
-  options.R3s = {"input_test_data/R3_1.fastq"};
-  options.I1s = {"input_test_data/I1_1.fastq"};
-  options.white_list_file = "input_test_data/whitelist.txt";
+  // Set the file paths
+  options.R1s = {"test/input_test_data/R1_1.fastq"};
+  options.R2s = {"test/input_test_data/R2_1.fastq"};
+  options.R3s = {"test/input_test_data/R3_1.fastq"};
+  options.I1s = {"test/input_test_data/I1_1.fastq"};
+  options.white_list_file = "test/input_test_data/whitelist.txt";
 
-  // Check if the directory paths exist
+  // Check if the file paths exist
   for (const auto& path : options.R1s) {
-    ASSERT_TRUE(std::filesystem::exists(path));
+    ASSERT_TRUE(std::filesystem::is_regular_file(path));
   }
   for (const auto& path : options.R2s) {
-    ASSERT_TRUE(std::filesystem::exists(path));
+    ASSERT_TRUE(std::filesystem::is_regular_file(path));
   }
   for (const auto& path : options.R3s) {
-    ASSERT_TRUE(std::filesystem::exists(path));
+    ASSERT_TRUE(std::filesystem::is_regular_file(path));
   }
   for (const auto& path : options.I1s) {
-    ASSERT_TRUE(std::filesystem::exists(path));
+    ASSERT_TRUE(std::filesystem::is_regular_file(path));
   }
-  ASSERT_TRUE(std::filesystem::exists(options.white_list_file));
+  ASSERT_TRUE(std::filesystem::is_regular_file(options.white_list_file));
 }
 
 // Tests the barcode orientation and makes sure that the variable is set to FIRST_BP, LAST_BP, FIRST_BP_RC or LAST_BP_RC.
