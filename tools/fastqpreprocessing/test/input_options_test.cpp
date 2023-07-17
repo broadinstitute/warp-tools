@@ -7,13 +7,13 @@
 // Tests if input parameters set are of correct type and size
 TEST(ReadOptionsFastqProcessTest, BasicParsing)
 {
-  int argc = 17;
+  int argc = 19;
   char* argv[] = {"program", "--R1", "file1.fastq", "--R2", "file2.fastq", "--I1", "file3.fastq", "--R3", "file4.fastq",
-                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt", 
-                  "--read-structure", "16C10M"};
+                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt",
+                  "--read-structure", "16C10M", "--bam-size", "1.5"};
 
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
-	
+
   // Test if inputs are the correct data type
   ASSERT_TRUE((std::is_same_v<decltype(options.I1s), std::vector<std::string>>));
   ASSERT_TRUE((std::is_same_v<decltype(options.R1s), std::vector<std::string>>));
@@ -36,25 +36,16 @@ TEST(ReadOptionsFastqProcessTest, BasicParsing)
 	  ASSERT_EQ(options.R3s.size(), options.R1s.size());
    } 
 
-}
-
-// Test readOptionsFastqProcess with toy example to ensure it outputs what we want it to output
-TEST(ReadOptionsFastqProcessTest, ValidInput) 
-{
-  int argc = 19;
-  char* argv[] = {"program", "--R1", "file1.fastq", "--R2", "file2.fastq", "--I1", "file3.fastq", "--R3", "file4.fastq",
-                  "--sample-id", "sample1", "--output-format", "FASTQ", "--white-list", "whitelist.txt", 
-                  "--read-structure", "16C10M", "--bam-size", "1.5"};
-
-  InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
-
-  // Assert that the function does not produce a crash and the options are set correctly
   ASSERT_EQ(options.R1s.size(), 1);
   ASSERT_EQ(options.R2s.size(), 1);
   ASSERT_EQ(options.I1s.size(), 1);
   ASSERT_EQ(options.R3s.size(), 1);
+
+  // Tests input parameters
   ASSERT_EQ(options.sample_id, "sample1");
   ASSERT_EQ(options.output_format, "FASTQ");
+  ASSERT_EQ(options.white_list_file, "whitelist.txt");
+  ASSERT_EQ(options.read_structure, "16C10M");
   ASSERT_EQ(options.bam_size, 1.5);
 }
 
