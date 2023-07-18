@@ -133,6 +133,8 @@ private:
   int reads_mapped_exonic_ = 0;
   int reads_mapped_intronic_ = 0;
   int reads_mapped_utr_ = 0;
+  int reads_mapped_exonic_as_ = 0;
+  int reads_mapped_intronic_as_ = 0;
 
   // in future we can implement this when we have a gene model
   // self.reads_mapped_outside_window = 0  # reads should be within 1000 bases of UTR

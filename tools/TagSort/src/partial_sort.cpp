@@ -111,7 +111,7 @@ std::unique_ptr<LineFields> parseOneAlignment(
   float frac_umi_qual_above_threshold = (float)num_umi_above_threshold / (float)len;
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
-  char* location_tag = get_Ztag_or_default(aln, "XF", empty);
+  char* location_tag = get_Ztag_or_default(aln, "sF", empty);
 
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
