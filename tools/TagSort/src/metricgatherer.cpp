@@ -36,7 +36,7 @@ void MetricGatherer::clearCellAndGeneCommon()
   reads_mapped_exonic_ = 0;
   reads_mapped_exonic_as_ = 0;
   reads_mapped_intronic_ = 0;
-  reads_mapped_intronic_as = 0;
+  reads_mapped_intronic_as_ = 0;
   reads_mapped_utr_ = 0;
 
   // alignment uniqueness information
