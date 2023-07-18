@@ -133,7 +133,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_mapped_exonic_ << ","
       << reads_mapped_exonic_as_ << ","
       << reads_mapped_intronic_ << ","
-      << reads_mapped_intronic__as << ","
+      << reads_mapped_intronic_as_ << ","
       << reads_mapped_utr_ << ","
       << reads_mapped_uniquely_ << ","
       << reads_mapped_multiple_ << ","
