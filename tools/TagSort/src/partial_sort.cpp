@@ -37,6 +37,18 @@ inline int get_itag_or_default(bam1_t* aln, const char* tagname, int default_val
   return  tag_value;
 }
 
+inline int get_Btag_or_default(bam1_t* aln, const char* tagname, int default_value)
+{
+  uint8_t* p;
+  int tag_value = -1;
+  if ((p = bam_aux_get(aln, tagname)) == nullptr)
+    tag_value = default_value;
+  else
+      //Changed to extract first value of the array in the sF tag; ex: extract -1 in sF:B:i,-1,0
+      tag_value = bam_auxB2i(p,0);
+
+  return  tag_value;
+}
 // returns string tag, or "-" if not present
 inline char* get_Ztag_or_default(bam1_t* aln, const char* tagname, char* default_value)
 {
@@ -111,8 +123,9 @@ std::unique_ptr<LineFields> parseOneAlignment(
   float frac_umi_qual_above_threshold = (float)num_umi_above_threshold / (float)len;
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
-  char* location_tag = get_Ztag_or_default(aln, "XF", empty);
-
+  std::cout<<"Adding SF\n";
+  int location_tag = get_Btag_or_default(aln, "sF", -1);
+  std::cout<<location_tag;
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
   const char* chr = (aln->core.tid == -1) ? nochr : bam_hdr->target_name[aln->core.tid];
