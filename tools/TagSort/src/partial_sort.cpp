@@ -124,9 +124,7 @@ std::unique_ptr<LineFields> parseOneAlignment(
   float frac_umi_qual_above_threshold = (float)num_umi_above_threshold / (float)len;
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
-  std::cout<<"Adding SF\n";
   int location_tag = get_Btag_or_default(aln, "sF", -2);
-  std::cout<<location_tag;
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
   const char* chr = (aln->core.tid == -1) ? nochr : bam_hdr->target_name[aln->core.tid];
