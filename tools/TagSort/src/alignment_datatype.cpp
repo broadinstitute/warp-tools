@@ -83,7 +83,7 @@ bool sortAlignmentsByTagTriple(std::unique_ptr<LineFields> const& a,
 }
 
 LineFields::LineFields(
-    TagTriple _tag_triple, std::string _reference, std::string _alignment_location,
+    TagTriple _tag_triple, std::string _reference, int _alignment_location,
     int _position, int _is_strand,
     float _barcode_qual, float _cell_barcode_base_above_30,
     float _genomic_read_quality, float _genomic_reads_base_quality_above_30,
