@@ -40,7 +40,8 @@ inline int get_itag_or_default(bam1_t* aln, const char* tagname, int default_val
 inline int get_Btag_or_default(bam1_t* aln, const char* tagname, int default_value)
 {
   uint8_t* p;
-  int tag_value = -1;
+  //changed default to -2 because -1 is used int he sf tag
+  int tag_value = -2;
   if ((p = bam_aux_get(aln, tagname)) == nullptr)
     tag_value = default_value;
   else
@@ -124,7 +125,7 @@ std::unique_ptr<LineFields> parseOneAlignment(
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
   std::cout<<"Adding SF\n";
-  int location_tag = get_Btag_or_default(aln, "sF", -1);
+  int location_tag = get_Btag_or_default(aln, "sF", -2);
   std::cout<<location_tag;
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
