@@ -78,13 +78,13 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (fields.alignment_location[0] == "1" || fields.alignment_location[0] == "3")
+  if (fields.alignment_location[0] == 1 || fields.alignment_location[0] == 3)
     reads_mapped_exonic_ += 1;
-  else if (fields.alignment_location[0] == "2" || fields.alignment_location[0] == "4")
+  else if (fields.alignment_location[0] == 2 || fields.alignment_location[0] == 4)
     reads_mapped_exonic_as_ += 1;
-  else if (fields.alignment_location[0] == "5")
+  else if (fields.alignment_location[0] == 5)
     reads_mapped_intronic_ += 1;
-  else if (fields.alignment_location[0] == "6")
+  else if (fields.alignment_location[0] == 6)
     reads_mapped_intronic_as_ += 1;
   
 
@@ -210,7 +210,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
 
   if (!fields.alignment_location.empty())
   {
-    if (fields.alignment_location[0] == "7")
+    if (fields.alignment_location[0] == 7)
       reads_mapped_intergenic_ += 1;
   }
   else
