@@ -78,7 +78,7 @@ protected:
   void outputMetricsLineCellAndGeneCommon();
   void clearCellAndGeneCommon();
 
-  const std::string kCommonHeaders[24] =
+  const std::string kCommonHeaders[25] =
   {
     "n_reads",
     "noise_reads",
