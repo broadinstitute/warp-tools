@@ -37,7 +37,6 @@ void MetricGatherer::clearCellAndGeneCommon()
   reads_mapped_exonic_as_ = 0;
   reads_mapped_intronic_ = 0;
   reads_mapped_intronic_as_ = 0;
-  reads_mapped_utr_ = 0;
 
   // alignment uniqueness information
   reads_mapped_uniquely_ = 0;
@@ -79,16 +78,15 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (fields.alignment_location == "1" || fields.alignment_location == "3")
+  if (fields.alignment_location[0] == "1" || fields.alignment_location[0] == "3")
     reads_mapped_exonic_ += 1;
-  else if (fields.alignment_location == "2" || fields.alignment_location == "4")
+  else if (fields.alignment_location[0] == "2" || fields.alignment_location[0] == "4")
     reads_mapped_exonic_as_ += 1;
-  else if (fields.alignment_location == "5")
+  else if (fields.alignment_location[0] == "5")
     reads_mapped_intronic_ += 1;
-  else if (fields.alignment_location == "6")
+  else if (fields.alignment_location[0] == "6")
     reads_mapped_intronic_as_ += 1;
-  else if (fields.alignment_location == "UTR")
-    reads_mapped_utr_ += 1;
+  
 
   // in futher check if read maps outside window (when we add a  gene model)
   // and  create distances from terminate side (needs gene model) uniqueness
@@ -134,7 +132,6 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_mapped_exonic_as_ << ","
       << reads_mapped_intronic_ << ","
       << reads_mapped_intronic_as_ << ","
-      << reads_mapped_utr_ << ","
       << reads_mapped_uniquely_ << ","
       << reads_mapped_multiple_ << ","
       << duplicate_reads_ << ","
@@ -213,7 +210,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
 
   if (!fields.alignment_location.empty())
   {
-    if (fields.alignment_location == "7")
+    if (fields.alignment_location[0] == "7")
       reads_mapped_intergenic_ += 1;
   }
   else

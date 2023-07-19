@@ -85,7 +85,6 @@ protected:
     "perfect_molecule_barcodes",
     "reads_mapped_exonic",
     "reads_mapped_intronic",
-    "reads_mapped_utr",
     "reads_mapped_uniquely",
     "reads_mapped_multiple",
     "duplicate_reads",
@@ -132,7 +131,6 @@ private:
   // alignment location information
   int reads_mapped_exonic_ = 0;
   int reads_mapped_intronic_ = 0;
-  int reads_mapped_utr_ = 0;
   int reads_mapped_exonic_as_ = 0;
   int reads_mapped_intronic_as_ = 0;
 
