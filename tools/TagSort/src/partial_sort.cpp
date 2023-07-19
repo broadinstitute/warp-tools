@@ -112,6 +112,9 @@ std::unique_ptr<LineFields> parseOneAlignment(
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
   char* location_tag = get_Ztag_or_default(aln, "sF", empty);
+  // printing locaton_tag
+  
+  std::cout<<location_tag<<"\n";
 
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
