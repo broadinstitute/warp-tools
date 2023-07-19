@@ -114,7 +114,7 @@ LineFields::LineFields(std::string const& s)
   std::string third_tag =               p.getNextField(); // 2
   tag_triple =                     TagTriple(first_tag, second_tag, third_tag);
   reference =                           p.getNextField(); // 3
-  alignment_location =                  p.getNextField(); // 4
+  alignment_location =                  p.getNextFieldInt(); // 4
   position =                            p.getNextFieldInt(); // 5
   is_strand =                           p.getNextFieldInt(); // 6
   barcode_qual =                        p.getNextFieldFloat(); // 7 unused
