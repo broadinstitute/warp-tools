@@ -84,7 +84,7 @@ protected:
     "noise_reads",
     "perfect_molecule_barcodes",
     "reads_mapped_exonic",
-     "reads_mapped_exonic_as",
+    "reads_mapped_exonic_as",
     "reads_mapped_intronic",
     "reads_mapped_intronic_as",
     "reads_mapped_uniquely",
@@ -135,7 +135,7 @@ private:
   int reads_mapped_exonic_as_ = 0;
   int reads_mapped_intronic_ = 0;
   int reads_mapped_intronic_as_ = 0;
-  int reads_mapped_utr_ = 0;
+  //int reads_mapped_utr_ = 0;
 
   // in future we can implement this when we have a gene model
   // self.reads_mapped_outside_window = 0  # reads should be within 1000 bases of UTR

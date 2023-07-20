@@ -171,7 +171,7 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 
   // write metrics csv header
   std::string s;
-  for (int i=0; i<24; i++)
+  for (int i=0; i<25; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
     metrics_csv_outfile_ << "," << cell_specific_headers[i];
@@ -208,12 +208,9 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   cell_barcode_fraction_bases_above_30_.update(fields.cell_barcode_base_above_30);
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
-  if (fields.alignment_location != -2)
-  {
-    if (fields.alignment_location == 7)
+  if (fields.alignment_location == 7)
       reads_mapped_intergenic_ += 1;
-  }
-  else
+  else if(fields.alignment_location == 0)
     reads_unmapped_ += 1;
 
   genes_histogram_[std::string(fields.tag_triple.third)] += 1;
