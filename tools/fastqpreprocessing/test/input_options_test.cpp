@@ -81,7 +81,7 @@ TEST(ReadOptionsFastqProcessTest, ValidBarcodeOrientation) {
   InputOptionsFastqProcess options;
 
   // Set the barcode_orientation to a valid value
-  // options.barcode_orientation = "FIRST_BP";
+  options.barcode_orientation = "FIRST_BP";
 
   // If we already set the barcode_orientation before, why are we testing it here?
   ASSERT_TRUE(options.barcode_orientation == "FIRST_BP" ||
