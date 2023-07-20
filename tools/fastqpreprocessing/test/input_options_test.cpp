@@ -54,11 +54,11 @@ TEST(ReadOptionsFastqProcessTest, FilePathsExist) {
   InputOptionsFastqProcess options;
 
   // Set the file paths
-  options.R1s = {"test/input_test_data/R1_1.fastq"};
-  options.R2s = {"test/input_test_data/R2_1.fastq"};
-  options.R3s = {"test/input_test_data/R3_1.fastq"};
-  options.I1s = {"test/input_test_data/I1_1.fastq"};
-  options.white_list_file = "test/input_test_data/whitelist.txt";
+  options.R1s = {"/warptools/fastqpreprocessing/test/input_test_data/R1_1.fastq"};
+  options.R2s = {"/warptools/fastqpreprocessing/test/input_test_data/R2_1.fastq"};
+  options.R3s = {"/warptools/fastqpreprocessing/test/input_test_data/R3_1.fastq"};
+  options.I1s = {"/warptools/fastqpreprocessing/test/input_test_data/I1_1.fastq"};
+  options.white_list_file = "/warptools/fastqpreprocessing/test/input_test_data/whitelist.txt";
 
   // Check if the file paths exist
   for (const auto& path : options.R1s) {
