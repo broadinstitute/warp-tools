@@ -61,12 +61,12 @@ TEST(ReverseComplementTest, ReverseComplementSequenceTest) {
 TEST(MainCommonTest, BarcodeOrientation_FirstBPIfR3sEmptyTest) {
   // Define test inputs
   std::string white_list_file = "test/input_test_data/whitelist.txt";
-  std::string barcode_orientation;
-  int num_writer_threads = 2;
+  std::string barcode_orientation="FIRST_BP";
+  int num_writer_threads = 1;
   std::string output_format = "BAM";
-  std::vector<std::string> I1s = {"path/to/I1_1.fastq", "path/to/I1_2.fastq"};
-  std::vector<std::string> R1s = {"path/to/R1_1.fastq", "path/to/R1_2.fastq"};
-  std::vector<std::string> R2s = {"path/to/R2_1.fastq", "path/to/R2_2.fastq"};
+  std::vector<std::string> I1s;
+  std::vector<std::string> R1s = {"test/input_test_data/R1_1.fastq", "test/input_test_data/R1_1.fastq"};
+  std::vector<std::string> R2s = {"test/input_test_data/R2_1.fastq", "test/input_test_data/R2_1.fastq"};
   std::vector<std::string> R3s;  // Empty R3s vector
   std::string sample_id = "Sample1";
   std::vector<std::pair<char, int>> g_parsed_read_structure = {{'C', 16}};
