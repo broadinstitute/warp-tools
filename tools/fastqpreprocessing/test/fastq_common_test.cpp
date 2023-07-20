@@ -60,12 +60,12 @@ TEST(ReverseComplementTest, ReverseComplementSequenceTest) {
 // test in case of not atac to make sure the barcode orientation is set properly 
 TEST(MainCommonTest, BarcodeOrientation_FirstBPIfR3sEmptyTest) {
   // Define test inputs
-  std::string white_list_file = "test/input_test_data/whitelist.txt";
+  std::string white_list_file = "/warptools/fastqpreprocessing/test/input_test_data/whitelist.txt";
   std::string barcode_orientation = "FIRST_BP";
   std::string output_format = "BAM";
   std::vector<std::string> I1s; // Empty I1s vector
-  std::vector<std::string> R1s = {"test/input_test_data/R1_1.fastq", "test/input_test_data/R1_1.fastq"};
-  std::vector<std::string> R2s = {"test/input_test_data/R2_1.fastq", "test/input_test_data/R2_1.fastq"};
+  std::vector<std::string> R1s = {"/warptools/fastqpreprocessing/test/input_test_data/R1_1.fastq", "/warptools/fastqpreprocessing/test/input_test_data/R1_1.fastq"};
+  std::vector<std::string> R2s = {"/warptools/fastqpreprocessing/test/input_test_data/R2_1.fastq", "/warptools/fastqpreprocessing/test/input_test_data/R2_1.fastq"};
   std::vector<std::string> R3s;  // Empty R3s vector
   std::string sample_id = "Sample1";
   std::vector<std::pair<char, int>> g_parsed_read_structure = {{'C', 16}, {'M', 10}};
