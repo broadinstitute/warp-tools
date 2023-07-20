@@ -60,7 +60,7 @@ TEST(ReverseComplementTest, ReverseComplementSequenceTest) {
 // test in case of not atac to make sure the barcode orientation is set properly 
 TEST(MainCommonTest, BarcodeOrientation_FirstBPIfR3sEmptyTest) {
   // Define test inputs
-  std::string white_list_file = "path/to/white_list.txt";
+  std::string white_list_file = "test/input_test_data/whitelist.txt";
   std::string barcode_orientation;
   int num_writer_threads = 2;
   std::string output_format = "BAM";
