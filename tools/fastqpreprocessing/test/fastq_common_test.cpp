@@ -68,7 +68,7 @@ TEST(MainCommonTest, BarcodeOrientation_FirstBPIfR3sEmptyTest) {
   std::vector<std::string> R2s = {"test/input_test_data/R2_1.fastq", "test/input_test_data/R2_1.fastq"};
   std::vector<std::string> R3s;  // Empty R3s vector
   std::string sample_id = "Sample1";
-  std::vector<std::pair<char, int>> g_parsed_read_structure = {{'C', 16}};
+  std::vector<std::pair<char, int>> g_parsed_read_structure = {{'C', 16}, {'M', 10}};
 
   // Call the function under test
   mainCommon(white_list_file, barcode_orientation, 1, "test",
