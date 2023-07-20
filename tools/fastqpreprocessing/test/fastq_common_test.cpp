@@ -71,7 +71,7 @@ TEST(MainCommonTest, BarcodeOrientation_FirstBPIfR3sEmptyTest) {
   std::vector<std::pair<char, int>> g_parsed_read_structure = {{'C', 16}, {'M', 10}};
 
   // Call the function under test
-  mainCommon(white_list_file, barcode_orientation, 1, "test",
+  mainCommon(white_list_file, barcode_orientation, 1, output_format,
              I1s, R1s, R2s, R3s, sample_id, g_parsed_read_structure, false);
 
   // Perform necessary assertions
