@@ -29,6 +29,7 @@ RUN set -eux; \
             unzip \
             wget \
             zlib1g-dev \
+            linux-libc-dev \
     ; \
 # Install BamID
     wget ${BAMID_URL}/${GIT_HASH}.zip; \

@@ -26,6 +26,7 @@ RUN set -eux; \
             pkg-config \
             tabix \
             wget \
+            linux-libc-dev \
     ; \
 # Install Eagle
     wget https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/old/Eagle_v${EAGLE_VERSION}.tar.gz; \
