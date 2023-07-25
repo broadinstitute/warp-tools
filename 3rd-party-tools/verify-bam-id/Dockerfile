@@ -2,7 +2,7 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" us.gcr.io/broad-dsp-gcr-public/base/python:debian
 
-ARG GIT_HASH=c1cba76e979904eb69c31520a0d7f5be63c72253
+ARG GIT_HASH=83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447
 
 ENV TERM=xterm-256color \
     BAMID_URL=https://github.com/Griffan/VerifyBamID/archive \
@@ -16,7 +16,7 @@ WORKDIR /usr/gitc
 # Install dependencies
 RUN set -eux; \
         apt-get update; \
-        apt-get install -y \ 
+        apt-get install -y \
             autoconf \
             cmake \
             g++ \
