@@ -29,4 +29,4 @@ RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptoo
 WORKDIR /warptools
 
 # Set tini as default entry point
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
