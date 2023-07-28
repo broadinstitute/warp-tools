@@ -27,9 +27,9 @@ RUN set -eux; \
     cd bwa-mem2-lisa; \
     make; \
     #cp bwa-mem2.sse42 /usr/local/bin; \
-    cp bwa-mem2 /usr/local/bin; \
+    cp bwa-mem2 /usr/local/bin; 
     #cd /usr/local/bin; \
     #mv bwa-mem2.sse42 bwa-mem2;
 
 # Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
