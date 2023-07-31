@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1690569798
+FROM --platform="linux/amd64" us.gcr.io/broad-gotc-prod/samtools
 
 ARG BWA_VERSION=2.0pre2
 
@@ -32,4 +32,4 @@ RUN set -eux; \
     #mv bwa-mem2.sse42 bwa-mem2;
 
 # Set tini as default entrypoint
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
+ENTRYPOINT [ "/sbin/tini", "--" ]
