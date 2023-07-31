@@ -26,10 +26,9 @@ RUN set -eux; \
     git clone --recursive https://github.com/bwa-mem2/bwa-mem2 -b bwa-mem2-lisa bwa-mem2-lisa; \
     cd bwa-mem2-lisa; \
     make; \
-    #cp bwa-mem2.sse42 /usr/local/bin; \
-    cp bwa-mem2 /usr/local/bin; 
-    #cd /usr/local/bin; \
-    #mv bwa-mem2.sse42 bwa-mem2;
+    cp bwa-mem2.sse42 /usr/local/bin; \
+    cd /usr/local/bin; \
+    mv bwa-mem2.sse42 bwa-mem2;
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
