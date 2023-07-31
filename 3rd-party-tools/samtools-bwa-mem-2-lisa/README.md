@@ -5,7 +5,7 @@
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:`
+#### `docker pull us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:1.0.0-2.0pre2_x64-linux-1690815614`
 
 
 - __What is this image:__ This image is a lightweight alpine-based custom image for running Samtools and BWA, it uses `us.gcr.io/broad-gotc-prod/samtools` as a base image.
@@ -25,8 +25,8 @@ We keep track of all past versions in [docker_versions](docker_versions.tsv) wit
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:
-$ docker inspect us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:
+$ docker pull us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:1.0.0-2.0pre2_x64-linux-1690815614
+$ docker inspect us.gcr.io/broad-gotc-prod/samtools-bwa-mem-2-lisa:1.0.0-2.0pre2_x64-linux-1690815614
 ```
 
 ## Usage
