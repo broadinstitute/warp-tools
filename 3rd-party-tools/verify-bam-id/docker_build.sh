@@ -2,7 +2,7 @@
 set -e
 
 # VerifyBamID is based off a specific githash and unlikely to change
-VERIFY_BAM_ID_VERSION="83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447"
+VERIFY_BAM_ID_VERSION="c1cba76e979904eb69c31520a0d7f5be63c72253"
 DOCKER_IMAGE_VERSION="1.0.1"
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
