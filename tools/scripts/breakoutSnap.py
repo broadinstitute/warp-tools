@@ -40,7 +40,9 @@ def main():
             'fragStart': FM['fragStart'][:]
         }
     )
-    fragments_DF.to_csv(args.output_prefix + 'fragments.csv')
+
+    fragments_DF['fragChrom_decoded'] = fragments_DF.fragChrom.str.decode(encoding = 'UTF-8')
+    fragments_DF[['fragChrom_decoded','fragStart', 'fragLen']].to_csv(args.output_prefix + 'fragments.csv')
 
     ###################################
     # Export the cell x bin accessibility matrices (AM)
