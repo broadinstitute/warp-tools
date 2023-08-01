@@ -16,7 +16,7 @@ WORKDIR /usr/gitc
 # Install dependencies
 RUN set -eux; \
         apt-get update; \
-        apt-get install -y \
+        apt-get install -y \ 
             autoconf \
             cmake \
             g++ \
