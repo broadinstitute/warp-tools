@@ -15,6 +15,7 @@ RUN set -eux; \
         apt-get install -y \
             gcc \
             wget \
+            linux-libc-dev \
     ; \
 # Install umi_tools
     pip3 install umi_tools==${UMI_TOOLS_VERSION} \

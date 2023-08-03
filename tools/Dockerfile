@@ -4,7 +4,7 @@
 FROM --platform="linux/amd64" python:3.10.12-buster
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.4" \
+  software="warp-tools  v.1.0.5" \
   description="A collection of tools for WARP pipelines."
 
 #we use gcloud storage copy to download files from google cloud storage -- will be part of warp-tools-c
@@ -29,4 +29,4 @@ RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptoo
 WORKDIR /warptools
 
 # Set tini as default entry point
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
