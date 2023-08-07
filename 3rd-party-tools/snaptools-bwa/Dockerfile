@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" python:3.7.2
+FROM --platform="linux/amd64" python:3.8
 
 ARG BWA_VERSION=0.7.17
 
@@ -28,6 +28,8 @@ RUN set -eux; \
     wget -O "bwa.tar.bz2" ${BWA_URL}; \
     tar -xvjf bwa.tar.bz2; \
     cd bwa-${BWA_VERSION}; \
+    # Set compiler flags to allow for multiple definitions
+    make CFLAGS="-g -Wall -Wno-unused-function -O2 -fcommon"; \
     make; \
     cp bwa /usr/local/bin \
     ; \
