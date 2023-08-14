@@ -4,7 +4,7 @@
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616`
+#### `docker pull us.gcr.io/broad-gotc-prod/samtools:2.0.0`
 
 - __What is this image:__ This image is a lightweight alpine-based image for running SAMTOOLS.
 - __What is Samtools:__ Samtools is a suite of programs for interacting with high-throughput sequencing data. See [here](https://github.com/samtools/samtools) more information.
@@ -21,8 +21,8 @@ We keep track of all past versions in [docker_versions](docker_versions.tsv) wit
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616
-$ docker inspect us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616
+$ docker pull us.gcr.io/broad-gotc-prod/samtools:2.0.0
+$ docker inspect us.gcr.io/broad-gotc-prod/samtools:2.0.0
 ```
 
 ## Usage
@@ -31,7 +31,7 @@ $ docker inspect us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616
 
 ```bash
 $ docker run --rm -it \
-    us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616 samtools 
+    us.gcr.io/broad-gotc-prod/samtools:2.0.0 samtools 
 ```
 
 ### Viewing a BAM file
@@ -39,5 +39,5 @@ $ docker run --rm -it \
 ```bash
 $ docker run --rm -it \
     -v /bamfiles:/bamfiles \
-    us.gcr.io/broad-gotc-prod/samtools:1.0.0-1.11-1624651616 samtools view -H /bamfiles/<bam-file>
+    us.gcr.io/broad-gotc-prod/samtools:2.0.0 samtools view -H /bamfiles/<bam-file>
 ```
