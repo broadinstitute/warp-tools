@@ -28,10 +28,10 @@ RUN set -eux; \
     make; \
     cp bwa-mem2.sse42 /usr/local/bin; \
     cd /usr/local/bin; \
-    mv bwa-mem2.sse42 bwa-mem2;
+    mv bwa-mem2.sse42 bwa-mem2; \
     # Install rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    source "$HOME/.cargo/env"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; \
+    source "$HOME/.cargo/env";
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
