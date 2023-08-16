@@ -33,8 +33,9 @@ RUN set -eux; \
     cd /usr/gitc/temp/bwa-mem2-lisa/ext/TAL; \
     # Had to change this for the make command to work
     sed -i '44s/.*/LIBS=-fopenmp -lm -L. -ltal -Lext\/safestringlib\/ -lsafestring -lz/' Makefile; \
+    sed -i '1s/.*/#!bin\/sh/' /usr/gitc/temp/bwa-mem2-lisa/ext/TAL/scripts/build-rmi.linear_spline.linear.sh; \   
     make; \ 
-    export PATH="/usr/gitc/temp/bwa-mem2-lisa/ext/TAL/scripts/:$PATH"; \
+    export PATH="/usr/gitc/temp/bwa-mem2-lisa/ext/TAL/scripts/:/usr/gitc/temp/bwa-mem2-lisa/ext/TAL/ext/build-rmi/:$PATH"; \
     # Install rust
     cd /usr/gitc/temp; \
     curl --proto '=https' --tlsv1.2 https://sh.rustup.rs > rustup.sh && sh rustup.sh -y; \
