@@ -29,8 +29,7 @@ RUN set -eux; \
     cp bwa-mem2.sse42 /usr/local/bin; \
     cd /usr/local/bin; \
     mv bwa-mem2.sse42 bwa-mem2; \
-    export PATH=/usr/gitc/temp/bwa-mem2-lisa/ext/TAL/scripts/build-rmi.linear_spline.linear.sh:$PATH; \
-
+ 
     # Install rust
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; \
     source "$HOME/.cargo/env";
