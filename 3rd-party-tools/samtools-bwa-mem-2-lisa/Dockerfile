@@ -30,12 +30,13 @@ RUN set -eux; \
     cd /usr/local/bin; \
     mv bwa-mem2.sse42 bwa-mem2; \
     # Need to cd into directory with bench-fixed-len-e2e-match scripts, etc
-    cd ext/TAL; \
+    cd /usr/gitc/temp/bwa-mem2-lisa/ext/TAL; \
     # Had to change this for the make command to work
     sed -i '44s/.*/LIBS=-fopenmp -lm -L. -ltal -Lext\/safestringlib\/ -lsafestring -lz/' Makefile; \
     make; \ 
     # Install rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; \
+    cd /usr/gitc/temp; \
+    curl --proto '=https' --tlsv1.2 https://sh.rustup.rs > rustup.sh && sh rustup.sh -y; \
     source "$HOME/.cargo/env";
 
 # Set tini as default entrypoint
