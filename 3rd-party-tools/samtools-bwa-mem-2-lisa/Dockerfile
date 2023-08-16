@@ -26,10 +26,14 @@ RUN set -eux; \
     git clone --recursive https://github.com/bwa-mem2/bwa-mem2 -b bwa-mem2-lisa bwa-mem2-lisa; \
     cd bwa-mem2-lisa; \
     make; \
-    cp bwa-mem2.sse42 /usr/local/bin; \
+    cp /usr/gitc/temp/bwa-mem2-lisa/bwa-mem2.sse42 /usr/local/bin; \
     cd /usr/local/bin; \
     mv bwa-mem2.sse42 bwa-mem2; \
- 
+    # Need to cd into directory with bench-fixed-len-e2e-match scripts, etc
+    cd ext/TAL; \
+    # Had to change this for the make command to work
+    sed -i '44s/.*/LIBS=-fopenmp -lm -L. -ltal -Lext\/safestringlib\/ -lsafestring -lz/' Makefile; \
+    make; \ 
     # Install rust
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; \
     source "$HOME/.cargo/env";
