@@ -34,6 +34,7 @@ RUN set -eux; \
     # Had to change this for the make command to work
     sed -i '44s/.*/LIBS=-fopenmp -lm -L. -ltal -Lext\/safestringlib\/ -lsafestring -lz/' Makefile; \
     make; \ 
+    export PATH="/usr/gitc/temp/bwa-mem2-lisa/ext/TAL/scripts/:$PATH"; \
     # Install rust
     cd /usr/gitc/temp; \
     curl --proto '=https' --tlsv1.2 https://sh.rustup.rs > rustup.sh && sh rustup.sh -y; \
