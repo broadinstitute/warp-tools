@@ -4,7 +4,7 @@
 FROM --platform="linux/amd64" python:3.10.12-buster
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="warp-tools  v.1.0.4" \
+  software="warp-tools  v.1.0.5" \
   description="A collection of tools for WARP pipelines."
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin 
