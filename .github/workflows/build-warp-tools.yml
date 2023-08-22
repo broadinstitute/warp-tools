@@ -126,6 +126,7 @@ jobs:
           whoami
           ls -lht
           pwd
+      # if test is at the end of the file name in the the test dir -- it gets picked up
       - name: Test TagSort
         run: |
           cd /warptools/TagSort

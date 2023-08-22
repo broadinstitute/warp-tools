@@ -4,7 +4,7 @@ all: bin/fastqprocess bin/fastq_slideseq bin/fastq_metrics bin/samplefastq
 # All tests produced by this Makefile. Add new tests you create to this list.
 # UNIT TESTS MUST BE NAMED foo_test, with a corresponding foo_test.cpp in the
 # test directory.
-test: bin/whitelist_corrector_test
+test: bin/whitelist_corrector_test bin/input_options_test bin/fastq_common_test
 
 CC = g++ -std=c++17 -Wall -Wno-sign-compare -O4
 
@@ -71,7 +71,7 @@ gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 obj/%_test.o : test/%_test.cpp $(GTEST_HEADERS)
-	$(CC) -Igtest/include -o $@ $< -c
+	$(CC) -Igtest/include -o $@ $< -c -IlibStatGen/include -Igzstream
 
 bin/%_test : $(COMMON_OBJ) obj/%.o obj/%_test.o gtest_main.a
 	$(CC) -lpthread $^ -o $@ $(LIBS)
