@@ -2,7 +2,7 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.0
+DOCKER_IMAGE_VERSION=1.0.1
 TIMESTAMP=$(date +"%s")
 DIR=$(cd "$(dirname "$0")" && pwd)
 
@@ -11,7 +11,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/star"
 #QUAY_URL="quay.io/broadinstitute/gotc-prod-star" # Update and uncomment push block below after setting up quay repo
 
 # STAR version
-STAR_VERSION="2.7.10b"
+STAR_VERSION="2.7.11a"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
