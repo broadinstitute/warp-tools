@@ -5,13 +5,13 @@
 
 TEST(AlignmentDatatypeTest, BasicParsing)
 {
-  LineFields lf("a\tbbb\tc\td\te\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+  LineFields lf("a\tbbb\tc\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "a");
   EXPECT_EQ(lf.tag_triple.second, "bbb");
   EXPECT_EQ(lf.tag_triple.third, "c");
   EXPECT_EQ(lf.reference, "d");
-  EXPECT_EQ(lf.alignment_location, "e");
+  EXPECT_EQ(lf.alignment_location, 1234);
   EXPECT_EQ(lf.position, 123);
   EXPECT_EQ(lf.is_strand, 1);
   EXPECT_NEAR(lf.barcode_qual, 0.12f, 0.001f);
