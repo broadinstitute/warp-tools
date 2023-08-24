@@ -13,7 +13,7 @@ WORKDIR /usr/gitc
 
 # Install dependencies
 RUN set -eux; \
-        apk add --no-cache \
+        apt-get install --no-cache \
             autoconf \
             automake \ 
             bash \
@@ -30,7 +30,7 @@ RUN set -eux; \
             xz-dev \
             zlib-dev \
     ; \
-# Install samtools
+    # Install samtools
     mkdir temp; \
     cd temp; \
     \
