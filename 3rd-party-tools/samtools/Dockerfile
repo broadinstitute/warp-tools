@@ -13,8 +13,8 @@ WORKDIR /usr/gitc
 
 # Install dependencies
 RUN set -eux; \
-        apt-get install --no-cache \
-            autoconf \
+        apt-get install update; \
+        apt-get install autoconf \
             automake \ 
             bash \
             bzip2-dev \
