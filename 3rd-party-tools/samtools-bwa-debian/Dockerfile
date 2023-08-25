@@ -14,8 +14,8 @@ WORKDIR /usr
 # Install dependencies
 RUN set -eux; \
     apt update; \
-    apt-get install autoconf automake bash bzip2 gcc wget make libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev numactl; \
-    apt-get install build-essential git; \
+    apt-get install -y autoconf automake bash bzip2 gcc wget make libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev numactl; \
+    apt-get install -y build-essential git; \
 
     # Install samtools
     mkdir temp; \
