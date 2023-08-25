@@ -20,10 +20,9 @@ RUN set -eux; \
     # Install samtools
     mkdir temp; \
     cd temp; \
-    wget ${SAMTOOLS_URL}; \
-    tar -xf samtools-${SAMTOOLS_VERSION}.tar.bz2; \
-    cd samtools-${SAMTOOLS_VERSION}; \
-    \
+    wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2; \
+    tar -xf samtools-1.11.tar.bz2; \
+    cd samtools-1.11; \
     ./configure; \
     make; \
     make install; \
