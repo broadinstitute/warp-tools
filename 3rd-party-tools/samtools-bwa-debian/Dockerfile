@@ -33,9 +33,9 @@ RUN set -eux; \
     git clone --recursive https://github.com/bwa-mem2/bwa-mem2; \
     cd bwa-mem2; \ 
     make; \
-    sudo cp bwa-mem2.sse42 /usr/local/bin;\
+    cp bwa-mem2.sse42 /usr/local/bin;\
     cd /usr/local/bin; \
-    sudo mv bwa-mem2.sse42 bwa-mem2; 
+    mv bwa-mem2.sse42 bwa-mem2; 
 
 
 # Set tini as default entrypoint
