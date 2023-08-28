@@ -18,13 +18,12 @@ RUN set -eux; \
     apt-get install -y build-essential git; \
 
     # Install tini
-    mkdir temp; \
-    cd temp; \
-    #wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
-    #chmod +x /sbin/tini; \
+    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
+    chmod +x /sbin/tini; \
     
     # Install samtools
-    cd /usr/temp; \
+    mkdir temp; \
+    cd temp; \
     wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2; \
     tar -xf samtools-1.11.tar.bz2; \
     cd samtools-1.11; \
@@ -41,3 +40,5 @@ RUN set -eux; \
     cd /usr/local/bin; \
     mv bwa-mem2.sse42 bwa-mem2; 
 
+# Set tini as default entrypoint
+ENTRYPOINT [ "/sbin/tini", "--" ]
