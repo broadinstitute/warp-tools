@@ -16,10 +16,6 @@ RUN set -eux; \
     apt update; \
     apt-get install -y autoconf automake bash bzip2 gcc wget make libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev numactl; \
     apt-get install -y build-essential git; \
-
-    # Install tini
-    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
-    chmod +x /sbin/tini; \
     
     # Install samtools
     mkdir temp; \
@@ -38,7 +34,14 @@ RUN set -eux; \
     make; \
     cp bwa-mem2.sse42 /usr/local/bin;\
     cd /usr/local/bin; \
-    mv bwa-mem2.sse42 bwa-mem2; 
+    mv bwa-mem2.sse42 bwa-mem2; \
+
+    # Install tini
+    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
+    chmod +x /sbin/tini; \
+   
+    # Clean up cached files
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
