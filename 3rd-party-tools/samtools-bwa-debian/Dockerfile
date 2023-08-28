@@ -14,8 +14,8 @@ RUN set -eux; \
     apt-get install -y build-essential git; \
 
     # Install tini
-    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /sbin/tini; \
-    chmod +x /sbin/tini; \
+    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /usr/bin/tini; \
+    chmod +x /usr/bin/tini; \
     
     # Install samtools
     mkdir temp; \
@@ -40,4 +40,4 @@ RUN set -eux; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
