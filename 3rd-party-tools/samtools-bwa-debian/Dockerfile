@@ -5,7 +5,7 @@ ENV TERM=xterm-256color
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" 
 
-WORKDIR /usr
+WORKDIR /usr/gitc
 
 # Install dependencies
 RUN set -eux; \
