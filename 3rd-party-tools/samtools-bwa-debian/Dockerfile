@@ -40,4 +40,4 @@ RUN set -eux; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set tini as default entrypoint
-# ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT [ "/sbin/tini", "--" ]
