@@ -1,13 +1,9 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" debian-slim
 
-ARG SAMTOOLS_VERSION=1.11
+ENV TERM=xterm-256color 
 
-ENV TERM=xterm-256color \
-    SAMTOOLS_URL=https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2
-
-LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
-        SAMTOOLS_VERSION=${SAMTOOLS_VERSION}
+LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" 
 
 WORKDIR /usr
 
