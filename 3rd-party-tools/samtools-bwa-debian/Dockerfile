@@ -14,9 +14,13 @@ WORKDIR /usr
 # Install dependencies
 RUN set -eux; \
     apt update; \
-    apt-get install -y autoconf automake bash bzip2 gcc wget make libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev numactl tini; \
+    apt-get install -y autoconf automake bash bzip2 gcc wget make libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev numactl; \
     apt-get install -y build-essential git; \
 
+    # Install tini
+    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
+    chmod +x /sbin/tini; \
+    
     # Install samtools
     mkdir temp; \
     cd temp; \
@@ -38,4 +42,4 @@ RUN set -eux; \
 
 
 # Set tini as default entrypoint
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
+ENTRYPOINT [ "/sbin/tini", "--" ]
