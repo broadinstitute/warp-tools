@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" debian:bullseye-slim
+FROM --platform="linux/amd64" debian:buster-slim
 
 ENV TERM=xterm-256color 
 
