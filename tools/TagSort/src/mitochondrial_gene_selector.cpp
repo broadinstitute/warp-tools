@@ -26,14 +26,6 @@ inline std::string ltrim(std::string& s)
   return s;
 }
 
-// trim from right end (in place) -- https://stackoverflow.com/questions/216823/how-to-trim-an-stdstring
-inline std::string rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(), s.end());
-    return s;
-}
-
 // remove the " (quotes) from the beginning and end of the string (TODO also
 // removes from the middle; hopefully nobody is trying to use escaped quotes).
 std::string removeQuotes(std::string& s)
@@ -109,7 +101,7 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
     if (tabbed_fields[2] != "gene") // skip the line unless it is a gene
       continue;
     // split the semicolon-separated attributes field
-    std::vector<std::string> attribs = splitStringToFields(rtrim(tabbed_fields[8]), ';');
+    std::vector<std::string> attribs = splitStringToFields(tabbed_fields[8], ';');
 
     std::string gene_name;
     std::string gene_id;
@@ -117,17 +109,14 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
     for (std::string attrib : attribs)
     {
       // each attribute is a space-separated key-value pair
-      std::string key = ltrim(attrib).substr(0,ltrim(attrib).find_first_of(" "));
-      std::string value = ltrim(attrib).substr(ltrim(attrib).find_first_of(" ") +1);
-
       // removed the lines below b/c we found a different way to split strings
-      // std::vector<std::string> key_and_val = splitStringToFields(ltrim(attrib), ' ');
-      // if (key_and_val.size() != 2)
-      //   crash("Expected 2 fields, found " + std::to_string(key_and_val.size()) + " fields");
+      std::vector<std::string> key_and_val = splitStringToFields(ltrim(attrib), ' ');
+      if (key_and_val.size() != 2)
+        crash("Expected 2 fields, found " + std::to_string(key_and_val.size()) + " fields");
 
       // the second element in the pair is the value string
-      // std::string& key = key_and_val[0];
-      // std::string value = removeQuotes(key_and_val[1]);
+      std::string& key = key_and_val[0];
+      std::string value = removeQuotes(key_and_val[1]);
 
       if (key == "gene_id")
         gene_id = value;
