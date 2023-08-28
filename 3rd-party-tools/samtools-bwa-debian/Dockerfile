@@ -14,7 +14,7 @@ RUN set -eux; \
     apt-get install -y build-essential git; \
 
     # Install tini
-    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
+    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /sbin/tini; \
     chmod +x /sbin/tini; \
     
     # Install samtools
