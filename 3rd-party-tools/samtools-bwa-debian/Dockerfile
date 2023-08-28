@@ -20,8 +20,8 @@ RUN set -eux; \
     # Install tini
     mkdir temp; \
     cd temp; \
-    wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
-    chmod +x /sbin/tini; \
+    #wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O/sbin/tini; \
+    #chmod +x /sbin/tini; \
     
     # Install samtools
     cd /usr/temp; \
@@ -41,6 +41,3 @@ RUN set -eux; \
     cd /usr/local/bin; \
     mv bwa-mem2.sse42 bwa-mem2; 
 
-
-# Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
