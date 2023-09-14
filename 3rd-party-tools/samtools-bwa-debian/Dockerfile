@@ -17,15 +17,13 @@ RUN set -eux; \
     wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /usr/bin/tini; \
     chmod +x /usr/bin/tini; \
     
-    # Install samtools
+    # Install samtools with libdeflate 
     mkdir temp; \
     cd temp; \
-    wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2; \
-    tar -xf samtools-1.11.tar.bz2; \
-    cd samtools-1.11; \
-    ./configure; \
-    make; \
-    make install; \
+    wget https://zenodo.org/record/5731013/files/htstools-1.14_x64-linux.tar.bz2; \
+    tar -xf htstools-1.14_x64-linux.tar.bz2; \
+    cd htstools-1.14_x64-linux; \
+    cp samtools /usr/local/bin;\
     
     # Install bwa
     cd /usr/temp; \
