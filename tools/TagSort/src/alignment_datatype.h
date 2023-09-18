@@ -27,7 +27,7 @@ public:
   explicit LineFields(std::string const& s);
 
   LineFields(
-      TagTriple _tag_triple, std::string _reference, std::string _alignment_location,
+      TagTriple _tag_triple, std::string _reference, int _alignment_location,
       int _position, int _is_strand,
       float _barcode_qual, float _cell_barcode_base_above_30,
       float _genomic_read_quality, float _genomic_reads_base_quality_above_30,
@@ -41,7 +41,7 @@ public:
 
   TagTriple tag_triple; // (0,1,2) barcode umi and gene_id, not necessarily in that order
   std::string reference; // 3
-  std::string alignment_location; // (4) aka biotype (TODO which is more accurate? or is this wrong?)
+  int alignment_location; // (4) aka biotype (TODO which is more accurate? or is this wrong?)
   int position; // 5
   int is_strand; // (6) 1 for yes, 0 for no
   float barcode_qual; // 7
