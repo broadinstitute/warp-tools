@@ -17,9 +17,8 @@ def get_ref_source(input_gtf):
                 print('Refseq reference')
                 # don't continue the search if found at least one instance
                 break
-    return reference_source
-    
-    
+    return reference_source 
+
 def get_biotypes(biotypes_file_path):
     allowable_biotypes= []
     with open(biotypes_file_path,'r',encoding='utf-8-sig') as biotypesFile:
@@ -33,13 +32,13 @@ def get_biotypes(biotypes_file_path):
 def get_features(features):
     features_dic = {}
     for f in features.split(';'):
-        if f and (len(f.split())>1):
+        if f:
             key = f.split()[0]
             value = f.split()[1]
             if key not in features_dic:
                 features_dic[key] = value
             else:
-                if type(features_dic[key]) == list:
+                if type(features_dic[key])==list:
                     features_dic[key].append(value)
                 else:
                     features_dic[key] = [features_dic[key]]
@@ -48,9 +47,20 @@ def get_features(features):
 
 def modify_attr(features_dic):
     modified_features = ""
+
     for key in features_dic:
         if key in ["exon_id","gene_id","transcript_id"]:
-            features_dic[key] = features_dic[key].split(".",1)[0]
+            version_key = key.replace("_id", "_version")
+            # Check if the gene_id has a version and split on the period
+            if '.' in features_dic[key]:
+                features_dic[key] = features_dic[key].split(".",1)[0]
+                version = features_dic[key].split('.', 1)[1]
+            else:
+                features_dic[key] = features_dic[key]
+                version = 0
+            # If the version ids are not present in the dictionary, add them
+            if version_key not in features_dic:
+                features_dic[version_key] = version
 
         if type(features_dic[key])!=str and len(features_dic[key])>1:
             for val in features_dic[key]:
@@ -63,8 +73,7 @@ def modify_attr(features_dic):
         else:
             modified_features = modified_features + key + " "+ features_dic[key] + "; "
     return modified_features
-    
-    
+
 def get_gene_ids_Refseq(input_gtf, biotypes):
     gene_ids =[]
     with open(input_gtf, 'r') as input_file:
@@ -84,6 +93,7 @@ def get_gene_ids_Refseq(input_gtf, biotypes):
 def get_gene_ids_Gencode(input_gtf, biotypes):
     gene_ids = set()
     with open(input_gtf, 'r') as input_file:
+        print("open succesful")
         for line in input_file:
             if line.startswith('#'):
                 continue
@@ -93,31 +103,23 @@ def get_gene_ids_Gencode(input_gtf, biotypes):
             features = re.sub('"', '', line.strip().split('\t')[8].strip())
             features_dic = get_features(features)
 
-            if (features_dic['gene_type'] not in biotypes) or (
-                    features_dic['transcript_type'] not in biotypes):
+            if (features_dic['gene_type'] not in biotypes) or (features_dic['transcript_type'] not in biotypes):
                 continue
+
             if 'tag' in features_dic:
                 if ('readthrough_transcript' not in features_dic['tag']) and (
                     'PAR' not in features_dic['tag']):
-                    gene=features_dic['gene_id']#.split('.', 1)[0]
+                    gene=features_dic['gene_id']
                     if gene not in gene_ids:
                         gene_ids.add(gene)
 
-           # Original code below for reference
-           #  if 'tag' in features_dic:
-            #    if ('readthrough_transcript' not in features_dic['tag']) and (
-             #       'PAR' not in features_dic['tag']):
-              #      gene=features_dic['gene_id'].split('.', 1)[0]
-               #     if gene not in gene_ids:
-                #        gene_ids.add(gene)
             else:
-                gene=features_dic['gene_id']#.split('.', 1)[0]
+                gene=features_dic['gene_id']
                 if gene not in gene_ids:
                     gene_ids.add(gene)
 
     input_file.close()
     return list(gene_ids)
-
 
 def main():
     """ This script filters a GTF file for all genes that have at least one transcript with a biotype.
@@ -162,6 +164,7 @@ def main():
         exit(0)
 
     print("Writing the output file based on selected genes with biotype")
+    ln=0
     with open(args.input_gtf, 'r') as input_file:
         with open(args.output_gtf, 'w') as output_gtf:
             for line in input_file:
@@ -171,11 +174,16 @@ def main():
                     fields = [x.strip() for x in line.strip().split("\t")]
                     features = re.sub('"', '', line.strip().split('\t')[8].strip())
                     features_dic = get_features(features)
+                    print(features_dic)
                     if features_dic['gene_id'] in gene_ids:
                         # The two lines below for modified filed were moved into this if statement
-                        # We want to find the valid genes first and then modify the GTF fields 
+                        # We want to find the valid genes first and then modify the GTF fields
                         modified_fields = fields.copy()
                         modified_fields[8] = modify_attr(features_dic)
+                        print("modfied:",modified_fields[8])
+                        ln+=1
+                        if ln==20:
+                            break
                         output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
 
 if __name__ == "__main__":
