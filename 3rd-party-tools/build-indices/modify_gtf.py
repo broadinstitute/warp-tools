@@ -30,48 +30,46 @@ def get_biotypes(biotypes_file_path):
     return  allowable_biotypes
 
 def get_features(features):
-    features_dic = {}
-    for f in features.split(';'):
-        if f:
-            key = f.split()[0]
-            value = f.split()[1]
-            if key not in features_dic:
-                features_dic[key] = value
-            else:
-                if type(features_dic[key])==list:
-                    features_dic[key].append(value)
-                else:
-                    features_dic[key] = [features_dic[key]]
-                    features_dic[key].append(value)
-    return features_dic
+    features_dict = {}
+    key_value_pairs = features.split(';')
+    #Process each key-value pair
+    for pair in key_value_pairs:
+      # Split each pair into key and value
+      key_value = pair.strip().split(' ', 1)
+                
+      # Ensure there is a key (and at least one element in the key-value pair)
+      if len(key_value) == 2:
+        key, value = key_value
+        key = key.strip()
+        value = value.strip(' "')
+                   
+        # Add the key-value pair to the dictionary
+        if key:
+          features_dict[key] = value
+      elif len(key_value) == 1:
+        # Handle the case where a key is present but the value is missing
+        key = key_value[0].strip()
+        features_dict[key] = ""
+    return features_dict
 
 def modify_attr(features_dic):
     modified_features = ""
 
-    for key in features_dic:
+    for key in features_dic.copy():
         if key in ["exon_id","gene_id","transcript_id"]:
             version_key = key.replace("_id", "_version")
             # Check if the gene_id has a version and split on the period
             if '.' in features_dic[key]:
-                features_dic[key] = features_dic[key].split(".",1)[0]
-                version = features_dic[key].split('.', 1)[1]
+                features_dic[key], version = features_dic[key].split(".",1)
             else:
                 features_dic[key] = features_dic[key]
                 version = 0
+            
             # If the version ids are not present in the dictionary, add them
             if version_key not in features_dic:
                 features_dic[version_key] = version
+    modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
 
-        if type(features_dic[key])!=str and len(features_dic[key])>1:
-            for val in features_dic[key]:
-                modified_features = modified_features + key + " " + '"{}"'.format(val) + "; "
-        elif features_dic[key].isnumeric():
-            modified_features = modified_features + key + " "+ features_dic[key] + "; "
-
-        elif str(features_dic[key]).isspace() or type(features_dic[key])==str:
-            modified_features = modified_features + key + " "+ '"{}"'.format(features_dic[key]) + "; "
-        else:
-            modified_features = modified_features + key + " "+ features_dic[key] + "; "
     return modified_features
 
 def get_gene_ids_Refseq(input_gtf, biotypes):
@@ -164,7 +162,6 @@ def main():
         exit(0)
 
     print("Writing the output file based on selected genes with biotype")
-    ln=0
     with open(args.input_gtf, 'r') as input_file:
         with open(args.output_gtf, 'w') as output_gtf:
             for line in input_file:
@@ -173,17 +170,18 @@ def main():
                 else:
                     fields = [x.strip() for x in line.strip().split("\t")]
                     features = re.sub('"', '', line.strip().split('\t')[8].strip())
+                    # Remove the trailing semicolon if it exists
+                    if features.endswith(';'):
+                      features = features[:-1]                     
+                    #print("Features:",features,'\n', fields[8])
                     features_dic = get_features(features)
-                    print(features_dic)
+                    #print(features_dic)
                     if features_dic['gene_id'] in gene_ids:
                         # The two lines below for modified filed were moved into this if statement
                         # We want to find the valid genes first and then modify the GTF fields
                         modified_fields = fields.copy()
                         modified_fields[8] = modify_attr(features_dic)
-                        print("modfied:",modified_fields[8])
-                        ln+=1
-                        if ln==20:
-                            break
+                     #   print("modfied:",modified_fields[8])
                         output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
 
 if __name__ == "__main__":
