@@ -5,8 +5,10 @@
 #include <cassert>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 using std::string;
+using std::vector;
 
 void crash(std::string msg)
 {
@@ -24,6 +26,15 @@ int64_t filesize(string const& filename)
     size = ftell(f);
   fclose(f);
   return size;
+}
+
+// jprb: calculate the total size of all the files
+int64_t calculateTotalSize(const vector<string>& files) {
+    int64_t tot_size = 0;
+    for(const auto& file : files) {
+        tot_size += filesize(file);
+    }
+    return tot_size;
 }
 
 void printFileInfo(std::vector<string> const& fastqs,
@@ -52,7 +63,7 @@ void printFileInfo(std::vector<string> const& fastqs,
 int64_t get_num_blocks(std::vector<string> const& I1s,
                      std::vector<string> const& R1s,
                      std::vector<string> const& R2s, 
-                     std::vector<string> const& R3s, double bam_size)
+                     std::vector<string> const& R3s, double bam_size) 
 {
   assert(R1s.size() == R2s.size());
 
@@ -408,7 +419,6 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
 
   return options;
 }
-
 
 INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqMetrics(int argc, char** argv)
 {

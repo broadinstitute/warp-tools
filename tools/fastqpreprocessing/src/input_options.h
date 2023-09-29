@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+int64_t calculateTotalSize(const std::vector<std::string>& files);
+
 void crash(std::string msg);
 
 struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
@@ -20,7 +22,7 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
   std::string output_format;
 
   // Bam file size to split by (in GB)
-  double bam_size = 1.0;
+  double bam_size = -1.0;  // Initialized to a sentinel value
 
   std::string read_structure;
 
@@ -45,7 +47,7 @@ struct InputOptionsFastqProcess
   std::string output_format;
 
   // Bam file size to split by (in GB)
-  double bam_size = 1.0;
+  double bam_size = -1.0;  // Initialized to a sentinel value
 
   std::string read_structure;
 
