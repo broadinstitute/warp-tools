@@ -68,6 +68,8 @@ def modify_attr(features_dic):
             # If the version ids are not present in the dictionary, add them
             if version_key not in features_dic:
                 features_dic[version_key] = version
+        if key == 'gene' and "gene_name" not in features_dic.keys():
+            features_dic['gene_name'] = features_dic['gene'] 
     modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
 
     return modified_features
