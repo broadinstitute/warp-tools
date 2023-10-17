@@ -46,8 +46,10 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v3
-    - name: Build the Docker image
+    - name: Build the Docker image for GCR
       run: docker build . --file Dockerfile --tag ${GOOGLE_CONTAINER_REGISTRY}/${GCR_PATH}:${TAG}
+    - name: Build the Docker image for ACR
+      run: docker build . --file Dockerfile --tag ${AZURE_CONTAINER_REGISTRY}/${ACR_PATH}:${TAG}
     - name: Check working directory'
       run: |
         echo "Current directory: "
