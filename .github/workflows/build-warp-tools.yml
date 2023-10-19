@@ -144,15 +144,16 @@ jobs:
       # if test is at the end of the file name in the the test dir -- it gets picked up
       - name: Test TagSort
         run: |
-          cd /warptools/TagSort
+          pwd
+          cd /warptools/warptools/TagSort
           ./fetch_gtest.sh && make test
-          cd /warptools/TagSort/bin
+          cd /warptools/warptools/TagSort/bin
           ls -lht
           for f in *test; do ./"$f"; done;
       - name: Test FastqPreprocessing
         run: |
-          cd /warptools/fastqpreprocessing
+          cd /warptools/warptools/fastqpreprocessing
           ./fetch_gtest.sh && make test
-          cd /warptools/fastqpreprocessing/bin
+          cd /warptools/warptools/fastqpreprocessing/bin
           ls -lht
           for f in *test; do ./"$f"; done;
