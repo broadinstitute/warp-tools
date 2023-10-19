@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: tools
+        working-directory: 3rd-party-tools/verify-bam-id
     steps:
     # checkout the repo
     - name: 'Checkout GitHub Action'
