@@ -149,9 +149,10 @@ jobs:
           ls -lhta
           echo "__w/:"; ls -lhta /__w/
           echo "__w/warp-tools:"; ls -lhta /__w/warp-tools/
-          ls -lhta ~ || true
+          echo "home:"; ls -lhta ~ || true
           ls -lhta /warp-tools || true
-          cd /warp-tools/TagSort
+          tree __w/ || true
+          cd ~/warp-tools/TagSort
           ./fetch_gtest.sh && make test
           cd bin
           ls -lht
