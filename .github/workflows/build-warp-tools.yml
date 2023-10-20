@@ -147,7 +147,9 @@ jobs:
         run: |
           pwd
           ls -lhta
-          cd tools/TagSort
+          ls -lhta /warp-tools
+          ls -lhta /__w/warp-tools/
+          cd /warp-tools/TagSort
           ./fetch_gtest.sh && make test
           cd bin
           ls -lht
