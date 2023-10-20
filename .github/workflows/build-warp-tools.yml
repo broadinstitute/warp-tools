@@ -138,13 +138,15 @@ jobs:
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
       - name: Check directory
         run: |
+          echo ${{needs.build.outputs.imagePath}}
           whoami
-          ls -lht
           pwd
+          ls -lhta
       # if test is at the end of the file name in the the test dir -- it gets picked up
       - name: Test TagSort
         run: |
           pwd
+          ls -lhta
           cd TagSort
           ./fetch_gtest.sh && make test
           cd bin
@@ -153,6 +155,7 @@ jobs:
       - name: Test FastqPreprocessing
         run: |
           pwd
+          ls -lhta
           cd fastqpreprocessing
           ./fetch_gtest.sh && make test
           cd fastqpreprocessing/bin
