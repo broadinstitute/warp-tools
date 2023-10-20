@@ -147,7 +147,7 @@ jobs:
         run: |
           pwd
           ls -lhta
-          cd TagSort
+          cd tools/TagSort
           ./fetch_gtest.sh && make test
           cd bin
           ls -lht
@@ -156,7 +156,7 @@ jobs:
         run: |
           pwd
           ls -lhta
-          cd fastqpreprocessing
+          cd tools/fastqpreprocessing
           ./fetch_gtest.sh && make test
           cd fastqpreprocessing/bin
           ls -lht
