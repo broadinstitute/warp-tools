@@ -145,15 +145,16 @@ jobs:
       - name: Test TagSort
         run: |
           pwd
-          cd /warptools/warptools/TagSort
+          cd TagSort
           ./fetch_gtest.sh && make test
-          cd /warptools/warptools/TagSort/bin
+          cd bin
           ls -lht
           for f in *test; do ./"$f"; done;
       - name: Test FastqPreprocessing
         run: |
-          cd /warptools/warptools/fastqpreprocessing
+          pwd
+          cd fastqpreprocessing
           ./fetch_gtest.sh && make test
-          cd /warptools/warptools/fastqpreprocessing/bin
+          cd fastqpreprocessing/bin
           ls -lht
           for f in *test; do ./"$f"; done;
