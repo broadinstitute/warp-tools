@@ -106,15 +106,18 @@ jobs:
       # volumes:
       #   - my_docker_volume:/volume_mount
       # options: --cpus 1
+      options: "--entrypoint /bin/bash"
     steps:
       - name: Check for dockerenv file
-        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+        run: |
+          (ls /.dockerenv && echo Found dockerenv && cat /.dockerenv) || (echo No dockerenv)
       - name: Check directory
         run: |
-          echo $imagePath
+          sudo apt-get install tree
           whoami
           pwd
           ls -lhta
+          tree
       # if test is at the end of the file name in the the test dir -- it gets picked up
       - name: Test TagSort
         run: |
