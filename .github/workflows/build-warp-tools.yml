@@ -66,32 +66,7 @@ jobs:
     # Push the image to the Google Container registry
     - name: Push image
       run: "docker push ${GOOGLE_CONTAINER_REGISTRY}/${GCR_PATH}:${TAG}"
-  
-  build-for-acr:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tools
-    steps:
-    # checkout the repo
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
-      
-    - name: 'Login via Azure CLI'
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: 'Build and push image'
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
-    - run: |
-        docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-        docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-  
+
   #Runs pytest on all python code in warp-tools/tools
   test-python:
     needs: build-for-gcr
@@ -122,8 +97,6 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-  
-
 
   test-c:
     runs-on: ubuntu-latest
@@ -152,7 +125,7 @@ jobs:
           echo "home:"; ls -lhta ~ || true
           ls -lhta /warp-tools || true
           tree __w/ || true
-          cd ~/warp-tools/TagSort
+          cd /warp-tools/TagSort
           ./fetch_gtest.sh && make test
           cd bin
           ls -lht
@@ -161,8 +134,35 @@ jobs:
         run: |
           pwd
           ls -lhta
-          cd tools/fastqpreprocessing
+          cd /warp-tools/fastqpreprocessing
           ./fetch_gtest.sh && make test
           cd fastqpreprocessing/bin
           ls -lht
           for f in *test; do ./"$f"; done;
+
+  build-for-acr:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
+    steps:
+    # checkout the repo
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+      
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: 'Build and push image'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    - run: |
+        docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
+        docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
+  
+  
