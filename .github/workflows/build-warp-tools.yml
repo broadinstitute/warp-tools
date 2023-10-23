@@ -113,7 +113,7 @@ jobs:
           (ls /.dockerenv && echo Found dockerenv && cat /.dockerenv) || (echo No dockerenv)
       - name: Check directory
         run: |
-          sudo apt-get install tree
+          apt-get install tree
           whoami
           pwd
           ls -lhta
