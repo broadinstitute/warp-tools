@@ -207,8 +207,8 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   cell_barcode_fraction_bases_above_30_.update(fields.cell_barcode_base_above_30);
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
-  if (fields.number_mappings == 1) {
-    if (fields.alignment_location == 7)
+  if (fields.alignment_location == 7) {
+    if (fields.number_mappings == 1) 
       reads_mapped_intergenic_ += 1;
   }
   else if(fields.alignment_location == 0) {
