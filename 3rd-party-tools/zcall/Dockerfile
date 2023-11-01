@@ -1,4 +1,4 @@
-# Zcall needs python2
+# Zcall needs python2, unfortunately.
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform=linux/amd64 python:2.7.18-alpine3.11
 

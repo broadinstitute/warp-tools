@@ -1,4 +1,4 @@
-name: ZCall CI
+name: Samtools BWA Mem 2 DEBIAN CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/zcall/**'
+      - '3rd-party-tools/samtools-bwa-debian/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,18 +19,17 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/zcall
-  ACR_PATH: zcall
+  GCR_PATH: broad-gotc-prod/samtools-bwa-debian
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
-  build-for-gcr:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/zcall
+        working-directory: 3rd-party-tools/samtools-bwa-debian
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
@@ -58,28 +57,3 @@ jobs:
     # Push the image to the Google Docker registry
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
-
-  build-for-acr:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 3rd-party-tools/zcall
-    steps:
-    # checkout the repo
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
-      
-    - name: 'Login via Azure CLI'
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: 'Build and push image'
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
-    - run: |
-        docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-        docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
