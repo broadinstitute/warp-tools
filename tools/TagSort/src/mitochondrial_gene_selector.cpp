@@ -97,7 +97,10 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
 
     std::vector<std::string> tabbed_fields = splitStringToFields(line, '\t');
     if (tabbed_fields.size() <= 8)
-      crash("Expected at least 9 tabbed fields, got " + std::to_string(tabbed_fields.size()));
+    {
+      crash("Expected at least 9 tabbed fields, got " +
+            std::to_string(tabbed_fields.size()) + "\nThe bad line is:\n" + line);
+    }
     if (tabbed_fields[2] != "gene") // skip the line unless it is a gene
       continue;
     // split the semicolon-separated attributes field
@@ -108,11 +111,17 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
     // now examine each of the attribute name-value pairs
     for (std::string attrib : attribs)
     {
+      std::string trimmed_attrib = ltrim(attrib);
+      if (trimmed_attrib.find("gene_id ") != 0 && trimmed_attrib.find("gene_name ") != 0)
+        continue; // we only care about these two attribs
+
       // each attribute is a space-separated key-value pair
-      // removed the lines below b/c we found a different way to split strings
-      std::vector<std::string> key_and_val = splitStringToFields(ltrim(attrib), ' ');
+      std::vector<std::string> key_and_val = splitStringToFields(trimmed_attrib, ' ');
       if (key_and_val.size() != 2)
-        crash("Expected 2 fields, found " + std::to_string(key_and_val.size()) + " fields");
+      {
+        crash("Expected 2 fields, found " + std::to_string(key_and_val.size()) +
+              " fields.\nThe bad attrib:\n" + attrib + "\nThe bad line:\n" + line);
+      }
 
       // the second element in the pair is the value string
       std::string& key = key_and_val[0];
@@ -128,9 +137,14 @@ std::unordered_set<std::string> getInterestingMitochondrialGenes(
       crash("Malformed GTF file detected. Record is of type gene but does not "
             "have a gene_name in line:\n" + line);
     }
+    if (gene_id.empty())
+    {
+      crash("Malformed GTF file detected. Record is of type gene but does not "
+            "have a gene_id in line:\n" + line);
+    }
 
     if (gene_selector.interestedInGeneName(gene_name))
-      mitochondrial_gene_ids.insert(gene_id); // TODO what if gene_id is empty?
+      mitochondrial_gene_ids.insert(gene_id);
   }
   std::cout << "Number of mitochondrial genes found " << mitochondrial_gene_ids.size() << std::endl;
   return mitochondrial_gene_ids;
