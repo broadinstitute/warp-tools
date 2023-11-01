@@ -37,8 +37,6 @@ void MetricGatherer::clearCellAndGeneCommon()
   reads_mapped_exonic_as_ = 0;
   reads_mapped_intronic_ = 0;
   reads_mapped_intronic_as_ = 0;
-  reads_mapped_intergenic_ = 0;
-  reads_unmapped_ = 0;
 
   // alignment uniqueness information
   reads_mapped_uniquely_ = 0;
@@ -89,11 +87,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
     else if (fields.alignment_location == 5)
       reads_mapped_intronic_ += 1;
     else if (fields.alignment_location == 6)
-      reads_mapped_intronic_as_ += 1; 
-    else if (fields.alignment_location == 7)
-      reads_mapped_intergenic_ += 1;
-    else if(fields.alignment_location == 0)
-      reads_unmapped_ += 1;}
+      reads_mapped_intronic_as_ += 1; }
   else {
     reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
   }
@@ -213,6 +207,11 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   cell_barcode_fraction_bases_above_30_.update(fields.cell_barcode_base_above_30);
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
+  if (fields.alignment_location == 7)
+      reads_mapped_intergenic_ += 1;
+  else if(fields.alignment_location == 0)
+    reads_unmapped_ += 1;
+
   genes_histogram_[std::string(fields.tag_triple.third)] += 1;
   // END cell-metric-specific stuff
 
@@ -277,6 +276,8 @@ void CellMetricGatherer::clear()
 
   cell_barcode_fraction_bases_above_30_.clear();
   perfect_cell_barcodes_ = 0;
+  reads_mapped_intergenic_ = 0;
+  reads_unmapped_ = 0;
   genes_histogram_.clear();
 }
 
