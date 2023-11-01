@@ -17,9 +17,8 @@ def get_ref_source(input_gtf):
                 print('Refseq reference')
                 # don't continue the search if found at least one instance
                 break
-    return reference_source
-    
-    
+    return reference_source 
+
 def get_biotypes(biotypes_file_path):
     allowable_biotypes= []
     with open(biotypes_file_path,'r',encoding='utf-8-sig') as biotypesFile:
@@ -71,10 +70,11 @@ def modify_attr(features_dic):
                 features_dic[version_key] = version
         if key == 'gene' and "gene_name" not in features_dic.keys():
             features_dic['gene_name'] = features_dic['gene']
+
     modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
 
     return modified_features
-    
+
 def get_gene_ids_Refseq(input_gtf, biotypes):
     gene_ids =[]
     with open(input_gtf, 'r') as input_file:
@@ -94,6 +94,7 @@ def get_gene_ids_Refseq(input_gtf, biotypes):
 def get_gene_ids_Gencode(input_gtf, biotypes):
     gene_ids = set()
     with open(input_gtf, 'r') as input_file:
+        print("open succesful")
         for line in input_file:
             if line.startswith('#'):
                 continue
@@ -103,31 +104,23 @@ def get_gene_ids_Gencode(input_gtf, biotypes):
             features = re.sub('"', '', line.strip().split('\t')[8].strip())
             features_dic = get_features(features)
 
-            if (features_dic['gene_type'] not in biotypes) or (
-                    features_dic['transcript_type'] not in biotypes):
+            if (features_dic['gene_type'] not in biotypes) or (features_dic['transcript_type'] not in biotypes):
                 continue
+
             if 'tag' in features_dic:
                 if ('readthrough_transcript' not in features_dic['tag']) and (
                     'PAR' not in features_dic['tag']):
-                    gene=features_dic['gene_id']#.split('.', 1)[0]
+                    gene=features_dic['gene_id']
                     if gene not in gene_ids:
                         gene_ids.add(gene)
 
-           # Original code below for reference
-           #  if 'tag' in features_dic:
-            #    if ('readthrough_transcript' not in features_dic['tag']) and (
-             #       'PAR' not in features_dic['tag']):
-              #      gene=features_dic['gene_id'].split('.', 1)[0]
-               #     if gene not in gene_ids:
-                #        gene_ids.add(gene)
             else:
-                gene=features_dic['gene_id']#.split('.', 1)[0]
+                gene=features_dic['gene_id']
                 if gene not in gene_ids:
                     gene_ids.add(gene)
 
     input_file.close()
     return list(gene_ids)
-
 
 def main():
     """ This script filters a GTF file for all genes that have at least one transcript with a biotype.
@@ -180,12 +173,18 @@ def main():
                 else:
                     fields = [x.strip() for x in line.strip().split("\t")]
                     features = re.sub('"', '', line.strip().split('\t')[8].strip())
+                    # Remove the trailing semicolon if it exists
+                    if features.endswith(';'):
+                      features = features[:-1]                     
+                    #print("Features:",features,'\n', fields[8])
                     features_dic = get_features(features)
+                    #print(features_dic)
                     if features_dic['gene_id'] in gene_ids:
                         # The two lines below for modified filed were moved into this if statement
-                        # We want to find the valid genes first and then modify the GTF fields 
+                        # We want to find the valid genes first and then modify the GTF fields
                         modified_fields = fields.copy()
                         modified_fields[8] = modify_attr(features_dic)
+                     #   print("modfied:",modified_fields[8])
                         output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
 
 if __name__ == "__main__":
