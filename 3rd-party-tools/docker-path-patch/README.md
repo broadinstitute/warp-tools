@@ -2,7 +2,7 @@
 
 ## Quick reference
 
-Copy and paste either commands to pull this image
+Copy and paste either commands to pull this image (from GCR or ACR)
 
 #### `docker pull us.gcr.io/broad-gotc-prod/docker-path-patch:1.0`
 #### `docker pull dsppipelinedev.azurecr.io/docker-path-patch:1.0`
@@ -14,7 +14,7 @@ Copy and paste either commands to pull this image
 
 ## Usage
 
-### DOCKER PATH PATCH
+### Docker Path Patch (replace placeholder variables accordingly)
 
 ```bash
 $ docker run --rm -it \
