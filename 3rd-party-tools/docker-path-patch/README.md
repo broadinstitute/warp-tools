@@ -4,8 +4,8 @@
 
 Copy and paste either commands to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/docker_path_patch:1.0`
-#### `docker pull dsppipelinedev.azurecr.io/docker_path_patch:1.0`
+#### `docker pull us.gcr.io/broad-gotc-prod/docker-path-patch:1.0`
+#### `docker pull dsppipelinedev.azurecr.io/docker-path-patch:1.0`
 `
 
 - __What is this image:__ This image is a python image for running docker path patch script created by Microsoft to help us transition pipelines to Azure
@@ -19,6 +19,15 @@ Copy and paste either commands to pull this image
 ```bash
 $ docker run --rm -it \
     -v /replace-with-path-to-WDL-dir/:/data \
-    us.gcr.io/broad-gotc-prod/docker_path_patch:1.0 bash
+    us.gcr.io/broad-gotc-prod/docker-path-patch:1.0 bash;
+
+$ python3 patch_docker_runtime.py -i /data/replace-with-wdl-filename -d /data/optional-hints.json -o /data
 ```
 
+### Example Run
+```bash
+$ docker run --rm -it -v /Users/palis/Work/Repositories/smartseq2-single-nucleus-multisample:/data \
+    us.gcr.io/broad-gotc-prod/docker-path-patch:kp_containerize_patching_script_pd-2400 bash
+
+$ python3 patch_docker_runtime.py -i /data/SmartSeq2SingleSample.wdl -d /data/docker_hints.json -o /data
+``````
