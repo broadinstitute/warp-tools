@@ -1,17 +1,8 @@
 # WARP-Tools
 This repository has the container that hosts all the scripts and tools that [WARP](https://github.com/broadinstitute/warp) uses.
 
-The project structure is straightforward and contains essentially just two types of directory: a tool directory, named after the tool itself, and a script directory which hosts all the scripts (mostly python).
+The project structure is straightforward and contains essentially just two types of directory: a tool directory, containing all our in-house tools, and a 3rd-party-tools directory which hosts all the third-party containers we use in our pipelines.
 Each directory contains it's own README that describes the tool or scripts, along with a usage guide.
-
-## build-indices/
-  TBD
-
-## sctools/
-  TBD
-
-## scripts/
-  This contains all scripts that can be shared by multiple containers. A more extensive description of each script can be found inside this directory.
 
 ## .github/workflows 
   This contains all YML files for automated container builds.

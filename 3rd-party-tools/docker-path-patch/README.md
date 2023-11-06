@@ -2,9 +2,10 @@
 
 ## Quick reference
 
-Copy and paste to pull this image
+Copy and paste either commands to pull this image
 
 #### `docker pull us.gcr.io/broad-gotc-prod/docker_path_patch:1.0`
+#### `docker pull dsppipelinedev.azurecr.io/docker_path_patch:1.0`
 `
 
 - __What is this image:__ This image is a python image for running docker path patch script created by Microsoft to help us transition pipelines to Azure
@@ -17,7 +18,7 @@ Copy and paste to pull this image
 
 ```bash
 $ docker run --rm -it \
-    -v /tmp:/tmp \
-    us.gcr.io/broad-gotc-prod/docker_path_patch:1.0  /path/to/script "CMD TBD"
+    -v /replace-with-path-to-WDL-dir/:/data \
+    us.gcr.io/broad-gotc-prod/docker_path_patch:1.0 bash
 ```
 
