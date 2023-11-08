@@ -34,22 +34,22 @@ def get_features(features):
     key_value_pairs = features.split(';')
     #Process each key-value pair
     for pair in key_value_pairs:
-      # Split each pair into key and value
-      key_value = pair.strip().split(' ', 1)
-                
-      # Ensure there is a key (and at least one element in the key-value pair)
-      if len(key_value) == 2:
-        key, value = key_value
-        key = key.strip()
-        value = value.strip(' "')
-                   
-        # Add the key-value pair to the dictionary
-        if key:
-          features_dict[key] = value
-      elif len(key_value) == 1:
-        # Handle the case where a key is present but the value is missing
-        key = key_value[0].strip()
-        features_dict[key] = ""
+        # Split each pair into key and value
+        key_value = pair.strip().split(' ', 1)
+
+        # Ensure there is a key (and at least one element in the key-value pair)
+        if len(key_value) == 2:
+            key, value = key_value
+            key = key.strip()
+            value = value.strip(' "')
+
+            # Add the key-value pair to the dictionary
+            if key:
+                features_dict[key] = value
+        elif len(key_value) == 1:
+            # Handle the case where a key is present but the value is missing
+            key = key_value[0].strip()
+            features_dict[key] = ""
     return features_dict
 
 def modify_attr(features_dic):
@@ -64,10 +64,13 @@ def modify_attr(features_dic):
             else:
                 features_dic[key] = features_dic[key]
                 version = 0
-            
+
             # If the version ids are not present in the dictionary, add them
             if version_key not in features_dic:
                 features_dic[version_key] = version
+        if key == 'gene' and "gene_name" not in features_dic.keys():
+            features_dic['gene_name'] = features_dic['gene']
+
     modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
 
     return modified_features
