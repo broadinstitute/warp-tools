@@ -102,6 +102,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     /* These options don’t set a flag.
        We distinguish them by their indices. */
     {"bam-size",            required_argument, 0, 'B'},
+    {"num-output-files",    required_argument, 0, 'OF'},
     {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
     {"I1",                  required_argument, 0, 'I'},
@@ -120,6 +121,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   {
     "verbose messages  ",
     "output BAM file in GB [optional: default 1 GB]",
+    "num_output_files [optional: default -1 (it will take bam_size as default)]",
     "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
@@ -159,6 +161,9 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     case 'B':
       options.bam_size = atof(optarg);
       break;
+    case 'OF':
+      options.num_output_files = atof(optarg);
+      break;    
     case 's':
       options.sample_id = string(optarg);
       break;
@@ -224,7 +229,10 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     crash("ERROR: Must provide as many R3 input files as R1 input files.");
 
   if (options.bam_size <= 0)
-    crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
+    crash("ERROR: Size of a bam file (in GB) cannot be negative or 0.");
+
+  if (options.num_output_files < 0)
+    crash("ERROR: Number of output files cannot be negative.");
 
   if (options.sample_id.empty())
     crash("ERROR: Must provide a sample id or name");
@@ -264,6 +272,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     /* These options don’t set a flag.
        We distinguish them by their indices. */
     {"bam-size",            required_argument, 0, 'B'},
+    {"num-output-files",    required_argument, 0, 'OF'},
     {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
     {"I1",                  required_argument, 0, 'I'},
@@ -282,6 +291,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
   {
     "verbose messages  ",
     "output BAM file in GB [optional: default 1 GB]",
+    "num_output_files [optional: default -1 (it will take bam_size as default)]",
     "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
@@ -320,6 +330,9 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     case 'B':
       options.bam_size = atof(optarg);
       break;
+    case 'OF':
+      options.num_output_files = atof(optarg);
+      break;  
     case 'S':
       options.read_structure = string(optarg);
       break;
@@ -385,7 +398,10 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     crash("ERROR: Must provide as many R3 input files as R1 input files.");
 
   if (options.bam_size <= 0)
-    crash("ERROR: Size of a bam file (in GB) cannot be negative or 0");
+    crash("ERROR: Size of a bam file (in GB) cannot be negative or 0.");
+ 
+  if (options.num_output_files < 0)
+    crash("ERROR: Number of output files cannot be negative.");
 
   if (options.sample_id.empty())
     crash("ERROR: Must provide a sample id or name");
