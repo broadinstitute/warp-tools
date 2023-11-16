@@ -6,8 +6,8 @@ int main(int argc, char** argv)
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
   
   int num_writer_threads = 1;
-  if (options.num_output_files != -1) {
-    std::cout<<"options.num_output_file != -1\n";
+  if (options.num_output_files != 0) {
+    std::cout<<"options.num_output_file != 0\n";
     num_writer_threads = options.num_output_files;
   }
   else {
