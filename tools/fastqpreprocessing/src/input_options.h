@@ -23,7 +23,7 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
   double bam_size = 1.0;
 
   // Number of output files
-  int num_output_files = -1
+  int num_output_files = -1;
 
   std::string read_structure;
 
@@ -51,7 +51,7 @@ struct InputOptionsFastqProcess
   double bam_size = 1.0;
 
   // Number of output files
-  int num_output_files = -1
+  int num_output_files = -1;
 
   std::string read_structure;
 
