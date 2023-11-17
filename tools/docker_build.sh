@@ -3,7 +3,7 @@
 set -e -x
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.8
+DOCKER_IMAGE_VERSION=1.0.9
 TIMESTAMP=$(date +"%s")
 DIR=$(cd "$(dirname "$0")" && pwd)
 TAG=$1
