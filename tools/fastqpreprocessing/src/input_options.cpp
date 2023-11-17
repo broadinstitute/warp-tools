@@ -121,7 +121,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
   {
     "verbose messages  ",
     "output BAM file in GB [optional: default 1 GB]",
-    "num_output_files [optional: default -1 (it will take bam_size as default)]",
+    "num_output_files [optional: default 0 (it will take bam_size as default)]",
     "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
@@ -291,7 +291,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
   {
     "verbose messages  ",
     "output BAM file in GB [optional: default 1 GB]",
-    "num_output_files [optional: default -1 (it will take bam_size as default)]",
+    "num_output_files [optional: default 0 (it will take bam_size as default)]",
     "read structure [required]",
     "sample id [required]",
     "I1 [optional]",
