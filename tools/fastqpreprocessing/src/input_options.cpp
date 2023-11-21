@@ -102,7 +102,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     /* These options don’t set a flag.
        We distinguish them by their indices. */
     {"bam-size",            required_argument, 0, 'B'},
-    {"num-output-files",    required_argument, 0, 'OF'},
+    {"num-output-files",    required_argument, 0, 'nF'},
     {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
     {"I1",                  required_argument, 0, 'I'},
@@ -161,7 +161,7 @@ InputOptionsFastqProcess readOptionsFastqProcess(int argc, char** argv)
     case 'B':
       options.bam_size = atof(optarg);
       break;
-    case 'OF':
+    case 'nF':
       options.num_output_files = atof(optarg);
       break;    
     case 's':
@@ -272,7 +272,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     /* These options don’t set a flag.
        We distinguish them by their indices. */
     {"bam-size",            required_argument, 0, 'B'},
-    {"num-output-files",    required_argument, 0, 'OF'},
+    {"num-output-files",    required_argument, 0, 'nF'},
     {"read-structure",      required_argument, 0, 'S'},
     {"sample-id",           required_argument, 0, 's'},
     {"I1",                  required_argument, 0, 'I'},
@@ -330,7 +330,7 @@ INPUT_OPTIONS_FASTQ_READ_STRUCTURE readOptionsFastqSlideseq(int argc, char** arg
     case 'B':
       options.bam_size = atof(optarg);
       break;
-    case 'OF':
+    case 'nF':
       options.num_output_files = atof(optarg);
       break;  
     case 'S':
