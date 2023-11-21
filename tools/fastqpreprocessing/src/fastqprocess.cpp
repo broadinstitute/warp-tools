@@ -4,10 +4,19 @@
 int main(int argc, char** argv)
 {
   InputOptionsFastqProcess options = readOptionsFastqProcess(argc, argv);
-  // number of output bam files, and one writer thread per bam file
-  int num_writer_threads = get_num_blocks(options);
-  // hardcoded this to 1000 in case of large files
-  num_writer_threads =  (num_writer_threads > 1000) ? 1000 : num_writer_threads;
+  
+  int num_writer_threads = 1;
+  if (options.num_output_files != 0) {
+    std::cout<<"Number of output files is set. Bam size ignored.\n";
+    num_writer_threads = options.num_output_files;
+  }
+  else {
+    std::cout<<"Number of output files is not set. Bam size is not ignored.\n";
+    // number of output bam files, and one writer thread per bam file
+    num_writer_threads = get_num_blocks(options);
+    // hardcoded this to 1000 in case of large files
+    num_writer_threads =  (num_writer_threads > 1000) ? 1000 : num_writer_threads;
+  }
 
   // added this for consistency with other code
   std::vector<std::pair<char, int>> g_parsed_read_structure = parseReadStructure(options.read_structure);
