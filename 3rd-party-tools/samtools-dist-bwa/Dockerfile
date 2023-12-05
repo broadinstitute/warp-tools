@@ -15,7 +15,9 @@ RUN set -eux; \
 
     # Install open omics acceleration framework
     mkdir temp; \
-    cd /temp; \
+    ls; \
+    pwd; \
+    cd temp; \
     git clone --recursive https://github.com/IntelLabs/Open-Omics-Acceleration-Framework.git; \
     cd Open-Omics-Acceleration-Framework/pipelines/fq2sortedbam; \
     ./install.sh; \
