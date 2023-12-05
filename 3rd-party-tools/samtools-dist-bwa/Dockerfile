@@ -21,9 +21,9 @@ RUN set -eux; \
     git clone --recursive https://github.com/IntelLabs/Open-Omics-Acceleration-Framework.git; \
     cd Open-Omics-Acceleration-Framework/pipelines/fq2sortedbam; \
     ./install.sh; \
-
+    
     # Tini
-    cd /temp; \
+    cd /usr/temp; \
     wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /usr/bin/tini; \
     chmod +x /usr/bin/tini; \
    
