@@ -8,13 +8,11 @@ ENV PATH $PATH:/root/google-cloud-sdk/bin
 
 RUN set -eux && \
     mkdir -p /upstools && \
-    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
-    pip install --upgrade pip && \
-    curl -sSL https://sdk.cloud.google.com | bash 
+    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini
 
-COPY . /scripts
+COPY . /upstools
 #build C/C++ code and add binaries to usr's bin
-RUN cd /scripts/ && ./fetch_and_make_dep_libs.sh && make && cp /upstools/bin/* /usr/local/bin/
+RUN cd /upstools/scripts/ && sh make.sh && cp /upstools/scripts/* /usr/local/bin/
 
 
 WORKDIR /upstools
