@@ -1,7 +1,7 @@
 FROM --platform="linux/amd64" python:3.10.12-buster
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
-  software="upstools  v.1.0.0" \
+  software="upstools  2023.03.03" \
   description="Upstools software for Paired-tag."
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin 
