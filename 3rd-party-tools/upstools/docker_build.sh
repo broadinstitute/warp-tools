@@ -15,7 +15,7 @@ UPSTOOLS_VERSION="2023.03.03"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-b|--upstools_version] [-t|tools] -- script to build the SAMTOOLS/BWA image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-b|--upstools_version] [-t|tools] -- script to build the UPStools image and push to GCR & Quay
 
 where:
     -h|--help Show help text
