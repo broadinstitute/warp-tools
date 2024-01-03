@@ -32,8 +32,8 @@ def generate_bams(inbamf):
             #sp2 = read.get_tag("UB", with_value_type=False)
         except KeyError:
             continue
-        if len(sp) != 18:
-            print("Barcodes length in CB is not 18bp. 10X output is 16bp + '-1'.\n") ### since I will modifiy some files as my old habits..
+        #if len(sp) != 18:
+         #   print("Barcodes length in CB is not 18bp. 10X output is 16bp + '-1'.\n") ### since I will modifiy some files as my old habits..
         sp_bc = sp[0:16]
         pindex = read.qname.split(":")[-1]
         cu = pindex + sp_bc
