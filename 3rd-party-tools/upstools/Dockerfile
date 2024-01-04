@@ -4,11 +4,11 @@ LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-developmen
   software="upstools  2023.03.03" \
   description="Upstools software for Paired-tag."
 
-ENV PATH $PATH:/root/google-cloud-sdk/bin 
-
 RUN set -eux && \
     mkdir -p /upstools && \
-    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini
+    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini &&\
+    pip install numpy==1.26.2 pandas==2.1.4 pysam==0.22.0
+
 
 COPY . /upstools
 #build C/C++ code and add binaries to usr's bin
