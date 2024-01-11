@@ -307,8 +307,10 @@ void CellMetricGatherer::clear()
 
 
 ////////////////  GeneMetricGatherer ////////////////////////
-GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file)
-  : MetricGatherer(metric_output_file)
+GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
+                                       std::string gtf_file,
+                                       std::string mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
 {
   // write metrics csv header
   std::string s;
@@ -372,8 +374,11 @@ void GeneMetricGatherer::clear()
 
 
 ////////////////  UmiMetricGatherer ////////////////////////
-UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order)
-  : MetricGatherer(metric_output_file)
+UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file,
+                                     TagOrder tag_order,
+                                     std::string gtf_file,
+                                     std::string mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
 {
   metrics_csv_outfile_ << tagOrderToString(tag_order) << ",count\n";
 }

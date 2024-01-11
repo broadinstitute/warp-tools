@@ -208,7 +208,9 @@ private:
 class GeneMetricGatherer: public MetricGatherer
 {
 public:
-  explicit GeneMetricGatherer(std::string metric_output_file);
+  explicit GeneMetricGatherer(std::string metric_output_file,
+                              std::string gtf_file,
+                              std::string mitochondrial_gene_names_filename);
 
   void ingestLine(std::string const& str) override;
 
@@ -229,7 +231,10 @@ private:
 class UmiMetricGatherer: public MetricGatherer
 {
 public:
-  UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order);
+  UmiMetricGatherer(std::string metric_output_file, 
+                    TagOrder tag_order, 
+                    std::string gtf_file,
+                    std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
   void outputMetricsLine() override;
 
