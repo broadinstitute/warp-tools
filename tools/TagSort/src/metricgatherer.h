@@ -62,7 +62,9 @@ private:
 class MetricGatherer
 {
 public:
-  MetricGatherer(std::string metric_output_file);
+  MetricGatherer(std::string metric_output_file,
+                 std::string gtf_file,
+                 std::string mitochondrial_gene_names_filename);
   virtual ~MetricGatherer();
 
   virtual void ingestLine(std::string const& str) = 0;
@@ -121,6 +123,9 @@ private:
 
   std::unordered_map<std::string, int> fragment_histogram_;
 
+  // Make copy of ordered set of mitochonrial genes from Cell Metrics to parent class Metrics
+  std::unordered_set<std::string> mitochondrial_genes_overall;
+  
   // molecule information
   OnlineGaussianSufficientStatistic molecule_barcode_fraction_bases_above_30_;
 
@@ -193,7 +198,7 @@ private:
     "cell_barcode_fraction_bases_above_30_mean",
     "n_genes",
     "genes_detected_multiple_observations",
-    "n_mitochondrial_genes",
+    "mitochondrial_genes_",
     "n_mitochondrial_molecules",
     "pct_mitochondrial_molecules"
   };

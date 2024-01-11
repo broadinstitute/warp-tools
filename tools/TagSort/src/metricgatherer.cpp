@@ -11,8 +11,24 @@ std::string to_nan(float x)
   return x==-1 ? "nan" : s.str();
 }
 
-MetricGatherer::MetricGatherer(std::string metric_output_file)
+MetricGatherer::MetricGatherer(std::string metric_output_file,
+                               std::string gtf_file,
+                               std::string mitochondrial_gene_names_filename)
 {
+  // get list of mitochondrial genes 
+  if (gtf_file.empty())
+    crash("MetricGatherer needs a non-empty gtf_file name!");
+  // it's ok if mitochondrial_gene_names_filename is empty;
+  // getInterestingMitochondrialGenes() has logic to handle that case.
+  mitochondrial_genes_overall = getInterestingMitochondrialGenes(
+                                gtf_file, mitochondrial_gene_names_filename);
+
+  std::cout << "PRINT mitochondrial_genes_overall:\n";
+  for (const auto& item : mitochondrial_genes_overall) {
+        std::cout << "- " << item << '\n';
+  }
+  std::cout << "END\n";
+
   metrics_csv_outfile_.open(metric_output_file);
   if (!metrics_csv_outfile_)
     crash("Failed to open for writing " + metric_output_file);
@@ -78,18 +94,24 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (fields.number_mappings == 1) {
-    reads_mapped_uniquely_ += 1;
-    if (fields.alignment_location == 1 || fields.alignment_location == 3)
-      reads_mapped_exonic_ += 1;
-    else if (fields.alignment_location == 2 || fields.alignment_location == 4)
-      reads_mapped_exonic_as_ += 1;
-    else if (fields.alignment_location == 5)
-      reads_mapped_intronic_ += 1;
-    else if (fields.alignment_location == 6)
-      reads_mapped_intronic_as_ += 1; }
-  else {
-    reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
+  // Check if not a mitochondrial gene
+  std::cout<<"Check if mitochrondrial gene\n";
+  std::cout<<"GENE " << std::string(fields.tag_triple.third) <<"\n";
+  if (!(mitochondrial_genes_overall.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_overall.end())) {
+   std::cout<<"not a mitochrondrial gene\n"; 
+   if (fields.number_mappings == 1) {
+      reads_mapped_uniquely_ += 1;
+      if (fields.alignment_location == 1 || fields.alignment_location == 3)
+        reads_mapped_exonic_ += 1;
+      else if (fields.alignment_location == 2 || fields.alignment_location == 4)
+        reads_mapped_exonic_as_ += 1;
+      else if (fields.alignment_location == 5)
+        reads_mapped_intronic_ += 1;
+      else if (fields.alignment_location == 6)
+        reads_mapped_intronic_as_ += 1; }
+    else {
+      reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
+    }
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -97,6 +119,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   duplicate_reads_ += fields.read_is_duplicate;
   spliced_reads_ += fields.read_spliced;
 }
+
 
 void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 {
@@ -152,14 +175,12 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 }
 
 
-
-
 ////////////////  CellMetricGatherer ////////////////////////
 
 CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
                                        std::string gtf_file,
                                        std::string mitochondrial_gene_names_filename)
-  : MetricGatherer(metric_output_file)
+  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
 {
   if (gtf_file.empty())
     crash("CellMetricGatherer needs a non-empty gtf_file name!");
