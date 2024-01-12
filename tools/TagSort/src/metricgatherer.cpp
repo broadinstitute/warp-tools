@@ -189,6 +189,12 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
   mitochondrial_genes_ = getInterestingMitochondrialGenes(
       gtf_file, mitochondrial_gene_names_filename);
 
+  std::cout << "PRINT mitochondrial_genes_overall:\n";
+  for (const auto& item : mitochondrial_genes_) {
+        std::cout << "- " << item << '\n';
+  }
+  std::cout << "END\n";
+  
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
