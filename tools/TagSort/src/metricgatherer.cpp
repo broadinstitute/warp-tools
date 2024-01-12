@@ -95,10 +95,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   fragment_histogram_[ref_pos_str_tags] += 1;
 
   // Check if not a mitochondrial gene
-  std::cout<<"Check if mitochrondrial gene\n";
-  std::cout<<"GENE " << std::string(fields.tag_triple.third) <<"\n";
   if (!(mitochondrial_genes_overall.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_overall.end())) {
-   std::cout<<"not a mitochrondrial gene\n"; 
    if (fields.number_mappings == 1) {
       reads_mapped_uniquely_ += 1;
       if (fields.alignment_location == 1 || fields.alignment_location == 3)
@@ -112,6 +109,11 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
     else {
       reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
     }
+  }
+  else {
+    std::cout<<"Check if mitochrondrial gene\n";
+    std::cout<<"GENE " << std::string(fields.tag_triple.third) <<"\n";
+    std::cout<<"not a mitochrondrial gene\n"; 
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
