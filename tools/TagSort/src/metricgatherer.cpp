@@ -113,7 +113,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   else {
     std::cout<<"Check if mitochrondrial gene\n";
     std::cout<<"GENE " << std::string(fields.tag_triple.third) <<"\n";
-    std::cout<<"not a mitochrondrial gene\n"; 
+    std::cout<<"mitochrondrial gene\n"; 
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -236,12 +236,16 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   cell_barcode_fraction_bases_above_30_.update(fields.cell_barcode_base_above_30);
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
-  if (fields.alignment_location == 7) {
-    if (fields.number_mappings == 1) 
-      reads_mapped_intergenic_ += 1;
-  }
-  else if(fields.alignment_location == 0) {
-    reads_unmapped_ += 1;
+  // need to change this 
+  if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
+  {
+    if (fields.alignment_location == 7) {
+      if (fields.number_mappings == 1) 
+        reads_mapped_intergenic_ += 1;
+    }
+    else if(fields.alignment_location == 0) {
+      reads_unmapped_ += 1;
+    }
   }
 
   genes_histogram_[std::string(fields.tag_triple.third)] += 1;
