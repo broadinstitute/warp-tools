@@ -238,7 +238,6 @@ void CellMetricGatherer::ingestLine(std::string const& str)
 
   // need to change this 
   if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
-  {
     if (fields.alignment_location == 7) {
       if (fields.number_mappings == 1) 
         reads_mapped_intergenic_ += 1;
