@@ -237,15 +237,14 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
   // need to change this 
-  //if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
-    if (fields.alignment_location == 7) {
-      if (fields.number_mappings == 1) 
+  if (fields.alignment_location == 7) {
+    if (fields.number_mappings == 1)
+      if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end()))
         reads_mapped_intergenic_ += 1;
     }
     else if(fields.alignment_location == 0) {
       reads_unmapped_ += 1;
     }
-  //}
 
   genes_histogram_[std::string(fields.tag_triple.third)] += 1;
   // END cell-metric-specific stuff
