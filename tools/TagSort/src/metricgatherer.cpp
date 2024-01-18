@@ -100,6 +100,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
         std::cout << "- " << item << '\n';
   }
   std::cout << "END\n";
+  std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
 
   // Check if not a mitochondrial gene
