@@ -124,7 +124,6 @@ std::unique_ptr<MetricGatherer> maybeMakeMetricGatherer(INPUT_OPTIONS_TAGSORT co
 int mergePartialFiles(INPUT_OPTIONS_TAGSORT const& options,
                       std::vector<std::string> const& partial_files)
 {
-  std::cout << "mergePartialFiles\n ";
   int num_alignments = 0;
 
   std::unique_ptr<MetricGatherer> metric_gatherer = maybeMakeMetricGatherer(options);
