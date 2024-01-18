@@ -15,6 +15,7 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
                                std::string gtf_file,
                                std::string mitochondrial_gene_names_filename)
 {
+  std::cout<<"Constructor for metric gatherer called.\n";
   // get list of mitochondrial genes 
   if (gtf_file.empty())
     crash("MetricGatherer needs a non-empty gtf_file name!");
@@ -322,6 +323,8 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
                                        std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
 {
+  
+  std::cout<<"Constructor for gene metric gatherer called.\n";
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
