@@ -24,7 +24,7 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
   mitochondrial_genes_overall = getInterestingMitochondrialGenes(
                                 gtf_file, mitochondrial_gene_names_filename);
 
-  std::cout << "PRINT mitochondrial_genes_overall:\n";
+  std::cout << "PRINT mitochondrial_genes_overall in MetricGatherer:\n";
   for (const auto& item : mitochondrial_genes_overall) {
         std::cout << "- " << item << '\n';
   }
@@ -94,6 +94,13 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  std::to_string(fields.position) + "\t" +
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
+
+  std::cout << "PRINT mitochondrial_genes_overall in parseAlignedReadFields:\n";
+  for (const auto& item : mitochondrial_genes_overall) {
+        std::cout << "- " << item << '\n';
+  }
+  std::cout << "END\n";
+  std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
 
   // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_overall.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_overall.end())) {
