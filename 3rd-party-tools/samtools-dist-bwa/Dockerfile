@@ -19,8 +19,10 @@ RUN set -eux; \
     pwd; \
     cd temp; \
     # clone fork of Open-Omics-Acceleration-Framework with changes added for input/output
-    git clone --recursive https://github.com/IntelLabs/Open-Omics-Acceleration-Framework.git; \
-    # for testing purposes checkout to branch 
+    ## git clone --recursive https://github.com/IntelLabs/Open-Omics-Acceleration-Framework.git
+    
+    # for testing purposes checkout to branch     
+    git clone --recursive https://github.com/aawdeh/Open-Omics-Acceleration-Framework.git; \
     cd Open-Omics-Acceleration-Framework; \
     git checkout aa-distbwa; \
     
