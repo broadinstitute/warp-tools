@@ -27,7 +27,8 @@ RUN set -eux; \
     git checkout aa-distbwa; \
     
     # install packages 
-    cd Open-Omics-Acceleration-Framework/pipelines/fq2sortedbam; \
+    ## cd Open-Omics-Acceleration-Framework/pipelines/fq2sortedbam
+    cd pipelines/fq2sortedbam; \
     ./install.sh; \
     
     # Tini
