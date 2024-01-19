@@ -20,6 +20,9 @@ RUN set -eux; \
     cd temp; \
     # clone fork of Open-Omics-Acceleration-Framework with changes added for input/output
     git clone --recursive https://github.com/IntelLabs/Open-Omics-Acceleration-Framework.git; \
+    # for testing purposes checkout to branch 
+    cd Open-Omics-Acceleration-Framework; \
+    git checkout aa-distbwa; \
     
     # install packages 
     cd Open-Omics-Acceleration-Framework/pipelines/fq2sortedbam; \
