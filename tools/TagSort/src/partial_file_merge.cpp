@@ -106,12 +106,12 @@ std::unique_ptr<MetricGatherer> maybeMakeMetricGatherer(INPUT_OPTIONS_TAGSORT co
   if (options.metric_type == MetricType::Cell)
   {
     return std::make_unique<CellMetricGatherer>(
-        options.metric_output_file, options.gtf_file,
-        options.mitochondrial_gene_names_filename);
+        options.metric_output_file, getTagOrder(options), 
+        options.gtf_file, options.mitochondrial_gene_names_filename);
   }
   else if (options.metric_type == MetricType::Gene)
-    return std::make_unique<GeneMetricGatherer>(options.metric_output_file, options.gtf_file,
-                                                options.mitochondrial_gene_names_filename);
+    return std::make_unique<GeneMetricGatherer>(options.metric_output_file, getTagOrder(options),
+                                                options.gtf_file, options.mitochondrial_gene_names_filename);
   else if (options.metric_type == MetricType::Umi)
     return std::make_unique<UmiMetricGatherer>(options.metric_output_file, getTagOrder(options), 
                                                options.gtf_file, options.mitochondrial_gene_names_filename);
