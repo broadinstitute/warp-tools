@@ -2,6 +2,9 @@
 #include "mitochondrial_gene_selector.h"
 
 #include <map>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 constexpr int kMetricsFloatPrintPrecision = 10;
 
@@ -108,17 +111,29 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
   
   // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
+
+  std::cout << "Fields tag triple\n";
+  std::cout<< tag_order_str << "\n";
+
   size_t geneIndex = tag_order_str.find('gene_id');
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << "Fields tag triple\n";
-  std::cout<< tag_order_str << "\n";
   std::cout << geneIndex << "\n" ;
   std::string GeneID = indexToField_TagOrder[geneIndex]; 
   std::cout << "gene name " << GeneID << "\n";
+
+  std::istringstream ss(tag_order_str);
+  std::string token;
+
+  // Tokenize the string and check positions
+  for (int i = 0; std::getline(ss, token, ','); ++i) {
+    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
+        std::cout << "'gene_id' is at position: " << i << std::endl;
+    }
+  }
 
   auto it = indexToField_TagOrder.find(geneIndex);
   if (it != indexToField_TagOrder.end()) {
