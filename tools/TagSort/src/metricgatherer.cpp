@@ -113,9 +113,17 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
 
   std::cout << "Fields tag triple\n";
-  std::cout<< tag_order_str << "\n";
-
-  size_t geneIndex = tag_order_str.find('gene_id');
+  std::istringstream ss(tag_order_str);
+  std::string token;
+  int geneIndex;
+ 
+  // Tokenize tag_order_str and check positions
+  for (int i = 0; std::getline(ss, token, ','); ++i) {
+    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
+        geneIndex = i; 
+        std::cout << "'gene_id' is at position: " << geneIndex << std::endl;
+    }
+  }
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
@@ -124,24 +132,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   std::cout << geneIndex << "\n" ;
   std::string GeneID = indexToField_TagOrder[geneIndex]; 
   std::cout << "gene name " << GeneID << "\n";
-
-  std::istringstream ss(tag_order_str);
-  std::string token;
-
-  // Tokenize the string and check positions
-  for (int i = 0; std::getline(ss, token, ','); ++i) {
-    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
-        std::cout << "'gene_id' is at position: " << i << std::endl;
-    }
-  }
-
-  auto it = indexToField_TagOrder.find(geneIndex);
-  if (it != indexToField_TagOrder.end()) {
-      std::string result = it->second;
-      std::cout << "Index of 'G' in the tag_order_str: " << geneIndex << std::endl;
-      std::cout << "Corresponding field: " << result << std::endl;
-  }
-
+  
   // Check if not a mitochondrial gene
   //if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
   if (!(mitochondrial_genes_.find(GeneID) != mitochondrial_genes_.end())) {
