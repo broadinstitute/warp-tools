@@ -107,8 +107,8 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
   
-  // tag_order_str is a combination of BGU so find order of where G is
-  size_t geneIndex = tag_order_str.find('G');
+  // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
+  size_t geneIndex = tag_order_str.find('gene_id');
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
