@@ -63,6 +63,7 @@ class MetricGatherer
 {
 public:
   MetricGatherer(std::string metric_output_file,
+                 TagOrder tag_order, 
                  std::string gtf_file,
                  std::string mitochondrial_gene_names_filename);
   virtual ~MetricGatherer();
@@ -161,6 +162,7 @@ class CellMetricGatherer: public MetricGatherer
 {
 public:
   CellMetricGatherer(std::string metric_output_file,
+                     TagOrder tag_order,
                      std::string gtf_file,
                      std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
@@ -209,6 +211,7 @@ class GeneMetricGatherer: public MetricGatherer
 {
 public:
   explicit GeneMetricGatherer(std::string metric_output_file,
+                              TagOrder tag_order,
                               std::string gtf_file,
                               std::string mitochondrial_gene_names_filename);
 
