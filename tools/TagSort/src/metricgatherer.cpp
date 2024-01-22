@@ -101,7 +101,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  std::to_string(fields.position) + "\t" +
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
-
+  std::cout << "ParseAlignedReadFields\n";
   std::cout << "PRINT mitochondrial_genes_ in parseAlignedReadFields:\n";
   for (const auto& item : mitochondrial_genes_) {
         std::cout << "- " << item << '\n';
@@ -115,9 +115,9 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   // tag_order_str is a combination of BGU so find order of where G is
   size_t geneIndex = tag_order_str.find('G');
   std::map<size_t, std::string> indexToField_TagOrder = {
-      {1, fields.tag_triple.first}, 
-      {2, fields.tag_triple.second}, 
-      {3, fields.tag_triple.third}};
+      {0, fields.tag_triple.first}, 
+      {1, fields.tag_triple.second}, 
+      {2, fields.tag_triple.third}};
 
   std::cout << "Fields tag triple\n";
   std::string GeneID = indexToField_TagOrder[geneIndex]; 
