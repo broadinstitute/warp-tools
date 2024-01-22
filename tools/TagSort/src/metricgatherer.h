@@ -125,7 +125,9 @@ private:
   std::unordered_map<std::string, int> fragment_histogram_;
 
   // Make copy of ordered set of mitochonrial genes from Cell Metrics to parent class Metrics
-  std::unordered_set<std::string> mitochondrial_genes_overall;
+  std::unordered_set<std::string> mitochondrial_genes_;
+  // String of tag order 
+  std::string tag_order_str;
   
   // molecule information
   OnlineGaussianSufficientStatistic molecule_barcode_fraction_bases_above_30_;

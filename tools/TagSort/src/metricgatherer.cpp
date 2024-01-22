@@ -1,6 +1,7 @@
 #include "metricgatherer.h"
-
 #include "mitochondrial_gene_selector.h"
+
+#include <map>
 
 constexpr int kMetricsFloatPrintPrecision = 10;
 
@@ -18,20 +19,20 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
 {
   std::cout<<"Constructor for metric gatherer called.\n";
 
-  std::cout<<"Get tagorder";
-  std::string tag_order_str = tagOrderToString(tag_order);
+  std::cout<<"set tagorderstr to tag order";
+  tag_order_str = tagOrderToString(tag_order);
   std::cout<<tag_order_str;
-
+  
   // get list of mitochondrial genes 
   if (gtf_file.empty())
     crash("MetricGatherer needs a non-empty gtf_file name!");
   // it's ok if mitochondrial_gene_names_filename is empty;
   // getInterestingMitochondrialGenes() has logic to handle that case.
-  mitochondrial_genes_overall = getInterestingMitochondrialGenes(
+  mitochondrial_genes_ = getInterestingMitochondrialGenes(
                                 gtf_file, mitochondrial_gene_names_filename);
 
-  std::cout << "PRINT mitochondrial_genes_overall in MetricGatherer:\n";
-  for (const auto& item : mitochondrial_genes_overall) {
+  std::cout << "PRINT mitochondrial_genes_ in MetricGatherer:\n";
+  for (const auto& item : mitochondrial_genes_) {
         std::cout << "- " << item << '\n';
   }
   std::cout << "END\n";
@@ -101,8 +102,8 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  std::cout << "PRINT mitochondrial_genes_overall in parseAlignedReadFields:\n";
-  for (const auto& item : mitochondrial_genes_overall) {
+  std::cout << "PRINT mitochondrial_genes_ in parseAlignedReadFields:\n";
+  for (const auto& item : mitochondrial_genes_) {
         std::cout << "- " << item << '\n';
   }
   std::cout << "END\n";
@@ -111,11 +112,20 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
   
-  std::string geneID = std::string(fields.tag_triple.third);
+  // tag_order_str is a combination of BGU so find order of where G is
+  size_t geneIndex = tag_order_str.find('G');
+  std::map<size_t, std::string> indexToField_TagOrder = {
+      {1, fields.tag_triple.first}, 
+      {2, fields.tag_triple.second}, 
+      {3, fields.tag_triple.third}};
 
-  
+  std::cout << "Fields tag triple\n";
+  std::string GeneID = indexToField_TagOrder[geneIndex]; 
+  std::cout << "gene name " << GeneID << "\n";
+
   // Check if not a mitochondrial gene
-  if (!(mitochondrial_genes_overall.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_overall.end())) {
+  //if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
+  if (!(mitochondrial_genes_.find(GeneID) != mitochondrial_genes_.end())) {
    if (fields.number_mappings == 1) {
       reads_mapped_uniquely_ += 1;
       if (fields.alignment_location == 1 || fields.alignment_location == 3)
@@ -205,18 +215,12 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
                                        std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
-  if (gtf_file.empty())
-    crash("CellMetricGatherer needs a non-empty gtf_file name!");
-  // it's ok if mitochondrial_gene_names_filename is empty;
-  // getInterestingMitochondrialGenes() has logic to handle that case.
-  mitochondrial_genes_ = getInterestingMitochondrialGenes(
-      gtf_file, mitochondrial_gene_names_filename);
-
-  std::cout << "PRINT mitochondrial_genes_overall:\n";
-  for (const auto& item : mitochondrial_genes_) {
-        std::cout << "- " << item << '\n';
-  }
-  std::cout << "END\n";
+  // if (gtf_file.empty())
+  //   crash("CellMetricGatherer needs a non-empty gtf_file name!");
+  // // it's ok if mitochondrial_gene_names_filename is empty;
+  // // getInterestingMitochondrialGenes() has logic to handle that case.
+  // mitochondrial_genes_ = getInterestingMitochondrialGenes(
+  //     gtf_file, mitochondrial_gene_names_filename);
   
   // write metrics csv header
   std::string s;
