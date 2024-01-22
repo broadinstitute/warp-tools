@@ -115,6 +115,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       {2, fields.tag_triple.third}};
 
   std::cout << "Fields tag triple\n";
+  std::cout<< tag_order_str << "\n";
   std::cout << geneIndex << "\n" ;
   std::string GeneID = indexToField_TagOrder[geneIndex]; 
   std::cout << "gene name " << GeneID << "\n";
