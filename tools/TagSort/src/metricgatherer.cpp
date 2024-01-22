@@ -21,7 +21,7 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
 
   std::cout<<"set tagorderstr to tag order";
   tag_order_str = tagOrderToString(tag_order);
-  std::cout<<tag_order_str;
+  std::cout<<tag_order_str<<"\n";
   
   // get list of mitochondrial genes 
   if (gtf_file.empty())
@@ -102,11 +102,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
   std::cout << "ParseAlignedReadFields\n";
-  std::cout << "PRINT mitochondrial_genes_ in parseAlignedReadFields:\n";
-  for (const auto& item : mitochondrial_genes_) {
-        std::cout << "- " << item << '\n';
-  }
-  std::cout << "END\n";
   // fields.tag_triple 
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.first) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
