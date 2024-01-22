@@ -12,10 +12,16 @@ std::string to_nan(float x)
 }
 
 MetricGatherer::MetricGatherer(std::string metric_output_file,
+                               TagOrder tag_order,
                                std::string gtf_file,
                                std::string mitochondrial_gene_names_filename)
 {
   std::cout<<"Constructor for metric gatherer called.\n";
+
+  std::cout<<"Get tagorder";
+  std::string tag_order_str = tagOrderToString(tag_order);
+  std::cout<<tag_order_str;
+
   // get list of mitochondrial genes 
   if (gtf_file.empty())
     crash("MetricGatherer needs a non-empty gtf_file name!");
@@ -100,10 +106,14 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
         std::cout << "- " << item << '\n';
   }
   std::cout << "END\n";
+  // fields.tag_triple 
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.first) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
   std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
+  
+  std::string geneID = std::string(fields.tag_triple.third);
 
+  
   // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_overall.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_overall.end())) {
    if (fields.number_mappings == 1) {
@@ -190,9 +200,10 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 ////////////////  CellMetricGatherer ////////////////////////
 
 CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
+                                       TagOrder tag_order,
                                        std::string gtf_file,
                                        std::string mitochondrial_gene_names_filename)
-  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   if (gtf_file.empty())
     crash("CellMetricGatherer needs a non-empty gtf_file name!");
@@ -328,9 +339,10 @@ void CellMetricGatherer::clear()
 
 ////////////////  GeneMetricGatherer ////////////////////////
 GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
+                                       TagOrder tag_order,
                                        std::string gtf_file,
                                        std::string mitochondrial_gene_names_filename)
-  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   
   std::cout<<"Constructor for gene metric gatherer called.\n";
@@ -400,7 +412,7 @@ UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file,
                                      TagOrder tag_order,
                                      std::string gtf_file,
                                      std::string mitochondrial_gene_names_filename)
-  : MetricGatherer(metric_output_file, gtf_file, mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   metrics_csv_outfile_ << tagOrderToString(tag_order) << ",count\n";
 }
