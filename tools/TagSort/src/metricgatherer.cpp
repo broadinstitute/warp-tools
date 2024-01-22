@@ -120,6 +120,13 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   std::string GeneID = indexToField_TagOrder[geneIndex]; 
   std::cout << "gene name " << GeneID << "\n";
 
+  auto it = indexToField_TagOrder.find(geneIndex);
+  if (it != indexToField_TagOrder.end()) {
+      std::string result = it->second;
+      std::cout << "Index of 'G' in the tag_order_str: " << geneIndex << std::endl;
+      std::cout << "Corresponding field: " << result << std::endl;
+  }
+
   // Check if not a mitochondrial gene
   //if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
   if (!(mitochondrial_genes_.find(GeneID) != mitochondrial_genes_.end())) {
