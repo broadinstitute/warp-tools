@@ -201,6 +201,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 }
 
 int MetricGatherer::getGeneIdPosition() const{
+    std::cout<<"GET GENE ID"<< geneid_position <<"\n";
     return geneid_position;
 }
 
@@ -216,6 +217,9 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
                                       std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
+  std::cout<<"CELL METRIC GATHERER CONSTRUCTOR\n";
+  std::cout<< getGeneIdPosition()<<"\n";
+  
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
