@@ -20,9 +20,8 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
                                std::string gtf_file,
                                std::string mitochondrial_gene_names_filename)
 {
-  std::cout<<"Constructor for metric gatherer called.\n";
-  std::cout<<"set gene ID position\n";
 
+  //Get and set gene_id position in tag_order. gene_id position varies depending on user input.
   setGeneIdPosition(tag_order);
 
   // get list of mitochondrial genes 
@@ -34,7 +33,7 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
                                 gtf_file, mitochondrial_gene_names_filename);
 
   // Print the elements of the unordered_set
-  std::cout << "Mitochondrial Genes in metric gatherer: ";
+  std::cout << "The mitochondrial genes are: ";
   for (const auto& gene : mitochondrial_genes_) {
         std::cout << gene << " ";
   }
@@ -105,16 +104,14 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
-  std::cout << "Fields tag triple\n";
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << geneid_position << "\n" ;
+  std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[geneid_position]; 
-  std::cout << "gene name " << gene_id << "\n";
+  std::cout << "Gene name " << gene_id << "\n";
   
   // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end())) {
@@ -133,9 +130,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
     }
   }
   else {
-    std::cout<<"Check if mitochrondrial gene\n";
-    std::cout<<"GENE " << std::string(fields.tag_triple.third) <<"\n";
-    std::cout<<"mitochrondrial gene\n"; 
+    std::cout<< gene_id << "is a mitochrondrial gene. Skip.\n";
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -198,7 +193,9 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 }
 
 void MetricGatherer::setGeneIdPosition(TagOrder tag_order) {
-  
+  // This function gets the gene_id position from the tag_order object
+
+  //tagOrderToString return gene_id,barcode,umi where order depends on user input
   std::istringstream tag_order_i(tagOrderToString(tag_order));
   std::string token;
   int geneid_position_i = -1; 
@@ -216,7 +213,6 @@ void MetricGatherer::setGeneIdPosition(TagOrder tag_order) {
 }
 
 int MetricGatherer::getGeneIdPosition() {
-    std::cout<<"GET GENE ID"<< geneid_position <<"\n";
     return geneid_position;
 }
 
@@ -232,17 +228,6 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
                                       std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
-  std::cout<<"CELL METRIC GATHERER CONSTRUCTOR\n";
-  std::cout<< getGeneIdPosition()<<"\n";
-  std::unordered_set<std::string>  mt = getMTgenes();
-
-  // Print the elements of the unordered_set
-  std::cout << "Mitochondrial Genes in cell metric gatherer: ";
-  for (const auto& gene : mt) {
-        std::cout << gene << " ";
-  }
-  std::cout << std::endl;
-  
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
@@ -287,15 +272,14 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   mitochondrial_genes_ = getMTgenes();
   geneid_position = getGeneIdPosition();
   
-  std::cout << "Fields tag triple in ingestLine\n";
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << geneid_position << "\n" ;
+  std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[getGeneIdPosition()]; 
-  std::cout << "gene name in ingestLine" << gene_id << "\n";
+  std::cout << "Gene name " << gene_id << "\n";
 
   if (fields.alignment_location == 7) {
     if (fields.number_mappings == 1)
