@@ -216,23 +216,6 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
                                       std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
-  // if (gtf_file.empty())
-  //   crash("CellMetricGatherer needs a non-empty gtf_file name!");
-  // // it's ok if mitochondrial_gene_names_filename is empty;
-  // // getInterestingMitochondrialGenes() has logic to handle that case.
-  // mitochondrial_genes_ = getInterestingMitochondrialGenes(
-  //     gtf_file, mitochondrial_gene_names_filename);
-
-  std::unordered_set<std::string> mitochondrial_genes_ = getMTgenes();
-  int geneid_position = getGeneIdPosition();
-
-  std::cout << "TEST in Cell class mitochondrial_genes_: ";
-  for (const auto& gene : mitochondrial_genes_) {
-        std::cout << gene << " ";
-  }
-  std::cout << std::endl;
-  std::cout<< "CELL GENE " << geneid_position << "\n";
-
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
@@ -274,6 +257,9 @@ void CellMetricGatherer::ingestLine(std::string const& str)
 
   // need to change this 
   // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
+  mitochondrial_genes_ = getMTgenes();
+  geneid_position = getGeneIdPosition();
+  
   std::cout << "Fields tag triple in ingestLine\n";
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
@@ -281,7 +267,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
       {2, fields.tag_triple.third}};
 
   std::cout << geneid_position << "\n" ;
-  std::string gene_id = indexToField_TagOrder[geneid_position]; 
+  std::string gene_id = indexToField_TagOrder[getGeneIdPosition()]; 
   std::cout << "gene name in ingestLine" << gene_id << "\n";
 
   if (fields.alignment_location == 7) {

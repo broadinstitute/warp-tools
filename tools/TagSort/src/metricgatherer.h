@@ -177,6 +177,11 @@ protected:
   void clear() override;
 
 private:
+  // Unordered set of mitochondrial genes
+  std::unordered_set<std::string> mitochondrial_genes_;
+  // Integer to tell us where geneid_position
+  int geneid_position;
+
   int perfect_cell_barcodes_ = 0; // The number of reads whose cell barcodes contain no errors (tag ``CB`` == ``CR``)
   int reads_mapped_intergenic_ = 0; // The number of reads mapped to an intergenic region for this cell
 
