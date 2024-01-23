@@ -62,6 +62,11 @@ private:
 class MetricGatherer
 {
 public:
+  // Unordered set of mitochondrial genes
+  std::unordered_set<std::string> mitochondrial_genes_;
+  // Integer to tell us where geneid_position
+  int geneid_position;
+
   MetricGatherer(std::string metric_output_file,
                  TagOrder tag_order, 
                  std::string gtf_file,
@@ -70,6 +75,7 @@ public:
 
   virtual void ingestLine(std::string const& str) = 0;
   virtual void outputMetricsLine() = 0;
+  
 
 protected:
   // Each line of metric output is built from all alignments with a given tag.
@@ -124,11 +130,6 @@ private:
 
   std::unordered_map<std::string, int> fragment_histogram_;
 
-  // Make copy of ordered set of mitochonrial genes from Cell Metrics to parent class Metrics
-  std::unordered_set<std::string> mitochondrial_genes_;
-  // String of tag order 
-  std::string tag_order_str;
-  
   // molecule information
   OnlineGaussianSufficientStatistic molecule_barcode_fraction_bases_above_30_;
 
@@ -164,9 +165,9 @@ class CellMetricGatherer: public MetricGatherer
 {
 public:
   CellMetricGatherer(std::string metric_output_file,
-                     TagOrder tag_order,
-                     std::string gtf_file,
-                     std::string mitochondrial_gene_names_filename);
+                    TagOrder tag_order, 
+                    std::string gtf_file,
+                    std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
   void outputMetricsLine() override;
 
@@ -174,8 +175,6 @@ protected:
   void clear() override;
 
 private:
-  std::unordered_set<std::string> mitochondrial_genes_;
-
   int perfect_cell_barcodes_ = 0; // The number of reads whose cell barcodes contain no errors (tag ``CB`` == ``CR``)
   int reads_mapped_intergenic_ = 0; // The number of reads mapped to an intergenic region for this cell
 

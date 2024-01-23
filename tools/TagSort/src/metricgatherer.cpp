@@ -21,11 +21,20 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
                                std::string mitochondrial_gene_names_filename)
 {
   std::cout<<"Constructor for metric gatherer called.\n";
+  std::cout<<"Get gene ID position\n";
+  std::istringstream tag_order_i(tagOrderToString(tag_order));
+  std::string token;
+  int geneid_position;
+ 
+  // Tokenize tag_order_str and check positions
+  for (int i = 0; std::getline(tag_order_i, token, ','); ++i) {
+    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
+        geneid_position = i; 
+        std::cout << "'gene_id' is at position: " << geneid_position << std::endl;
+        break;
+    }
+  }
 
-  std::cout<<"set tagorderstr to tag order";
-  tag_order_str = tagOrderToString(tag_order);
-  std::cout<<tag_order_str<<"\n";
-  
   // get list of mitochondrial genes 
   if (gtf_file.empty())
     crash("MetricGatherer needs a non-empty gtf_file name!");
@@ -33,12 +42,6 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
   // getInterestingMitochondrialGenes() has logic to handle that case.
   mitochondrial_genes_ = getInterestingMitochondrialGenes(
                                 gtf_file, mitochondrial_gene_names_filename);
-
-  std::cout << "PRINT mitochondrial_genes_ in MetricGatherer:\n";
-  for (const auto& item : mitochondrial_genes_) {
-        std::cout << "- " << item << '\n';
-  }
-  std::cout << "END\n";
 
   metrics_csv_outfile_.open(metric_output_file);
   if (!metrics_csv_outfile_)
@@ -104,38 +107,20 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  std::to_string(fields.position) + "\t" +
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
-  std::cout << "ParseAlignedReadFields\n";
-  // fields.tag_triple 
-  std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.first) << "\n";
-  std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.second) << "\n";
-  std::cout << "gene in parseAlignedReadFields " << std::string(fields.tag_triple.third) << "\n";
-  
-  // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
 
+  // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
   std::cout << "Fields tag triple\n";
-  std::istringstream ss(tag_order_str);
-  std::string token;
-  int geneIndex;
- 
-  // Tokenize tag_order_str and check positions
-  for (int i = 0; std::getline(ss, token, ','); ++i) {
-    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
-        geneIndex = i; 
-        std::cout << "'gene_id' is at position: " << geneIndex << std::endl;
-    }
-  }
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << geneIndex << "\n" ;
-  std::string GeneID = indexToField_TagOrder[geneIndex]; 
-  std::cout << "gene name " << GeneID << "\n";
+  std::cout << geneid_position << "\n" ;
+  std::string gene_id = indexToField_TagOrder[geneid_position]; 
+  std::cout << "gene name " << gene_id << "\n";
   
   // Check if not a mitochondrial gene
-  //if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end())) {
-  if (!(mitochondrial_genes_.find(GeneID) != mitochondrial_genes_.end())) {
+  if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end())) {
    if (fields.number_mappings == 1) {
       reads_mapped_uniquely_ += 1;
       if (fields.alignment_location == 1 || fields.alignment_location == 3)
@@ -220,9 +205,9 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 ////////////////  CellMetricGatherer ////////////////////////
 
 CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
-                                       TagOrder tag_order,
-                                       std::string gtf_file,
-                                       std::string mitochondrial_gene_names_filename)
+                                      TagOrder tag_order,
+                                      std::string gtf_file,
+                                      std::string mitochondrial_gene_names_filename)
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   // if (gtf_file.empty())
@@ -231,7 +216,13 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
   // // getInterestingMitochondrialGenes() has logic to handle that case.
   // mitochondrial_genes_ = getInterestingMitochondrialGenes(
   //     gtf_file, mitochondrial_gene_names_filename);
-  
+  std::cout << "TEST in Cell class mitochondrial_genes_: ";
+  for (const auto& gene : mitochondrial_genes_) {
+        std::cout << gene << " ";
+  }
+  std::cout << std::endl;
+  std::cout<< "CELL GENE " << geneid_position << "\n";
+
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
@@ -272,9 +263,20 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
   // need to change this 
+  // tag_order_str is a combination of BGU so find order of where gene_id is in gene_id,barcode,umi
+  std::cout << "Fields tag triple in ingestLine\n";
+  std::map<size_t, std::string> indexToField_TagOrder = {
+      {0, fields.tag_triple.first}, 
+      {1, fields.tag_triple.second}, 
+      {2, fields.tag_triple.third}};
+
+  std::cout << geneid_position << "\n" ;
+  std::string gene_id = indexToField_TagOrder[geneid_position]; 
+  std::cout << "gene name in ingestLine" << gene_id << "\n";
+
   if (fields.alignment_location == 7) {
     if (fields.number_mappings == 1)
-      if (!(mitochondrial_genes_.find(std::string(fields.tag_triple.third)) != mitochondrial_genes_.end()))
+      if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end()))
         reads_mapped_intergenic_ += 1;
     }
     else if(fields.alignment_location == 0) {
