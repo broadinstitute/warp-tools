@@ -21,19 +21,9 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
                                std::string mitochondrial_gene_names_filename)
 {
   std::cout<<"Constructor for metric gatherer called.\n";
-  std::cout<<"Get gene ID position\n";
-  std::istringstream tag_order_i(tagOrderToString(tag_order));
-  std::string token;
-  int geneid_position;
- 
-  // Tokenize tag_order_str and check positions
-  for (int i = 0; std::getline(tag_order_i, token, ','); ++i) {
-    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
-        geneid_position = i; 
-        std::cout << "'gene_id' is at position: " << geneid_position << std::endl;
-        break;
-    }
-  }
+  std::cout<<"set gene ID position\n";
+
+  setGeneIdPosition(tag_order);
 
   // get list of mitochondrial genes 
   if (gtf_file.empty())
@@ -200,12 +190,30 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << molecules_with_single_read_evidence;
 }
 
-int MetricGatherer::getGeneIdPosition() const{
+void MetricGatherer::setGeneIdPosition(TagOrder tag_order) {
+  
+  std::istringstream tag_order_i(tagOrderToString(tag_order));
+  std::string token;
+  int geneid_position_i = -1; 
+
+  // Tokenize tag_order_str and check positions
+  for (int i = 0; std::getline(tag_order_i, token, ','); ++i) {
+    if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
+        geneid_position_i = i; 
+        std::cout << "'gene_id' is at position: " << geneid_position << std::endl;
+        break;
+    }
+  }
+  std::cout << "'gene_id' is at position outside of for loop: " << geneid_position_i << std::endl;
+  geneid_position = geneid_position_i; 
+}
+
+int MetricGatherer::getGeneIdPosition() {
     std::cout<<"GET GENE ID"<< geneid_position <<"\n";
     return geneid_position;
 }
 
-std::unordered_set<std::string> MetricGatherer::getMTgenes() const {
+std::unordered_set<std::string> MetricGatherer::getMTgenes() {
     return mitochondrial_genes_;
 }
 

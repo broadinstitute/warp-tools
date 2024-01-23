@@ -71,8 +71,9 @@ public:
   virtual void ingestLine(std::string const& str) = 0;
   virtual void outputMetricsLine() = 0;
   
-  int getGeneIdPosition() const;
-  std::unordered_set<std::string> getMTgenes() const;
+  void setGeneIdPosition(TagOrder tag_order);
+  int getGeneIdPosition();
+  std::unordered_set<std::string> getMTgenes();
 
 protected:
   // Each line of metric output is built from all alignments with a given tag.
@@ -120,12 +121,12 @@ protected:
 
   std::string prev_tag_;
 
-private:
   // Unordered set of mitochondrial genes
   std::unordered_set<std::string> mitochondrial_genes_;
   // Integer to tell us where geneid_position
   int geneid_position;
 
+private:
   // count information
   int n_reads_ = 0;
   const int noise_reads = 0; //# long polymers, N-sequences; NotImplemented
