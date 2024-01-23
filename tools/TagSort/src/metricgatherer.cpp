@@ -147,7 +147,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
   spliced_reads_ += fields.read_spliced;
 }
 
-
 void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 {
   float reads_per_molecule = -1.0f;   // float("nan")
@@ -201,6 +200,13 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << molecules_with_single_read_evidence;
 }
 
+int MetricGatherer::getGeneIdPosition() const{
+    return geneid_position;
+}
+
+std::unordered_set<std::string> MetricGatherer::getMTgenes() const {
+    return mitochondrial_genes_;
+}
 
 ////////////////  CellMetricGatherer ////////////////////////
 
@@ -216,6 +222,10 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
   // // getInterestingMitochondrialGenes() has logic to handle that case.
   // mitochondrial_genes_ = getInterestingMitochondrialGenes(
   //     gtf_file, mitochondrial_gene_names_filename);
+
+  std::unordered_set<std::string> mitochondrial_genes_ = getMTgenes();
+  int geneid_position = getGeneIdPosition();
+
   std::cout << "TEST in Cell class mitochondrial_genes_: ";
   for (const auto& gene : mitochondrial_genes_) {
         std::cout << gene << " ";

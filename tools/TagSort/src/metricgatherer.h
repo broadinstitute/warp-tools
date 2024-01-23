@@ -62,11 +62,6 @@ private:
 class MetricGatherer
 {
 public:
-  // Unordered set of mitochondrial genes
-  std::unordered_set<std::string> mitochondrial_genes_;
-  // Integer to tell us where geneid_position
-  int geneid_position;
-
   MetricGatherer(std::string metric_output_file,
                  TagOrder tag_order, 
                  std::string gtf_file,
@@ -76,6 +71,8 @@ public:
   virtual void ingestLine(std::string const& str) = 0;
   virtual void outputMetricsLine() = 0;
   
+  int getGeneIdPosition() const;
+  std::unordered_set<std::string> getMTgenes() const;
 
 protected:
   // Each line of metric output is built from all alignments with a given tag.
@@ -124,6 +121,11 @@ protected:
   std::string prev_tag_;
 
 private:
+  // Unordered set of mitochondrial genes
+  std::unordered_set<std::string> mitochondrial_genes_;
+  // Integer to tell us where geneid_position
+  int geneid_position;
+
   // count information
   int n_reads_ = 0;
   const int noise_reads = 0; //# long polymers, N-sequences; NotImplemented
