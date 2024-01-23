@@ -33,6 +33,13 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
   mitochondrial_genes_ = getInterestingMitochondrialGenes(
                                 gtf_file, mitochondrial_gene_names_filename);
 
+  // Print the elements of the unordered_set
+  std::cout << "Mitochondrial Genes in metric gatherer: ";
+  for (const auto& gene : mitochondrial_genes_) {
+        std::cout << gene << " ";
+  }
+  std::cout << std::endl;
+  
   metrics_csv_outfile_.open(metric_output_file);
   if (!metrics_csv_outfile_)
     crash("Failed to open for writing " + metric_output_file);
@@ -200,7 +207,7 @@ void MetricGatherer::setGeneIdPosition(TagOrder tag_order) {
   for (int i = 0; std::getline(tag_order_i, token, ','); ++i) {
     if (token == "gene_id" && (i == 0 || i == 1 || i == 2)) {
         geneid_position_i = i; 
-        std::cout << "'gene_id' is at position: " << geneid_position << std::endl;
+        std::cout << "'gene_id' is at position: " << geneid_position_i << std::endl;
         break;
     }
   }
@@ -227,6 +234,14 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 {
   std::cout<<"CELL METRIC GATHERER CONSTRUCTOR\n";
   std::cout<< getGeneIdPosition()<<"\n";
+  std::unordered_set<std::string>  mt = getMTgenes();
+
+  // Print the elements of the unordered_set
+  std::cout << "Mitochondrial Genes in cell metric gatherer: ";
+  for (const auto& gene : mt) {
+        std::cout << gene << " ";
+  }
+  std::cout << std::endl;
   
   // write metrics csv header
   std::string s;
