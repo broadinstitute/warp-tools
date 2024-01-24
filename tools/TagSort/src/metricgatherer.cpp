@@ -109,9 +109,9 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
+  //std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[geneid_position]; 
-  std::cout << "Gene name " << gene_id << "\n";
+  //std::cout << "Gene name " << gene_id << "\n";
   
   // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end())) {
@@ -129,10 +129,7 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
     }
   }
-  else {
-    std::cout<< gene_id << "is a mitochrondrial gene. Skip.\n";
-  }
-
+ 
   // in futher check if read maps outside window (when we add a  gene model)
   // and  create distances from terminate side (needs gene model) uniqueness
   duplicate_reads_ += fields.read_is_duplicate;
@@ -277,9 +274,9 @@ void CellMetricGatherer::ingestLine(std::string const& str)
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
+  //std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[getGeneIdPosition()]; 
-  std::cout << "Gene name " << gene_id << "\n";
+  //std::cout << "Gene name " << gene_id << "\n";
 
   if (fields.alignment_location == 7) {
     if (fields.number_mappings == 1)
