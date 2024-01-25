@@ -209,7 +209,7 @@ private:
     "cell_barcode_fraction_bases_above_30_mean",
     "n_genes",
     "genes_detected_multiple_observations",
-    "mitochondrial_genes_",
+    "n_mitochondrial_genes",
     "n_mitochondrial_molecules",
     "pct_mitochondrial_molecules"
   };
