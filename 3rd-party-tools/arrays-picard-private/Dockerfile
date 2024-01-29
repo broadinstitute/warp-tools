@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" adoptopenjdk/openjdk8:debian-slim
+FROM --platform="linux/amd64" adoptopenjdk/openjdk8:alpine-slim
 
 ARG PICARD_PRIVATE_VERSION=c24d8e2dfd6de9c663416278040a9f91b6a5e3eb
 
@@ -17,9 +17,7 @@ WORKDIR /usr/gitc
 
 # Install dependencies
 RUN set -eux; \
-        apt-get update; \
-        apt-get upgrade -y; \
-        apt-get install -y \    
+        apk add --no-cache \
             bash \
             curl \ 
             findutils \
@@ -43,9 +41,7 @@ RUN set -eux; \
 # Install tini
     wget https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini -O /sbin/tini; \
     chmod +x /sbin/tini \
-    ; \
-# Clean up cached files
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    ;
 
 # Set tini as default entry point
 ENTRYPOINT ["/sbin/tini", "--"]
