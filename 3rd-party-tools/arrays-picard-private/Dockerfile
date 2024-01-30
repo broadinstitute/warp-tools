@@ -40,8 +40,7 @@ RUN set -eux; \
     ; \
 # Install tini
     wget https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini -O /sbin/tini; \
-    chmod +x /sbin/tini \
-    ;
+    chmod +x /sbin/tini;
 
 # Set tini as default entry point
 ENTRYPOINT ["/sbin/tini", "--"]
