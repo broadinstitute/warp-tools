@@ -31,13 +31,6 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
   // getInterestingMitochondrialGenes() has logic to handle that case.
   mitochondrial_genes_ = getInterestingMitochondrialGenes(
                                 gtf_file, mitochondrial_gene_names_filename);
-
-  // Print the elements of the unordered_set
-  std::cout << "The mitochondrial genes are: ";
-  for (const auto& gene : mitochondrial_genes_) {
-        std::cout << gene << " ";
-  }
-  std::cout << std::endl;
   
   metrics_csv_outfile_.open(metric_output_file);
   if (!metrics_csv_outfile_)
@@ -75,8 +68,21 @@ void MetricGatherer::clearCellAndGeneCommon()
 
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
-  n_reads_++;
-
+  n_reads_++; //with/without mt? == uniquely + multimapped 
+ 
+  //-----------------------------------------------------------------------
+  // Will remove this after
+  std::cout << "TEST -- to increment number of n_mitochondrial_reads -- \n";
+  std::map<size_t, std::string> indexToField_TagOrder = {
+      {0, fields.tag_triple.first}, 
+      {1, fields.tag_triple.second}, 
+      {2, fields.tag_triple.third}};
+  std::string gene_id = indexToField_TagOrder[geneid_position]; 
+  if (mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end()){
+    n_mitochondrial_reads+=1;
+  }
+  //-----------------------------------------------------------------------
+ 
   // the tags passed to this function define a molecule, this increments the counter,
   // identifying a new molecule only if a new tag combination is observed
   std::string hyphenated_tags = fields.tag_triple.first + "-" +
@@ -109,11 +115,8 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  //std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[geneid_position]; 
-  //std::cout << "Gene name " << gene_id << "\n";
   
-  // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end())) {
    if (fields.number_mappings == 1) {
       reads_mapped_uniquely_ += 1;
@@ -138,6 +141,11 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
 
 void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 {
+  //-----------------------------------------------------------------------
+  // Will remove this after
+  std::cout<<"TEST : Number of n_mitochondrial_reads " << n_mitochondrial_reads <<"\n";
+  //-----------------------------------------------------------------------
+
   float reads_per_molecule = -1.0f;   // float("nan")
   if (molecule_histogram_.size() != 0)
     reads_per_molecule = n_reads_ / (float)molecule_histogram_.size();
@@ -274,10 +282,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
 
-  //std::cout << "Position of gene_id in TagOrder is :" << geneid_position << "\n" ;
   std::string gene_id = indexToField_TagOrder[getGeneIdPosition()]; 
-  //std::cout << "Gene name " << gene_id << "\n";
-
   if (fields.alignment_location == 7) {
     if (fields.number_mappings == 1)
       if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end()))
@@ -365,7 +370,6 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
   : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   
-  std::cout<<"Constructor for gene metric gatherer called.\n";
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)

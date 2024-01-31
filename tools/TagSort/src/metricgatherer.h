@@ -85,7 +85,7 @@ protected:
   void outputMetricsLineCellAndGeneCommon();
   void clearCellAndGeneCommon();
 
-  const std::string kCommonHeaders[25] =
+  const std::string kCommonHeaders[26] =
   {
     "n_reads",
     "noise_reads",
@@ -111,7 +111,8 @@ protected:
     "reads_per_fragment",
     "fragments_per_molecule",
     "fragments_with_single_read_evidence",
-    "molecules_with_single_read_evidence"
+    "molecules_with_single_read_evidence",
+    "n_mitochondrial_reads" 
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
@@ -162,6 +163,8 @@ private:
   int spliced_reads_ = 0;
   const int kAntisenseReads = 0; // TODO is never changed from 0
   // int plus_strand_reads_ = 0;  // strand balance (currently unused)
+  // test for mt -- will need to remove
+  int n_mitochondrial_reads = 0;
 };
 
 class CellMetricGatherer: public MetricGatherer
@@ -211,8 +214,8 @@ private:
     "genes_detected_multiple_observations",
     "n_mitochondrial_genes",
     "n_mitochondrial_molecules",
-    "pct_mitochondrial_molecules"
-  };
+    "pct_mitochondrial_molecules" 
+  }; 
 };
 
 
