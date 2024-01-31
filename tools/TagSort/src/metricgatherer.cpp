@@ -72,7 +72,7 @@ void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
  
   //-----------------------------------------------------------------------
   // Will remove this after
-  std::cout << "TEST -- to increment number of n_mitochondrial_reads -- \n";
+  // std::cout << "TEST -- to increment number of n_mitochondrial_reads -- \n";
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
