@@ -62,18 +62,13 @@ private:
 class MetricGatherer
 {
 public:
-  MetricGatherer(std::string metric_output_file,
-                 TagOrder tag_order, 
+  MetricGatherer(std::string metric_output_file, TagOrder tag_order,
                  std::string gtf_file,
                  std::string mitochondrial_gene_names_filename);
   virtual ~MetricGatherer();
 
   virtual void ingestLine(std::string const& str) = 0;
   virtual void outputMetricsLine() = 0;
-  
-  void setGeneIdPosition(TagOrder tag_order);
-  int getGeneIdPosition();
-  std::unordered_set<std::string> getMTgenes();
 
 protected:
   // Each line of metric output is built from all alignments with a given tag.
@@ -84,8 +79,9 @@ protected:
   void ingestLineCellAndGeneCommon(LineFields const& fields);
   void outputMetricsLineCellAndGeneCommon();
   void clearCellAndGeneCommon();
+  bool isMitochondrial(LineFields const& fields) const;
 
-  const std::string kCommonHeaders[26] =
+  const std::string kCommonHeaders[25] =
   {
     "n_reads",
     "noise_reads",
@@ -111,21 +107,18 @@ protected:
     "reads_per_fragment",
     "fragments_per_molecule",
     "fragments_with_single_read_evidence",
-    "molecules_with_single_read_evidence",
-    "n_mitochondrial_reads" 
+    "molecules_with_single_read_evidence"
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
+
+  std::unordered_set<std::string> mito_genes_;
+  const TagOrder tag_order_;
 
   std::unordered_map<std::string, int> molecule_histogram_;
   std::ofstream metrics_csv_outfile_;
 
   std::string prev_tag_;
-
-  // Unordered set of mitochondrial genes
-  std::unordered_set<std::string> mitochondrial_genes_;
-  // Integer to tell us where geneid_position
-  int geneid_position;
 
 private:
   // count information
@@ -164,16 +157,16 @@ private:
   const int kAntisenseReads = 0; // TODO is never changed from 0
   // int plus_strand_reads_ = 0;  // strand balance (currently unused)
   // test for mt -- will need to remove
-  int n_mitochondrial_reads = 0;
+  int n_mitochondrial_reads_ = 0;
 };
 
 class CellMetricGatherer: public MetricGatherer
 {
 public:
   CellMetricGatherer(std::string metric_output_file,
-                    TagOrder tag_order, 
-                    std::string gtf_file,
-                    std::string mitochondrial_gene_names_filename);
+                     TagOrder tag_order,
+                     std::string gtf_file,
+                     std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
   void outputMetricsLine() override;
 
@@ -181,11 +174,6 @@ protected:
   void clear() override;
 
 private:
-  // Unordered set of mitochondrial genes
-  std::unordered_set<std::string> mitochondrial_genes_;
-  // Integer to tell us where geneid_position
-  int geneid_position;
-
   int perfect_cell_barcodes_ = 0; // The number of reads whose cell barcodes contain no errors (tag ``CB`` == ``CR``)
   int reads_mapped_intergenic_ = 0; // The number of reads mapped to an intergenic region for this cell
 
@@ -214,18 +202,18 @@ private:
     "genes_detected_multiple_observations",
     "n_mitochondrial_genes",
     "n_mitochondrial_molecules",
-    "pct_mitochondrial_molecules" 
-  }; 
+    "pct_mitochondrial_molecules"
+  };
 };
 
 
 class GeneMetricGatherer: public MetricGatherer
 {
 public:
-  explicit GeneMetricGatherer(std::string metric_output_file,
-                              TagOrder tag_order,
-                              std::string gtf_file,
-                              std::string mitochondrial_gene_names_filename);
+  GeneMetricGatherer(std::string metric_output_file,
+                     TagOrder tag_order,
+                     std::string gtf_file,
+                     std::string mitochondrial_gene_names_filename);
 
   void ingestLine(std::string const& str) override;
 
@@ -246,8 +234,8 @@ private:
 class UmiMetricGatherer: public MetricGatherer
 {
 public:
-  UmiMetricGatherer(std::string metric_output_file, 
-                    TagOrder tag_order, 
+  UmiMetricGatherer(std::string metric_output_file,
+                    TagOrder tag_order,
                     std::string gtf_file,
                     std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
