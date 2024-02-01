@@ -18,7 +18,7 @@ MetricGatherer::MetricGatherer(std::string metric_output_file,
   : tag_order_(tag_order)
 {
   if (gtf_file.empty())
-    crash("CellMetricGatherer needs a non-empty gtf_file name!");
+    crash("MetricGatherer needs a non-empty gtf_file name!");
   // it's ok if mitochondrial_gene_names_filename is empty;
   // getInterestingMitochondrialGenes() has logic to handle that case.
   mito_genes_ = getInterestingMitochondrialGenes(
