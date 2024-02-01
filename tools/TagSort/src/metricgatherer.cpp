@@ -137,11 +137,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
 
 void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 {
-  //-----------------------------------------------------------------------
-  // Will remove this after
-  std::cout<<"TEST : Number of n_mitochondrial_reads " << n_mitochondrial_reads_ <<"\n";
-  //-----------------------------------------------------------------------
-
   float reads_per_molecule = -1.0f;   // float("nan")
   if (molecule_histogram_.size() != 0)
     reads_per_molecule = n_reads_ / (float)molecule_histogram_.size();
@@ -190,7 +185,8 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_per_fragment << ","
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
-      << molecules_with_single_read_evidence;
+      << molecules_with_single_read_evidence << ","
+      << n_mitochondrial_reads;
 }
 
 
