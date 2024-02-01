@@ -71,7 +71,7 @@ void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
   n_reads_++; //with/without mt? == uniquely + multimapped 
  
   //-----------------------------------------------------------------------
-  // Will remove this after
+  // Will remove this
   // std::cout << "TEST -- to increment number of n_mitochondrial_reads -- \n";
   std::map<size_t, std::string> indexToField_TagOrder = {
       {0, fields.tag_triple.first}, 
@@ -114,9 +114,9 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       {0, fields.tag_triple.first}, 
       {1, fields.tag_triple.second}, 
       {2, fields.tag_triple.third}};
-
   std::string gene_id = indexToField_TagOrder[geneid_position]; 
   
+  // Check if not a mitochondrial gene
   if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end())) {
    if (fields.number_mappings == 1) {
       reads_mapped_uniquely_ += 1;
@@ -141,11 +141,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
 
 void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 {
-  //-----------------------------------------------------------------------
-  // Will remove this after
-  std::cout<<"TEST : Number of n_mitochondrial_reads " << n_mitochondrial_reads <<"\n";
-  //-----------------------------------------------------------------------
-
   float reads_per_molecule = -1.0f;   // float("nan")
   if (molecule_histogram_.size() != 0)
     reads_per_molecule = n_reads_ / (float)molecule_histogram_.size();
@@ -194,7 +189,8 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_per_fragment << ","
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
-      << molecules_with_single_read_evidence;
+      << molecules_with_single_read_evidence << ","
+      << n_mitochondrial_reads;
 }
 
 void MetricGatherer::setGeneIdPosition(TagOrder tag_order) {
@@ -283,6 +279,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
       {2, fields.tag_triple.third}};
 
   std::string gene_id = indexToField_TagOrder[getGeneIdPosition()]; 
+
   if (fields.alignment_location == 7) {
     if (fields.number_mappings == 1)
       if (!(mitochondrial_genes_.find(gene_id) != mitochondrial_genes_.end()))
