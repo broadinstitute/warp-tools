@@ -186,7 +186,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
       << molecules_with_single_read_evidence << ","
-      << n_mitochondrial_reads;
+      << n_mitochondrial_reads_;
 }
 
 
