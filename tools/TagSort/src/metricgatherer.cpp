@@ -202,7 +202,7 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<26; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
     metrics_csv_outfile_ << "," << cell_specific_headers[i];
@@ -324,7 +324,7 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<26; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<2; i++)
     metrics_csv_outfile_ << "," << gene_specific_headers[i];
