@@ -35,6 +35,7 @@ MetricGatherer::~MetricGatherer() {}
 void MetricGatherer::clearCellAndGeneCommon()
 {
   n_reads_ = 0;
+  n_mitochondrial_reads_ = 0; 
   // noise_reads = 0; //# long polymers, N-sequences; NotImplemented
   fragment_histogram_.clear();
   molecule_histogram_.clear();
