@@ -241,7 +241,7 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
   bool is_mito = isMitochondrial(fields);
-  if (fields.alignment_location == 7 && fields.number_mappings == 1 && is_mito)
+  if (fields.alignment_location == 7 && fields.number_mappings == 1 && !is_mito)
     reads_mapped_intergenic_ += 1;
   else if (fields.alignment_location == 0)
     reads_unmapped_ += 1;
