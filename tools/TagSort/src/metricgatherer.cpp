@@ -35,7 +35,6 @@ MetricGatherer::~MetricGatherer() {}
 void MetricGatherer::clearCellAndGeneCommon()
 {
   n_reads_ = 0;
-  n_mitochondrial_reads_ = 0; 
   // noise_reads = 0; //# long polymers, N-sequences; NotImplemented
   fragment_histogram_.clear();
   molecule_histogram_.clear();
@@ -82,8 +81,6 @@ bool MetricGatherer::isMitochondrial(LineFields const& fields) const
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
   n_reads_++; //with/without mt? == uniquely + multimapped
-  if (isMitochondrial(fields))
-    n_mitochondrial_reads_ += 1;
 
   // the tags passed to this function define a molecule, this increments the counter,
   // identifying a new molecule only if a new tag combination is observed
@@ -186,8 +183,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_per_fragment << ","
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
-      << molecules_with_single_read_evidence << ","
-      << n_mitochondrial_reads_;
+      << molecules_with_single_read_evidence;
 }
 
 
@@ -203,7 +199,7 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<26; i++)
+  for (int i=0; i<25; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
     metrics_csv_outfile_ << "," << cell_specific_headers[i];
@@ -325,7 +321,7 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<26; i++)
+  for (int i=0; i<25; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<2; i++)
     metrics_csv_outfile_ << "," << gene_specific_headers[i];

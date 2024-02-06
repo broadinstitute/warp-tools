@@ -81,7 +81,7 @@ protected:
   void clearCellAndGeneCommon();
   bool isMitochondrial(LineFields const& fields) const;
 
-  const std::string kCommonHeaders[26] =
+  const std::string kCommonHeaders[25] =
   {
     "n_reads",
     "noise_reads",
@@ -107,8 +107,7 @@ protected:
     "reads_per_fragment",
     "fragments_per_molecule",
     "fragments_with_single_read_evidence",
-    "molecules_with_single_read_evidence",
-    "n_mitochondrial_reads"
+    "molecules_with_single_read_evidence"
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
