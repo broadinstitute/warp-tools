@@ -18,7 +18,7 @@ RUN set -eux; \
     ls; \
     pwd; \
     cd temp; \
-    # clone fork from Open-Omics-Acceleration-Framework with changes added for input/output for star
+    # clone fork Open-Omics-Acceleration-Framework with changes added for input/output for star
     git clone --recursive https://github.com/aawdeh/Open-Omics-Acceleration-Framework.git; \
     
     # install packages 
