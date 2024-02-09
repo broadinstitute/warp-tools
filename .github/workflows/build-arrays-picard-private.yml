@@ -72,7 +72,12 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
+    - name: Check working directory and parameters'
+      run: |
+        echo "Current directory: "
+        pwd
+        ls -lht
+        echo "Pushing to: " ${ACR_PATH}:${TAG}
     - name: 'Build and push image'
       uses: azure/docker-login@v1
       with:
