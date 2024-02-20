@@ -20,6 +20,7 @@ env:
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/m3c-yap-hisat
+  ACR_PATH: m3c-yap-hisat
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -82,28 +83,3 @@ jobs:
     - run: |
         docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
         docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-
-        build-for-acr:
-          runs-on: ubuntu-latest
-          defaults:
-            run:
-              working-directory: 3rd-party-tools/m3c-yap-hisat
-          steps:
-          # checkout the repo
-          - name: 'Checkout GitHub Action'
-            uses: actions/checkout@v3
-            
-          - name: 'Login via Azure CLI'
-            uses: azure/login@v1
-            with:
-              creds: ${{ secrets.AZURE_CREDENTIALS }}
-          
-          - name: 'Build and push image'
-            uses: azure/docker-login@v1
-            with:
-              login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-              username: ${{ secrets.REGISTRY_USERNAME }}
-              password: ${{ secrets.REGISTRY_PASSWORD }}
-          - run: |
-              docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-              docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
