@@ -6,17 +6,6 @@ RUN echo $PATH
 ENV PATH="$PATH:/opt/conda/bin:/root/pkg/hisat-3n"
 RUN echo $PATH
 
-
-
-COPY --chown=$MAMBA_USER:$MAMBA_USER hisat3n_env.yml /tmp/hisat3n_env.yml
-RUN micromamba install -y -f /tmp/hisat3n_env.yml && \
-    micromamba clean --all --yes
-
-ARG MAMBA_DOCKERFILE_ACTIVATE=1
-
-RUN yap --version
-RUN allcools --version
-
 USER root
 # default argument when not provided in the --build-arg
 # to build the image with gcp, use
@@ -37,8 +26,17 @@ RUN if [ "$gcp" = "true" ] ; then \
 RUN apt-get update; \
     apt-get install; -y make; \
     apt-get install -y git-all; \
-    apt-get install -y build-essential; \
-    mkdir -p ~/pkg; \
+    apt-get install -y build-essential
+    
+COPY --chown=$MAMBA_USER:$MAMBA_USER hisat3n_env.yml /tmp/hisat3n_env.yml
+RUN micromamba install -y -f /tmp/hisat3n_env.yml && \
+    micromamba clean --all --yes
+
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+
+RUN yap --version
+RUN allcools --version    
+RUN mkdir -p ~/pkg; \
     cd ~/pkg; \
     git clone https://github.com/DaehwanKimLab/hisat2.git hisat-3n; \
     cd hisat-3n; \
