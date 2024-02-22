@@ -1,6 +1,6 @@
 name: Samtools Dist BWA Mem 2 Ubuntu CI
 
-# Controls when the workflow will run
+# Controls when the workflow will run.
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   pull_request:
