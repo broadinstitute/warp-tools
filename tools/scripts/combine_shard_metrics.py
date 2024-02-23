@@ -1,25 +1,31 @@
 import argparse
 import pandas as pd
 import numpy as np
-def merge_matrices(summary_file, align_file, counting_mode, base_name):
+def merge_matrices(summary_file, align_file, counting_mode):
     # Read the whitelist into a set
-    align = pd.read_csv("example_align_features.txt", sep="\s+", header=None)
+    print("Reading Aligning features txt file")
+    align = pd.read_csv(align_file, sep="\s+", header=None)
     align.columns=("metric", "value", "shard")    
     align_pv=align.pivot(index="shard", columns="metric", values="value")
-    summary = pd.read_csv("example_summary.txt", sep=",", header=None)
+    print("Reading summary txt file")
+    summary = pd.read_csv(summary_file, sep=",", header=None)
     summary.columns=("metric","value","shard")
     summary_pv=summary.pivot(index="shard", columns="metric", values="value")
     merge_pv=pd.merge(summary_pv, align_pv, left_index=True, right_index=True, how='outer')
     merge_pv.reset_index()
+    print("Setting n_reads to numeric")
     for x in merge_pv.columns:
         merge_pv[x]=pd.to_numeric(merge_pv[x], errors='coerce')
+    
     n_reads=merge_pv["Number of Reads"].sum()
     
     if counting_mode=="sc_rna":
         counting="Gene"
     else:
-      counting="GeneFull_Ex50pAS"
-    merge_pv[f"Reads Mapped to {counting}: Unique {counting}"]=pd.to_numeric(merge_pv[f"Reads Mapped to {counting}: Unique {counting}"])
+        counting="GeneFull_Ex50pAS"
+    print(counting)
+    print("Calcuating metrics")
+    merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"] = merge_pv[f'Reads Mapped to {counting}: Unique {counting}']*merge_pv['Number of Reads']
     Sum_reads_mapped_unique_gene=merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"].sum()
     Total_reads_mapped_unique_gene=Sum_reads_mapped_unique_gene/n_reads
     merge_pv["Reads Mapped to Genome: Unique*n_reads"] = merge_pv["Reads Mapped to Genome: Unique"]*merge_pv['Number of Reads']
@@ -43,29 +49,17 @@ def merge_matrices(summary_file, align_file, counting_mode, base_name):
     df=pd.DataFrame(data)
     return df
 
-df= merge_matrices()
-df.transpose().to_csv("test.csv", header=None)
-
 def main():
     parser = argparse.ArgumentParser(description="Count matching DNA barcodes and determine the best matching method.")
-    parser.add_argument("summary_file", help="Path to the input file containing DNA barcodes.")
-    parser.add_argument("align_file", help="Path to the whitelist file containing allowed barcodes.")
-    parser.add_argument("counting_mode", help="Path to the output file for the best matching method parameter.")
-    parser.add_argument("base_name", help="Path to the output file for the best matching method parameter.")
-
+    parser.add_argument("summary_file", help="Path to combined summary metrics.")
+    parser.add_argument("align_file", help="Path to combined aligner features metrics.")
+    parser.add_argument("counting_mode", help="Counting mode for STARsolo alignment.")
+    parser.add_argument("base_name", help="How to name output files.")
 
     args = parser.parse_args()
-    # Define input and output files here you remove argparse
-    #input_file = "downsample.fq"  # Change to the path of your input file
-    #whitelist_file = "~{whitelist}"  # Change to the path of your whitelist file
-    #output_file = "best_match.txt"  # Change to the path of your output file
 
-    (
-        count_forward_start,
-        count_reverse_comp_start,
-        count_forward_end,
-        count_reverse_comp_end
-    ) = count_matching_barcodes(args.input_file, args.whitelist_file)
+    df= merge_matrices(args.summary_file, args.align_file, args.counting_mode)
+    df.transpose().to_csv(args.base_name+"_library_metrics.csv", header=None)
 
 if __name__ == "__main__":
     main()        
