@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 import numpy as np
-def merge_matrices(summary_file, align_file, counting_mode):
+def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     # Read the whitelist into a set
     print("Reading Aligning features txt file")
     align = pd.read_csv(align_file, sep="\s+", header=None)
@@ -39,13 +39,34 @@ def merge_matrices(summary_file, align_file, counting_mode):
     Q30_RNA=merge_pv["Q30 Bases in RNA read*n_reads"].sum()/n_reads
     Q30_CB_UMI=merge_pv["Q30 Bases in CB+UMI*n_reads"].sum()/n_reads
     valid_barcodes=merge_pv["Reads With Valid Barcodes*n_reads"].sum()/n_reads
+    
+    print("Calculating cell read metrics")
+    
+    cells=pd.read_csv(cell_reads, sep="\t")
+    cells=cells.sort_values(by=['CB','cbMatch'])
+    cells=cells.drop_duplicates(subset="CB", keep='last')
+    #cells['shard_number']=cells['shard_number'].apply(str)
+    #cells["Index"]=cells["CB"]+"-"+cells['shard_number']
+    reads_mapped_antisense_to_gene=cells["exonicAS"].sum()+cells["intronicAS"].sum()
+    reads_exonic=cells["exonic"].sum()
+    reads_mapped_confidently_to_genome=cells["genomeU"].sum()
+    reads_mapped_confidently_to_intronic_regions=cells["intronic"].sum()
+    reads_mapped_confidently_to_transcriptome=cells["featureU"].sum()
+    total_genes_detected=cells["nGenesUnique"].sum()
     data = {"Number of Reads": [n_reads], 
         "Sequencing Saturation": [Sequencing_Saturations_Total], 
         "Fraction of Unique Reads Mapped to Genome": [Reads_mapped_Genome_unique],
         "Fraction of Unique and Multiple Reads Mapped to Genome": [Reads_mapped_Genome_unique_multu],
         "Fraction of reads with Q30 Bases in RNA": [Q30_RNA],
         "Fraction of reads with Q30 Bases in CB and UMI": [Q30_CB_UMI],
-        "Fraction of Reads with Valid Barcodes": [valid_barcodes]}
+        "Fraction of Reads with Valid Barcodes": [valid_barcodes],
+        "Reads_mapped_antisense_to_gene": [reads_mapped_antisense_to_gene],
+        "Reads_mapped_confidently_exonic": [reads_exonic],
+        "Reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
+        "Reads_mapped_confidently_to_intronic_regions": [reads_mapped_confidently_to_intronic_regions],
+        "Reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome],
+        "Total_genes_detected": [total_genes_detected]
+        }
     df=pd.DataFrame(data)
     return df
 
@@ -53,12 +74,13 @@ def main():
     parser = argparse.ArgumentParser(description="Count matching DNA barcodes and determine the best matching method.")
     parser.add_argument("summary_file", help="Path to combined summary metrics.")
     parser.add_argument("align_file", help="Path to combined aligner features metrics.")
+    parser.add_argument("cell_reads", help="Path to combined cell reads metrics.")
     parser.add_argument("counting_mode", help="Counting mode for STARsolo alignment.")
     parser.add_argument("base_name", help="How to name output files.")
 
     args = parser.parse_args()
 
-    df= merge_matrices(args.summary_file, args.align_file, args.counting_mode)
+    df= merge_matrices(args.summary_file, args.align_file, args.cell_reads, args.counting_mode)
     df.transpose().to_csv(args.base_name+"_library_metrics.csv", header=None)
 
 if __name__ == "__main__":
