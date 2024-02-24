@@ -43,6 +43,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     print("Calculating cell read metrics")
     
     cells=pd.read_csv(cell_reads, sep="\t")
+    cells=cells.drop(cells[cells["CB"]=="CBnotInPasslist"].index)
     cells=cells.sort_values(by=['CB','cbMatch'])
     cells=cells.drop_duplicates(subset="CB", keep='last')
     #cells['shard_number']=cells['shard_number'].apply(str)
