@@ -35,7 +35,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     merge_pv["Reads With Valid Barcodes*n_reads"] = merge_pv["Reads With Valid Barcodes"]*merge_pv['Number of Reads']
     Sequencing_Saturations_Total = 1-(merge_pv["yesUMIs"].sum()/merge_pv["yessubWLmatch_UniqueFeature"].sum())
     Reads_mapped_Genome_unique=merge_pv["Reads Mapped to Genome: Unique*n_reads"].sum()/n_reads
-    Reads_mapped_Genome_unique_multu=merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"].sum()/n_reads
+    Reads_mapped_Genome_unique_multi=merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"].sum()/n_reads
     Q30_RNA=merge_pv["Q30 Bases in RNA read*n_reads"].sum()/n_reads
     Q30_CB_UMI=merge_pv["Q30 Bases in CB+UMI*n_reads"].sum()/n_reads
     valid_barcodes=merge_pv["Reads With Valid Barcodes*n_reads"].sum()/n_reads
@@ -54,13 +54,13 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     reads_mapped_confidently_to_intronic_regions=cells["intronic"].sum()
     reads_mapped_confidently_to_transcriptome=cells["featureU"].sum()
     total_genes_detected=cells["nGenesUnique"].sum()
-    data = {"Number of Reads": [n_reads], 
-        "Sequencing Saturation": [Sequencing_Saturations_Total], 
-        "Fraction of Unique Reads Mapped to Genome": [Reads_mapped_Genome_unique],
-        "Fraction of Unique and Multiple Reads Mapped to Genome": [Reads_mapped_Genome_unique_multu],
-        "Fraction of reads with Q30 Bases in RNA": [Q30_RNA],
-        "Fraction of reads with Q30 Bases in CB and UMI": [Q30_CB_UMI],
-        "Fraction of Reads with Valid Barcodes": [valid_barcodes],
+    data = {"Number_of_reads": [n_reads], 
+        "Sequencing_saturation": [Sequencing_Saturations_Total], 
+        "Fraction_of_unique_reads_mapped_to_genome": [Reads_mapped_Genome_unique],
+        "Fraction_of_unique_and_multiple_reads_mapped_to_genome": [Reads_mapped_Genome_unique_multi],
+        "Fraction_of_reads_with_Q30_bases_in_rna": [Q30_RNA],
+        "Fraction_of_reads_with_Q30_bases_in_cb_and_umi": [Q30_CB_UMI],
+        "Fraction_of_reads_with_valid_barcodes": [valid_barcodes],
         "Reads_mapped_antisense_to_gene": [reads_mapped_antisense_to_gene],
         "Reads_mapped_confidently_exonic": [reads_exonic],
         "Reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
