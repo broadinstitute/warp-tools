@@ -4,12 +4,12 @@ This repository has the container that hosts all the scripts and tools that [WAR
 The project structure is straightforward and contains essentially just two types of directories: a tool directory, containing all our in-house tools, and a 3rd-party-tools directory which hosts all the third-party containers we use in our pipelines.
 Each directory contains it's own README that describes the tool or scripts, along with a usage guide.
 
-## .github/workflows 
+## .github/workflows
   This contains all YML files for automated container builds.
 
 ---
 
-# Docker Style Guide 
+# Docker Style Guide
 
 This style guide provides formatting guidelines and best practices for writing Dockerfiles in WARP.
 
@@ -136,7 +136,7 @@ All images that we build are scanned for critical vulnerabilities on every pull 
 
 We recommend against using rolling tags like `master` or `latest` when building images. Rolling tags make it hard to track down versions of images since the underlying image hash and content could be different across the same tags. Instead, we ask that you use a semantic tag that follows the convention below:
 
-##### `us.gcr.io/broad-gotc-prod/samtools:<image-version>-<samtools-version>-<unix-timestamp>` 
+##### `us.gcr.io/broad-gotc-prod/samtools:<image-version>-<samtools-version>-<unix-timestamp>`
 
 This example is for an image we use containing `samtools`. The 'image-version' in this case is the traditional `major.minor.patch` version of the image being built, which is updated when changes to the image (underlying OS, system level packages, etc.) unrelated to `samtools` are made. The 'samtools-version' here correlates with the specific version of `samtools` being used, having this information in the tag makes it easy for users to identify and not have to track down. Lastly, a unix timestamp in included to avoid any potential issues with Cromwell image caching.
 
@@ -254,3 +254,9 @@ docker run -it --rm <docker url> bash
 ```
 
 If you have any questions or would like some more guidance on writing Dockerfiles please file a [GitHub issue in WARP](https://github.com/broadinstitute/warp/issues/new).
+
+## Citing WARP and WARP-Tools
+
+When citing WARP and WARP-Tools, please use the following:
+
+Degatano, K.; Awdeh, A.; Dingman, W.; Grant, G.; Khajouei, F.; Kiernan, E.; Konwar, K.; Mathews, K.; Palis, K.; Petrillo, N.; Van der Auwera, G.; Wang, C.; Way, J.; Pipelines, W. WDL Analysis Research Pipelines: Cloud-Optimized Workflows for Biological Data Processing and Reproducible Analysis. Preprints 2024, 2024012131. https://doi.org/10.20944/preprints202401.2131.v1
