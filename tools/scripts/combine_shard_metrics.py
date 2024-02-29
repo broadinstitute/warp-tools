@@ -53,7 +53,6 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     reads_mapped_confidently_to_genome=cells["genomeU"].sum()
     reads_mapped_confidently_to_intronic_regions=cells["intronic"].sum()
     reads_mapped_confidently_to_transcriptome=cells["featureU"].sum()
-    total_genes_detected=cells["nGenesUnique"].sum()
     data = {"Number_of_reads": [n_reads], 
         "Sequencing_saturation": [Sequencing_Saturations_Total], 
         "Fraction_of_unique_reads_mapped_to_genome": [Reads_mapped_Genome_unique],
@@ -65,8 +64,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
         "Reads_mapped_confidently_exonic": [reads_exonic],
         "Reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
         "Reads_mapped_confidently_to_intronic_regions": [reads_mapped_confidently_to_intronic_regions],
-        "Reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome],
-        "Total_genes_detected": [total_genes_detected]
+        "Reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome]
         }
     df=pd.DataFrame(data)
     return df
