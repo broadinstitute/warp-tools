@@ -27,7 +27,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     print("Calcuating metrics")
     merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"] = merge_pv[f'Reads Mapped to {counting}: Unique {counting}']*merge_pv['Number of Reads']
     sum_reads_mapped_unique_gene=merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"].sum()
-    total_reads_mapped_unique_gene=Sum_reads_mapped_unique_gene/n_reads
+    total_reads_mapped_unique_gene=sum_reads_mapped_unique_gene/n_reads
     merge_pv["Reads Mapped to Genome: Unique*n_reads"] = merge_pv["Reads Mapped to Genome: Unique"]*merge_pv['Number of Reads']
     merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"] = merge_pv["Reads Mapped to Genome: Unique+Multiple"]*merge_pv['Number of Reads']
     merge_pv["Q30 Bases in RNA read*n_reads"] = merge_pv["Q30 Bases in RNA read"]*merge_pv['Number of Reads']
