@@ -19,7 +19,7 @@ SnapATAC2 image uses the following convention for verisoning:
 
 We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
 
-You can see more information about the image, including the tool versions, by running the following command:
+You can see more information about the image, including the tool versions, by running the following commands:
 
 ```bash
 $ docker pull us.gcr.io/broad-gotc-prod/snapatac2:1.0.2-2.2.0-1679678908
