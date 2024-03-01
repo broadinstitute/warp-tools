@@ -53,18 +53,18 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     reads_mapped_confidently_to_genome=cells["genomeU"].sum()
     reads_mapped_confidently_to_intronic_regions=cells["intronic"].sum()
     reads_mapped_confidently_to_transcriptome=cells["featureU"].sum()
-    data = {"Number_of_reads": [n_reads], 
-        "Sequencing_saturation": [Sequencing_Saturations_Total], 
-        "Fraction_of_unique_reads_mapped_to_genome": [Reads_mapped_Genome_unique],
-        "Fraction_of_unique_and_multiple_reads_mapped_to_genome": [Reads_mapped_Genome_unique_multi],
-        "Fraction_of_reads_with_Q30_bases_in_rna": [Q30_RNA],
-        "Fraction_of_reads_with_Q30_bases_in_cb_and_umi": [Q30_CB_UMI],
-        "Fraction_of_reads_with_valid_barcodes": [valid_barcodes],
-        "Reads_mapped_antisense_to_gene": [reads_mapped_antisense_to_gene],
-        "Reads_mapped_confidently_exonic": [reads_exonic],
-        "Reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
-        "Reads_mapped_confidently_to_intronic_regions": [reads_mapped_confidently_to_intronic_regions],
-        "Reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome]
+    data = {"number_of_reads": [n_reads], 
+        "sequencing_saturation": [Sequencing_Saturations_Total], 
+        "fraction_of_unique_reads_mapped_to_genome": [Reads_mapped_Genome_unique],
+        "fraction_of_unique_and_multiple_reads_mapped_to_genome": [Reads_mapped_Genome_unique_multi],
+        "fraction_of_reads_with_Q30_bases_in_rna": [Q30_RNA],
+        "fraction_of_reads_with_Q30_bases_in_cb_and_umi": [Q30_CB_UMI],
+        "fraction_of_reads_with_valid_barcodes": [valid_barcodes],
+        "reads_mapped_antisense_to_gene": [reads_mapped_antisense_to_gene],
+        "reads_mapped_confidently_exonic": [reads_exonic],
+        "reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
+        "reads_mapped_confidently_to_intronic_regions": [reads_mapped_confidently_to_intronic_regions],
+        "reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome]
         }
     df=pd.DataFrame(data)
     return df
