@@ -2,13 +2,12 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=2.0.0
+DOCKER_IMAGE_VERSION=2.1.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/hisat3n"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-hisat3n"
 
 # Hisat3n version
 HISAT_VERSION="2.2.1"
@@ -61,9 +60,7 @@ function main(){
         --build-arg HISAT_VERSION="$HISAT_VERSION" "$DIR" 
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "tagging and pushing Quay Image"
     docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

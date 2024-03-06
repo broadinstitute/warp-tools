@@ -22,4 +22,4 @@ dependencies:
  - pip:
     - papermill
     - allcools
-    - git+https://github.com/DingWB/cemba_data@1.7.8
+    - git+https://github.com/DingWB/cemba_data@1.7.9
