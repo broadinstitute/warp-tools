@@ -2,6 +2,7 @@
 #This is an inverse trigger for the Warp Tools CI workflow. A workaround because otherwise we'll have to remove it as being required for a PR. 
 #Currently there is no way to tell Github actions to only make a workflow required for a PR if it actually was triggered by the PR
 #More info here: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/troubleshooting-required-status-checks#handling-skipped-but-required-checks
+#and here: https://github.com/orgs/community/discussions/13690 
 name: Warp Tools CI
 
 # Controls when the workflow will run
@@ -19,10 +20,12 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # The job that builds our container
-  build:
-    # The type of runner that the job will run on
+  build-for-gcr:
     runs-on: ubuntu-latest
     steps:
     - run: 'echo "No build required"'
+  build-for-acr:
+      runs-on: ubuntu-latest
+      steps:
+      - run: 'echo "No build required"'
     
