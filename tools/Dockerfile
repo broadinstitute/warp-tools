@@ -1,6 +1,6 @@
 # Adding a platform tag to ensure that images built on ARM-based machines
 # (ex. M-series macs) won't cause issues with our automated PR test suite.
-FROM --platform="linux/amd64" python:3.10.12-buster
+FROM --platform="linux/amd64" python:3.10.12-alpine3.18
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"  \
   software="warp-tools  v.1.0.5" \
