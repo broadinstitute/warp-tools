@@ -2,12 +2,12 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.1
+DOCKER_IMAGE_VERSION=1.0.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/star"
+GCR_URL="us.gcr.io/broad-gotc-prod/star-merge-npz"
 #QUAY_URL="quay.io/broadinstitute/gotc-prod-star" # Update and uncomment push block below after setting up quay repo
 
 # STAR version
