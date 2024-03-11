@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" python:3.10.12-alpine3.18
+FROM --platform="linux/amd64" python:3.10
 
 ARG STAR_VERSION=2.7.11a
 
@@ -10,12 +10,8 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
         STAR_VERSION=${STAR_VERSION}
 
 RUN set -eux; \
-        apk add --no-cache \
-            bash \
-            tini \
-            wget \
-    ; \
 # Install STAR
+    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
     mkdir temp; \
     cd temp; \
     \
@@ -26,11 +22,10 @@ RUN set -eux; \
     chmod +x ./STAR; \
     cp ./STAR /usr/local/bin; \
     mkdir -p /scripts && \
-    apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
     pip install --upgrade pip && \
     pip install loompy==3.0.6 anndata==0.7.8 numpy==1.23.0 pandas==1.3.5 scipy pysam==0.21
 
 COPY . /scripts
 WORKDIR /warptools
-# Set tini as default entrypoint
-ENTRYPOINT ["/sbin/tini", "--"]
+
+
