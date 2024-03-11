@@ -25,8 +25,6 @@ RUN set -eux; \
     \
     chmod +x ./STAR; \
     cp ./STAR /usr/local/bin; \
-    \
-    rm -r /usr/gitc/temp; \
     mkdir -p /scripts && \
     apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
     pip install --upgrade pip && \
