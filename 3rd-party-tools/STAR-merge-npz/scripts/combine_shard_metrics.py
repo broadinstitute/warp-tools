@@ -84,7 +84,8 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     median_reads_per_cell = cells_filtered["countedU"].median()
     mean_gene_per_cell=cells_filtered["nGenesUnique"].sum()/len(cells_filtered)
     median_gene_per_cell=cells_filtered["nGenesUnique"].median()
-    total_genes_unique = cells_filtered["nGenesUnique"].sum()
+    unique_rows=filtered[0].unique()
+    total_genes_unique_detected = len(unique_rows)
 
     data = {"number_of_reads": [n_reads], 
         "sequencing_saturation": [sequencing_saturations_total], 
@@ -108,7 +109,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
         "median_reads_per_cell": [median_reads_per_cell],
         "mean_gene_per_cell": [mean_gene_per_cell],
         "median_gene_per_cell": [median_gene_per_cell],
-        "total_genes_unique": [total_genes_unique]
+        "total_genes_unique_detected": [total_genes_unique_detected]
         }
     df=pd.DataFrame(data)
     return df
