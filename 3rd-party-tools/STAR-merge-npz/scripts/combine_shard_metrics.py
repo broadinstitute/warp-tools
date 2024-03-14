@@ -79,7 +79,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     print("Estimated cells (should match above): ", estimated_cells)
 
     unique_reads_in_cells_mapped_to_gene = cells_filtered["countedU"].sum()
-    fraction_of_unique_reads_in_cells = unique_reads_in_cells_mapped_to_gene/n_reads
+    fraction_of_unique_reads_in_cells = unique_reads_in_cells_mapped_to_gene/sum_reads_mapped_unique_gene
     mean_reads_per_cell=unique_reads_in_cells_mapped_to_gene/len(cells_filtered)
     median_reads_per_cell = cells_filtered["countedU"].median()
     mean_gene_per_cell=cells_filtered["nGenesUnique"].sum()/len(cells_filtered)
