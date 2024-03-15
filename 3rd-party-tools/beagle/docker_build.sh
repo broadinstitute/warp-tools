@@ -63,6 +63,8 @@ function main(){
     IMAGE_TAG="$DOCKER_IMAGE_VERSION-$BEAGLE_VERSION-$TIMESTAMP"
 
     echo "building and pushing GCR Image - $GAR_URL:$IMAGE_TAG"
+
+    # TODO: add `--squash` when ready to productionize. https://docs.docker.com/reference/cli/docker/image/build/#squash
     docker build -t "$GAR_URL:$IMAGE_TAG" \
         --build-arg BEAGLE_VERSION="$BEAGLE_VERSION" \
         $DIR   
