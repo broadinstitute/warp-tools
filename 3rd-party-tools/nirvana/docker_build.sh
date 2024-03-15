@@ -2,18 +2,19 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION="v3.18.1"
+DOCKER_IMAGE_VERSION="v1.0.0"
 TIMESTAMP=$(date +"%s")
 DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registry and tags
-REGISTRY_URL="us.gcr.io/broad-gotc-prod/nirvana"
-IMAGE_NAME="nirvana"
-IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TIMESTAMP"
+GCR_URL="us.gcr.io/broad-gotc-prod/nirvana"
 
 # Nirvana Version and Configuration
 NIRVANA_VERSION="v3.18.1"
 DOTNET_CONFIGURATION="Release"
+
+VERSION_NUMBER=$(echo "$NIRVANA_VERSION" | grep -Eo '[0-9]+([.][0-9]+)')
+IMAGE_TAG="$DOCKER_IMAGE_VERSION-$VERSION_NUMBER-$TIMESTAMP"
 
 # Necessary tools and help text
 TOOLS=("docker")
@@ -51,17 +52,17 @@ function main(){
     done
 
     # Build Nirvana Docker image
-    echo "Building Nirvana Docker image..."
-    docker build --no-cache -t "$REGISTRY_URL/$IMAGE_NAME:$IMAGE_TAG" \
+    echo "Building Nirvana Docker image... $GCR_URL:$IMAGE_TAG"
+    docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg NIRVANA_VERSION="$NIRVANA_VERSION" \
         --build-arg DOTNET_CONFIGURATION="$DOTNET_CONFIGURATION" \
         "$DIR"
 
     # Push to registry
     echo "Pushing Nirvana Docker image to registry..."
-    docker push "$REGISTRY_URL/$IMAGE_NAME:$IMAGE_TAG"
+    docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "$REGISTRY_URL/$IMAGE_NAME:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
+    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "Done"
 }
 

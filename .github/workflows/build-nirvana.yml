@@ -1,4 +1,4 @@
-name: nirvana CI
+name: ZCall CI
 
 # Controls when the workflow will run
 on:
