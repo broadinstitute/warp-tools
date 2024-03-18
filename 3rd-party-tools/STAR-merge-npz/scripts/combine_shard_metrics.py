@@ -1,3 +1,4 @@
+# Script to produce library-level metrics from STARsolo shard metrics
 import argparse
 import pandas as pd
 import numpy as np
