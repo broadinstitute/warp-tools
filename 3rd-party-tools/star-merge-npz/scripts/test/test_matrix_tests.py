@@ -3,7 +3,7 @@ import pandas as pd
 #import sys
 #sys.path.append('/warp-tools/3rd-party-tools/star-merge-npz/scripts/combine_shard_metrics.py')
 
-from ..scripts import combine_shard_metrics
+import ..scripts.combine_shard_metrics
 
 
 # Mock data setup for summary file
