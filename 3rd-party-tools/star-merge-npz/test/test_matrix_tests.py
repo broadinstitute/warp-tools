@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from ..scripts.combine_shard_metrics import merge_matrices
+from warp-tools.3rd-party-tools.scripts.combine_shard_metrics import merge_matrices
 
 # Mock data setup for summary file
 @pytest.fixture
