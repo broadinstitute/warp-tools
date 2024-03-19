@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from combine_shard_metrics.py import merge_matrices
+from ..scripts.combine_shard_metrics import merge_matrices
 
 # Mock data setup for summary file
 @pytest.fixture
