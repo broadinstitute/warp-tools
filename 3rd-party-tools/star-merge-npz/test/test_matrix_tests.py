@@ -1,6 +1,17 @@
 import pytest
 import pandas as pd
-from warp-tools.3rd-party-tools.scripts.combine_shard_metrics import merge_matrices
+import sys
+import os
+
+# Add the parent directory of 'scripts' to the Python path
+current_dir = os.path.abspath('/warp-tools/warp-tools/3rd-party-tools/star-merge-npz/test')
+
+parent_dir = os.path.abspath('//warp-tools/warp-tools/3rd-party-tools/star-merge-npz')
+
+sys.path.append(parent_dir)
+
+from scripts.combine_shard_metrics import merge_matrices
+
 
 # Mock data setup for summary file
 @pytest.fixture
