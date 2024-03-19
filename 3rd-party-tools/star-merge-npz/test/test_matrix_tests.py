@@ -1,5 +1,7 @@
 import pytest
 import pandas as pd
+import sys
+sys.path.append('/warp-tools/3rd-party-tools/star-merge-npz/scripts/combine_shard_metrics.py')
 
 from combine_shard_metrics import merge_matrices
 
