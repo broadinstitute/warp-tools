@@ -3,7 +3,7 @@ import pandas as pd
 #import sys
 #sys.path.append('/warp-tools/3rd-party-tools/star-merge-npz/scripts/combine_shard_metrics.py')
 
-from .. import combine_shard_metrics
+from .. import combine_shard_metrics.merge_matrices
 
 @pytest.fixture
 def example_input_files():
