@@ -104,7 +104,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest-8.1.1 pandas pluggy-1.4.0
+          pip install pytest pandas pluggy
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       #- name: Lint with ruff
       #  run: |
