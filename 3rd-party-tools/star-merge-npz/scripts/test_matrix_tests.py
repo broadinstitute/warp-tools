@@ -9,16 +9,15 @@ from combine_shard_metrics import merge_matrices
 def example_input_files():
     return {
         "summary_file": "input/Human_v2_snRNA_summary.txt",
-        "align_file": "input/Human_v2_snRNA_align_feautres.txt",
+        "align_file": "input/Human_v2_snRNA_align_features.txt",
         "cell_reads": "input/Human_v2_snRNA_cell_reads.txt",
         "counting_mode": "sn_rna",
-        "base_name": "output",
         "uniform_barcodes": "input/barcodes.tsv",
-        "uniform_mtx": "input.matrix.mtx"
+        "uniform_mtx": "input/matrix.mtx"
     }
 
 def test_merge_matrices_column_existence(example_input_files):
-    df = merge_matrices(example_input_files)
+    df = merge_matrices(**example_input_files)
 
     # Define expected columns
     expected_columns = [
