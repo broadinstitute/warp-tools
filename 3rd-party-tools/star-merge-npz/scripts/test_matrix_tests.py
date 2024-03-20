@@ -2,18 +2,30 @@ import pytest
 import pandas as pd
 #import sys
 #sys.path.append('/warp-tools/3rd-party-tools/star-merge-npz/scripts/combine_shard_metrics.py')
+import os
 
 from combine_shard_metrics import merge_matrices
 
 @pytest.fixture
 def example_input_files():
+    # Get the absolute path of the current script
+    absolute_script_path = os.path.abspath(__file__)
+    print("The absolute path is :")
+    print(absolute_script_path)
+
+    # Get the parent directory of the script
+    parent_directory = os.path.dirname(absolute_script_path)
+    parent_directory_absolute = os.path.abspath(parent_directory)
+    print("Absolute directory is: ")
+    print(parent_directory_absolute)
+
     return {
-        "summary_file": "input/Human_v2_snRNA_summary.txt",
-        "align_file": "input/Human_v2_snRNA_align_features.txt",
-        "cell_reads": "input/Human_v2_snRNA_cell_reads.txt",
+        "summary_file": parent_directory_absolute + "/input/Human_v2_snRNA_summary.txt",
+        "align_file": parent_directory_absolute + "/input/Human_v2_snRNA_align_features.txt",
+        "cell_reads": parent_directory_absolute + "/input/Human_v2_snRNA_cell_reads.txt",
         "counting_mode": "sn_rna",
-        "uniform_barcodes": "input/barcodes.tsv",
-        "uniform_mtx": "input/matrix.mtx"
+        "uniform_barcodes": parent_directory_absolute + "/input/barcodes.tsv",
+        "uniform_mtx": parent_directory_absolute + "/input/matrix.mtx"
     }
 
 def test_merge_matrices_column_existence(example_input_files):
