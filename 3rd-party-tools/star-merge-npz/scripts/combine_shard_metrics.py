@@ -1,7 +1,8 @@
+# Script to produce library-level metrics from STARsolo shard metrics
 import argparse
 import pandas as pd
 import numpy as np
-def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
+def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_barcodes, uniform_mtx):
     # Read the whitelist into a set
     print("Reading Aligning features txt file")
     align = pd.read_csv(align_file, sep="\s+", header=None)
@@ -53,6 +54,40 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
     reads_mapped_confidently_to_genome=cells["genomeU"].sum()
     reads_mapped_confidently_to_intronic_regions=cells["intronic"].sum()
     reads_mapped_confidently_to_transcriptome=cells["featureU"].sum()
+
+    #Reading in unfiform filtered barcodes TSV and matrix
+    print("Reading in combined, filtered matrix market file")
+    filtered = pd.read_csv(uniform_mtx, sep="\s+", skiprows=3, header=None)
+    unique_columns=filtered[1].unique()
+    estimated_cells=len(unique_columns)
+    print("Estimated cells are: ", estimated_cells)
+    #Calculating number of UMIs in cells
+    umis_in_cells = filtered[2].sum()
+    # Calculating mean UMI per cell and median UMI per cell
+    mean_umi_per_cell = umis_in_cells/estimated_cells
+    median_umi_per_cell=filtered[2].median()
+
+    #Reading in the barcodes for filtering
+    print("Reading in uniform filtered barcodes TSV")
+    barcodes = pd.read_csv(uniform_barcodes, sep="\t", header=None)
+    barcodes.set_index(0, inplace=True)
+
+    print("Subsetting cell_reads to filtered barcodes")
+    cells.set_index("CB", inplace=True)
+    cells_filtered=cells[cells.index.isin(barcodes.index)]
+
+    print("Length of cells_filtered: ", len(cells_filtered))
+    print("Estimated cells (should match above): ", estimated_cells)
+
+    unique_reads_in_cells_mapped_to_gene = cells_filtered["countedU"].sum()
+    fraction_of_unique_reads_in_cells = unique_reads_in_cells_mapped_to_gene/sum_reads_mapped_unique_gene
+    mean_reads_per_cell=unique_reads_in_cells_mapped_to_gene/len(cells_filtered)
+    median_reads_per_cell = cells_filtered["countedU"].median()
+    mean_gene_per_cell=cells_filtered["nGenesUnique"].sum()/len(cells_filtered)
+    median_gene_per_cell=cells_filtered["nGenesUnique"].median()
+    unique_rows=filtered[0].unique()
+    total_genes_unique_detected = len(unique_rows)
+
     data = {"number_of_reads": [n_reads], 
         "sequencing_saturation": [sequencing_saturations_total], 
         "fraction_of_unique_reads_mapped_to_genome": [reads_mapped_genome_unique],
@@ -64,7 +99,18 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode):
         "reads_mapped_confidently_exonic": [reads_exonic],
         "reads_mapped_confidently_to_genome": [reads_mapped_confidently_to_genome],
         "reads_mapped_confidently_to_intronic_regions": [reads_mapped_confidently_to_intronic_regions],
-        "reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome]
+        "reads_mapped_confidently_to_transcriptome": [reads_mapped_confidently_to_transcriptome],
+        "estimated_cells": [estimated_cells],
+        "umis_in_cells": [umis_in_cells],
+        "mean_umi_per_cell": [mean_umi_per_cell],
+        "median_umi_per_cell": [median_umi_per_cell],
+        "unique_reads_in_cells_mapped_to_gene": [unique_reads_in_cells_mapped_to_gene],
+        "fraction_of_unique_reads_in_cells": [fraction_of_unique_reads_in_cells],
+        "mean_reads_per_cell": [mean_reads_per_cell],
+        "median_reads_per_cell": [median_reads_per_cell],
+        "mean_gene_per_cell": [mean_gene_per_cell],
+        "median_gene_per_cell": [median_gene_per_cell],
+        "total_genes_unique_detected": [total_genes_unique_detected]
         }
     df=pd.DataFrame(data)
     return df
@@ -76,10 +122,12 @@ def main():
     parser.add_argument("cell_reads", help="Path to combined cell reads metrics.")
     parser.add_argument("counting_mode", help="Counting mode for STARsolo alignment.")
     parser.add_argument("base_name", help="How to name output files.")
+    parser.add_argument("uniform_barcodes", help="Barcodes TSV returned from STARsolo filtered matrix")
+    parser.add_argument("uniform_mtx", help="Matrix Mtx file returned from STARsolo filtered matrix")
 
     args = parser.parse_args()
 
-    df= merge_matrices(args.summary_file, args.align_file, args.cell_reads, args.counting_mode)
+    df= merge_matrices(args.summary_file, args.align_file, args.cell_reads, args.counting_mode, args.uniform_barcodes, args.uniform_mtx)
     df.transpose().to_csv(args.base_name+"_library_metrics.csv", header=None)
 
 if __name__ == "__main__":
