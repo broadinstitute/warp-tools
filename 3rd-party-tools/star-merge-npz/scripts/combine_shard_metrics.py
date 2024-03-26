@@ -65,7 +65,8 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     umis_in_cells = filtered[2].sum()
     # Calculating mean UMI per cell and median UMI per cell
     mean_umi_per_cell = umis_in_cells/estimated_cells
-    median_umi_per_cell=filtered[2].median()
+    sum_counts_barcode = filtered.groupby(1)[2].sum().reset_index()
+    median_umi_per_cell=sum_counts_barcode[2].median()
 
     #Reading in the barcodes for filtering
     print("Reading in uniform filtered barcodes TSV")
