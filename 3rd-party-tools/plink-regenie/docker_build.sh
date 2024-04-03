@@ -7,8 +7,8 @@ TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/regenie-plink2"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-regenie-plink2"
+GCR_URL="us.gcr.io/broad-gotc-prod/plink-regenie"
+QUAY_URL="quay.io/broadinstitute/gotc-prod-plink-regenie"
 
 # REGENIE version
 REGENIE_VERSION="2.0.2"
