@@ -6,22 +6,10 @@ WORKDIR /usr/gitc
 
 # need to apt-get everything for python since we can only copy pip installed packages
 RUN apt-get update && apt-get install -yq --no-install-recommends --reinstall ca-certificates \
-  python-tk \
-  tk-dev \
-  libssl-dev \
-  xz-utils \
-  libhdf5-dev \
-  openssl \
   make \
   curl \
   unzip \
-  libgomp1 \
-  liblzo2-dev \
-  zlib1g-dev \
-  libz-dev \
-  git-lfs \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  libgomp1
 
 # Plink install 
 RUN mkdir -p /tmp/plink2 && \
