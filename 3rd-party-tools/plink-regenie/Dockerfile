@@ -1,4 +1,4 @@
-FROM ubuntu:latest 
+FROM ubuntu:22.04 
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" 
 
