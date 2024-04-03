@@ -30,4 +30,4 @@ RUN mkdir -p /tmp/regenie && \
   rm -rf /tmp/regenie
 
 # Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
