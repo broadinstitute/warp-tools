@@ -7,8 +7,7 @@ WORKDIR /usr
 # need to apt-get everything for python since we can only copy pip installed packages
 RUN set -eux; \
     apt update; \
-    apt-get install -yq --no-install-recommends --reinstall ca-certificates; \
-    apt-get install make curl wget unzip libgomp1; \
+    apt-get install -y make curl wget unzip libgomp1; \
 
     # Plink install 
     mkdir -p /tmp/plink2; \
@@ -29,7 +28,7 @@ RUN set -eux; \
     rm -rf /tmp/regenie; \
 
     # Tini
-    cd /usr/temp; \
+    cd /tmp; \
     wget https://github.com/krallin/tini/releases/download/v0.19.0/tini -O /usr/bin/tini; \
     chmod +x /usr/bin/tini; \
 
