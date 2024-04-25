@@ -12,7 +12,9 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
 
 WORKDIR /usr/gitc
 
-RUN pip install cmake; \
+RUN apt-get update; \
+    apt-get install -y tabix; \
+    pip install cmake; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
     pip install snapatac2==${SNAPATAC2_VERSION}; \
