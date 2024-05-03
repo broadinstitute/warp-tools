@@ -62,7 +62,9 @@ private:
 class MetricGatherer
 {
 public:
-  MetricGatherer(std::string metric_output_file);
+  MetricGatherer(std::string metric_output_file, TagOrder tag_order,
+                 std::string gtf_file,
+                 std::string mitochondrial_gene_names_filename);
   virtual ~MetricGatherer();
 
   virtual void ingestLine(std::string const& str) = 0;
@@ -77,6 +79,7 @@ protected:
   void ingestLineCellAndGeneCommon(LineFields const& fields);
   void outputMetricsLineCellAndGeneCommon();
   void clearCellAndGeneCommon();
+  bool isMitochondrial(LineFields const& fields) const;
 
   const std::string kCommonHeaders[25] =
   {
@@ -108,6 +111,9 @@ protected:
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
+
+  std::unordered_set<std::string> mito_genes_;
+  const TagOrder tag_order_;
 
   std::unordered_map<std::string, int> molecule_histogram_;
   std::ofstream metrics_csv_outfile_;
@@ -150,12 +156,15 @@ private:
   int spliced_reads_ = 0;
   const int kAntisenseReads = 0; // TODO is never changed from 0
   // int plus_strand_reads_ = 0;  // strand balance (currently unused)
+  // test for mt -- will need to remove
+  int n_mitochondrial_reads_ = 0;
 };
 
 class CellMetricGatherer: public MetricGatherer
 {
 public:
   CellMetricGatherer(std::string metric_output_file,
+                     TagOrder tag_order,
                      std::string gtf_file,
                      std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
@@ -165,8 +174,6 @@ protected:
   void clear() override;
 
 private:
-  std::unordered_set<std::string> mitochondrial_genes_;
-
   int perfect_cell_barcodes_ = 0; // The number of reads whose cell barcodes contain no errors (tag ``CB`` == ``CR``)
   int reads_mapped_intergenic_ = 0; // The number of reads mapped to an intergenic region for this cell
 
@@ -203,7 +210,10 @@ private:
 class GeneMetricGatherer: public MetricGatherer
 {
 public:
-  explicit GeneMetricGatherer(std::string metric_output_file);
+  GeneMetricGatherer(std::string metric_output_file,
+                     TagOrder tag_order,
+                     std::string gtf_file,
+                     std::string mitochondrial_gene_names_filename);
 
   void ingestLine(std::string const& str) override;
 
@@ -224,7 +234,10 @@ private:
 class UmiMetricGatherer: public MetricGatherer
 {
 public:
-  UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order);
+  UmiMetricGatherer(std::string metric_output_file,
+                    TagOrder tag_order,
+                    std::string gtf_file,
+                    std::string mitochondrial_gene_names_filename);
   void ingestLine(std::string const& str) override;
   void outputMetricsLine() override;
 

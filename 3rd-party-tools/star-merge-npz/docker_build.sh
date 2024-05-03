@@ -2,23 +2,23 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=2.1.0
+DOCKER_IMAGE_VERSION=1.0.0
 TIMESTAMP=$(date +"%s")
-DIR=$(cd $(dirname $0) && pwd)
+DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/hisat3n"
+GCR_URL="us.gcr.io/broad-gotc-prod/star-merge-npz"
+#QUAY_URL="quay.io/broadinstitute/gotc-prod-star" # Update and uncomment push block below after setting up quay repo
 
-# Hisat3n version
-HISAT_VERSION="2.2.1"
+# STAR version
+STAR_VERSION="2.7.11a"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the hisat-3n image and push to GCR & Quay
-
+HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the star image and push to GCR
 where:
     -h|--help Show help text
-    -v|--version Version of hisat-3n to use (default: $HISAT_VERSION)
+    -v|--version Version of STAR to use (default: $STAR_VERSION)
     -t|--tools Show tools needed to run script
     "
 
@@ -31,11 +31,11 @@ function main(){
         fi
 
     while [[ $# -gt 0 ]]
-    do 
+    do
     key="$1"
     case $key in
         -v|--version)
-        HISAT_VERSION="$2"
+        STAR_VERSION="$2"
         shift
         shift
         ;;
@@ -52,15 +52,17 @@ function main(){
         ;;
     esac
     done
-    
-    IMAGE_TAG="$DOCKER_IMAGE_VERSION-$HISAT_VERSION-$TIMESTAMP"
+
+    IMAGE_TAG="$DOCKER_IMAGE_VERSION-$STAR_VERSION-$TIMESTAMP"
 
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
-        --build-arg HISAT_VERSION="$HISAT_VERSION" "$DIR" 
+        --build-arg STAR_VERSION="$STAR_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
+#    echo "tagging and pushing Quay Image"
+#    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
+#    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

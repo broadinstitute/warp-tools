@@ -1,4 +1,4 @@
-name: Arrays Picard Private CI
+name: UPSTools CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/arrays-picard-private/**'
+      - '3rd-party-tools/upstools/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,8 +19,8 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/arrays-picard-private
-  ACR_PATH: arrays-picard-private
+  GCR_PATH: broad-gotc-prod/upstools
+  ACR_PATH: upstools
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/arrays-picard-private
+        working-directory: 3rd-party-tools/upstools
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/arrays-picard-private
+        working-directory: 3rd-party-tools/upstools
     steps:
     # checkout the repo
     - name: 'Checkout GitHub Action'
@@ -73,6 +73,7 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
     - name: 'Build and push image'
       uses: azure/docker-login@v1
       with:

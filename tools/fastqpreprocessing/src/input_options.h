@@ -22,6 +22,9 @@ struct INPUT_OPTIONS_FASTQ_READ_STRUCTURE
   // Bam file size to split by (in GB)
   double bam_size = 1.0;
 
+  // Number of output files
+  int num_output_files = 0;
+
   std::string read_structure;
 
   std::string sample_id;
@@ -46,6 +49,9 @@ struct InputOptionsFastqProcess
 
   // Bam file size to split by (in GB)
   double bam_size = 1.0;
+
+  // Number of output files
+  int num_output_files = 0;
 
   std::string read_structure;
 
