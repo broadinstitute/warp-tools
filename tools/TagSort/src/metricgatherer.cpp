@@ -11,8 +11,19 @@ std::string to_nan(float x)
   return x==-1 ? "nan" : s.str();
 }
 
-MetricGatherer::MetricGatherer(std::string metric_output_file)
+MetricGatherer::MetricGatherer(std::string metric_output_file,
+                               TagOrder tag_order,
+                               std::string gtf_file,
+                               std::string mitochondrial_gene_names_filename)
+  : tag_order_(tag_order)
 {
+  if (gtf_file.empty())
+    crash("MetricGatherer needs a non-empty gtf_file name!");
+  // it's ok if mitochondrial_gene_names_filename is empty;
+  // getInterestingMitochondrialGenes() has logic to handle that case.
+  mito_genes_ = getInterestingMitochondrialGenes(
+      gtf_file, mitochondrial_gene_names_filename);
+
   metrics_csv_outfile_.open(metric_output_file);
   if (!metrics_csv_outfile_)
     crash("Failed to open for writing " + metric_output_file);
@@ -47,9 +58,29 @@ void MetricGatherer::clearCellAndGeneCommon()
   spliced_reads_ = 0;
 }
 
+bool MetricGatherer::isMitochondrial(LineFields const& fields) const
+{
+  switch (tag_order_)
+  {
+    case TagOrder::GUB:
+    case TagOrder::GBU:
+    return mito_genes_.find(fields.tag_triple.first) != mito_genes_.end();
+
+    case TagOrder::BGU:
+    case TagOrder::UGB:
+    return mito_genes_.find(fields.tag_triple.second) != mito_genes_.end();
+
+    case TagOrder::UBG:
+    case TagOrder::BUG:
+    return mito_genes_.find(fields.tag_triple.third) != mito_genes_.end();
+  }
+  crash("unknown TagOrder value");
+  return false;
+}
+
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
-  n_reads_++;
+  n_reads_++; //with/without mt? == uniquely + multimapped
 
   // the tags passed to this function define a molecule, this increments the counter,
   // identifying a new molecule only if a new tag combination is observed
@@ -78,18 +109,22 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (fields.number_mappings == 1) {
-    reads_mapped_uniquely_ += 1;
-    if (fields.alignment_location == 1 || fields.alignment_location == 3)
-      reads_mapped_exonic_ += 1;
-    else if (fields.alignment_location == 2 || fields.alignment_location == 4)
-      reads_mapped_exonic_as_ += 1;
-    else if (fields.alignment_location == 5)
-      reads_mapped_intronic_ += 1;
-    else if (fields.alignment_location == 6)
-      reads_mapped_intronic_as_ += 1; }
-  else {
-    reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
+  if (!isMitochondrial(fields))
+  {
+    if (fields.number_mappings == 1)
+    {
+      reads_mapped_uniquely_ += 1;
+      if (fields.alignment_location == 1 || fields.alignment_location == 3)
+        reads_mapped_exonic_ += 1;
+      else if (fields.alignment_location == 2 || fields.alignment_location == 4)
+        reads_mapped_exonic_as_ += 1;
+      else if (fields.alignment_location == 5)
+        reads_mapped_intronic_ += 1;
+      else if (fields.alignment_location == 6)
+        reads_mapped_intronic_as_ += 1;
+    }
+    else
+      reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -157,17 +192,11 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
 ////////////////  CellMetricGatherer ////////////////////////
 
 CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
+                                       TagOrder tag_order,
                                        std::string gtf_file,
                                        std::string mitochondrial_gene_names_filename)
-  : MetricGatherer(metric_output_file)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
-  if (gtf_file.empty())
-    crash("CellMetricGatherer needs a non-empty gtf_file name!");
-  // it's ok if mitochondrial_gene_names_filename is empty;
-  // getInterestingMitochondrialGenes() has logic to handle that case.
-  mitochondrial_genes_ = getInterestingMitochondrialGenes(
-      gtf_file, mitochondrial_gene_names_filename);
-
   // write metrics csv header
   std::string s;
   for (int i=0; i<25; i++)
@@ -207,13 +236,11 @@ void CellMetricGatherer::ingestLine(std::string const& str)
   cell_barcode_fraction_bases_above_30_.update(fields.cell_barcode_base_above_30);
   perfect_cell_barcodes_ += fields.cell_barcode_perfect;
 
-  if (fields.alignment_location == 7) {
-    if (fields.number_mappings == 1) 
-      reads_mapped_intergenic_ += 1;
-  }
-  else if(fields.alignment_location == 0) {
+  bool is_mito = isMitochondrial(fields);
+  if (fields.alignment_location == 7 && fields.number_mappings == 1 && !is_mito)
+    reads_mapped_intergenic_ += 1;
+  else if (fields.alignment_location == 0)
     reads_unmapped_ += 1;
-  }
 
   genes_histogram_[std::string(fields.tag_triple.third)] += 1;
   // END cell-metric-specific stuff
@@ -242,7 +269,7 @@ void CellMetricGatherer::outputMetricsLine()
   {
     if (count > 1)
       genes_detected_multiple_observations++;
-    if (mitochondrial_genes_.find(gene) != mitochondrial_genes_.end())
+    if (mito_genes_.find(gene) != mito_genes_.end())
     {
       n_mitochondrial_genes++;
       n_mitochondrial_molecules += count;
@@ -286,8 +313,11 @@ void CellMetricGatherer::clear()
 
 
 ////////////////  GeneMetricGatherer ////////////////////////
-GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file)
-  : MetricGatherer(metric_output_file)
+GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
+                                       TagOrder tag_order,
+                                       std::string gtf_file,
+                                       std::string mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   // write metrics csv header
   std::string s;
@@ -351,8 +381,11 @@ void GeneMetricGatherer::clear()
 
 
 ////////////////  UmiMetricGatherer ////////////////////////
-UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file, TagOrder tag_order)
-  : MetricGatherer(metric_output_file)
+UmiMetricGatherer::UmiMetricGatherer(std::string metric_output_file,
+                                     TagOrder tag_order,
+                                     std::string gtf_file,
+                                     std::string mitochondrial_gene_names_filename)
+  : MetricGatherer(metric_output_file, tag_order, gtf_file, mitochondrial_gene_names_filename)
 {
   metrics_csv_outfile_ << tagOrderToString(tag_order) << ",count\n";
 }
