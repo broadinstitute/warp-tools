@@ -25,6 +25,5 @@ RUN apt-get update; \
     chmod +x /sbin/tini; \
     rm -r /usr/gitc/temp;
 
-
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
