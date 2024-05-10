@@ -12,7 +12,9 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
 
 WORKDIR /usr/gitc
 
-RUN pip install cmake; \
+RUN apt-get update; \
+    apt-get install -y tabix; \
+    pip install cmake; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
     pip install snapatac2==${SNAPATAC2_VERSION}; \
@@ -22,7 +24,6 @@ RUN pip install cmake; \
     wget https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -O /sbin/tini; \
     chmod +x /sbin/tini; \
     rm -r /usr/gitc/temp;
-
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
