@@ -3,7 +3,7 @@ set -e
 
 # Update version when changes to Dockerfile are made
 
-DOCKER_IMAGE_VERSION=1.0.8
+DOCKER_IMAGE_VERSION=1.0.9
 
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
@@ -13,7 +13,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/"
 QUAY_URL="quay.io/broadinstitute/gotc-prod-snapatac2/"
 
 # SnapATAC2 version
-SNAPATAC2_VERSION="2.6.2"
+SNAPATAC2_VERSION="2.6.3"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
