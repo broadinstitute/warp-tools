@@ -426,22 +426,95 @@ void fillSamRecord(SamRecord* samRecord, FastQFile* fastQFileI1,
       
       if (strcmp(orientation.c_str(), "LAST_BP") == 0)
       {
-          barcode_seq = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
-          barcode_quality = quality_sequence.substr(quality_sequence.length() - g_barcode_length, quality_sequence.length());
+        barcode_seq = sequence.substr(sequence.length() - g_barcode_length, sequence.length());
+        barcode_quality = quality_sequence.substr(quality_sequence.length() - g_barcode_length, quality_sequence.length());
+
+        // Account for tags C and M
+        int cur_ind = 0;
+        for (auto [tag, length] : g_parsed_read_structure)
+        {
+            switch (tag)
+            {
+                case 'C':
+                    barcode_seq += sequence.substr(cur_ind, length);
+                    barcode_quality += quality_sequence.substr(cur_ind, length);
+                    break;
+                case 'M':
+                    // Assuming you want to handle UMI for LAST_BP in a similar manner as barcode
+                    umi_seq += sequence.substr(cur_ind, length);
+                    umi_quality += quality_sequence.substr(cur_ind, length);
+                    break;
+                default:
+                    break;
+            }
+            cur_ind += length;
+        }
       }
       else if (strcmp(orientation.c_str(), "FIRST_BP_RC") == 0)
       {
-          barcode_seq = reverseComplement(sequence).substr(0, g_barcode_length);
-          reverse(quality_sequence.begin(), quality_sequence.end());
-          barcode_quality = quality_sequence.substr(0, g_barcode_length);
+        int cur_ind = 0;
+        for (auto [tag, length] : g_parsed_read_structure)
+        {
+            switch (tag)
+            {
+                case 'C':
+                    // For the barcode, append the reverse complement of the sequence
+                    barcode_seq += reverseComplement(sequence.substr(cur_ind, length));
+
+                     // Reverse the quality string to maintain correspondence
+                    reverse(quality_sequence.begin() + cur_ind, quality_sequence.begin() + cur_ind + length);
+                    barcode_quality += quality_sequence.substr(cur_ind, length);
+                    break;
+                case 'M':
+                    // For the UMI, append the reverse complement of the sequence
+                    umi_seq += reverseComplement(sequence.substr(cur_ind, length));
+
+                    // Reverse the quality string to maintain correspondence
+                    reverse(quality_sequence.begin() + cur_ind, quality_sequence.begin() + cur_ind + length);
+                    umi_quality += quality_sequence.substr(cur_ind, length);
+                    break;
+                default:
+                    break;
+            }
+            cur_ind += length;
+  
+        // old code below
+	      // barcode_seq = reverseComplement(sequence).substr(0, g_barcode_length);
+        // reverse(quality_sequence.begin(), quality_sequence.end());
+        // barcode_quality = quality_sequence.substr(0, g_barcode_length);
+	      // Print the barcode
+        // std::cout << "Barcode: " << barcode_seq << std::endl;
+	      // std::cout << "Sequence: " << sequence << std::endl;
+          }
       }
       else if (strcmp(orientation.c_str(), "LAST_BP_RC") == 0)
       {    
-          std::string reverse_complement = reverseComplement(sequence);
-          barcode_seq = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
-          
-          reverse(quality_sequence.begin(), quality_sequence.end());
-          barcode_quality = quality_sequence.substr(0, g_barcode_length);
+        std::string reverse_complement = reverseComplement(sequence);
+        barcode_seq = reverse_complement.substr(reverse_complement.length() - g_barcode_length, reverse_complement.length());
+    
+        reverse(quality_sequence.begin(), quality_sequence.end());
+        barcode_quality = quality_sequence.substr(0, g_barcode_length);
+
+        // Account for tags C and M
+        int cur_ind = 0;
+        for (auto [tag, length] : g_parsed_read_structure)
+        {
+            switch (tag)
+            {
+                case 'C':
+                    barcode_seq += reverse_complement.substr(reverse_complement.length() - g_barcode_length - cur_ind - length, length);
+                    barcode_quality += quality_sequence.substr(g_barcode_length + cur_ind, length);
+                    break;
+                case 'M':
+                    // Assuming you want to handle UMI for LAST_BP_RC in a similar manner as barcode
+                    umi_seq += reverse_complement.substr(reverse_complement.length() - g_barcode_length - cur_ind - length, length);
+                    umi_quality += quality_sequence.substr(g_barcode_length + cur_ind, length);
+                    break;
+                default:
+                    break;
+            }
+            cur_ind += length;
+        }
       }
       else 
           crash(std::string("Incorrect barcode orientation format.\n"));
@@ -600,6 +673,11 @@ void fastQFileReaderThread(
 
       // get barcode 
       std::string barcode = barcodeGetter(samrec);
+
+      // Print the original read 2 FastQ sequence
+      //std::cout << "Original Read 2 FastQ Sequence: " << fastQFileR2.myRawSequence << std::endl;
+      // Print the identified barcode
+      //std::cout << "Identified Barcode: " << barcode << std::endl;
                                     
       // bucket barcode is used to pick the target bam file
       // This is done because in the case of incorrigible barcodes
