@@ -1,4 +1,4 @@
-name: M3C YAP Hisat CI
+name: PLINK2 REGENIE CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/m3c-yap-hisat/**'
+      - '3rd-party-tools/plink-regenie/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,8 +19,8 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/m3c-yap-hisat
-  ACR_PATH: m3c-yap-hisat
+  GCR_PATH: broad-gotc-prod/plink-regenie
+  ACR_PATH: plink-regenie
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/m3c-yap-hisat
+        working-directory: 3rd-party-tools/plink-regenie
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/m3c-yap-hisat
+        working-directory: 3rd-party-tools/plink-regenie
     steps:
     # checkout the repo
     - name: 'Checkout GitHub Action'
@@ -73,7 +73,6 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
     - name: 'Build and push image'
       uses: azure/docker-login@v1
       with:

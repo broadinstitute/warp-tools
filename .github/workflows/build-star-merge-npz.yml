@@ -1,4 +1,4 @@
-name: M3C YAP Hisat CI
+name: STAR Merge NPZ CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/m3c-yap-hisat/**'
+      - '3rd-party-tools/star-merge-npz/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,8 +19,8 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/m3c-yap-hisat
-  ACR_PATH: m3c-yap-hisat
+  GCR_PATH: broad-gotc-prod/star-merge-npz
+  ACR_PATH: star-merge-npz
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/m3c-yap-hisat
+        working-directory: 3rd-party-tools/star-merge-npz
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/m3c-yap-hisat
+        working-directory: 3rd-party-tools/star-merge-npz
     steps:
     # checkout the repo
     - name: 'Checkout GitHub Action'
@@ -83,3 +83,34 @@ jobs:
     - run: |
         docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
         docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
+
+#Runs pytest on all python code in 3rd party tools/star-merge-npz
+  test-python:
+    needs: build-for-gcr
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 3rd-party-tools/star-merge-npz
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pandas pluggy
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      #- name: Lint with ruff
+      #  run: |
+      #    # default set of ruff rules with GitHub Annotations
+      #    ruff --format=github --target-version=py37 .
+      #  continue-on-error: true
+      - name: Test with pytest
+        run: |
+          pytest
