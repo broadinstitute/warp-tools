@@ -2,8 +2,9 @@ import argparse
 import pandas as pd
 import numpy as np
 
+
 def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_barcodes, uniform_mtx, expected_cells):
-    # Read the whitelist into a set
+    # Read the whitelist into a set.
     expected_cells = int(expected_cells)
     print("Reading Aligning features txt file")
     align = pd.read_csv(align_file, sep="\s+", header=None)
