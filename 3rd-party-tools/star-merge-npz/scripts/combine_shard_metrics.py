@@ -34,14 +34,12 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     print("Calculating metrics")
     merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"] = merge_pv[f'Reads Mapped to {counting}: Unique {counting}'] * merge_pv['Number of Reads']
     sum_reads_mapped_unique_gene = merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"].sum()
-    total_reads_mapped_unique_gene = sum_reads_mapped_unique_gene / n_reads
-    
+    total_reads_mapped_unique_gene = sum_reads_mapped_unique_gene / n_reads 
     merge_pv["Reads Mapped to Genome: Unique*n_reads"] = merge_pv["Reads Mapped to Genome: Unique"] * merge_pv['Number of Reads']
     merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"] = merge_pv["Reads Mapped to Genome: Unique+Multiple"] * merge_pv['Number of Reads']
     merge_pv["Q30 Bases in RNA read*n_reads"] = merge_pv["Q30 Bases in RNA read"] * merge_pv['Number of Reads']
     merge_pv["Q30 Bases in CB+UMI*n_reads"] = merge_pv["Q30 Bases in CB+UMI"] * merge_pv['Number of Reads']
-    merge_pv["Reads With Valid Barcodes*n_reads"] = merge_pv["Reads With Valid Barcodes"] * merge_pv['Number of Reads']
-    
+    merge_pv["Reads With Valid Barcodes*n_reads"] = merge_pv["Reads With Valid Barcodes"] * merge_pv['Number of Reads']  
     sequencing_saturations_total = 1 - (merge_pv["yesUMIs"].sum() / merge_pv["yessubWLmatch_UniqueFeature"].sum())
     reads_mapped_genome_unique = merge_pv["Reads Mapped to Genome: Unique*n_reads"].sum() / n_reads
     reads_mapped_genome_unique_multi = merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"].sum() / n_reads
