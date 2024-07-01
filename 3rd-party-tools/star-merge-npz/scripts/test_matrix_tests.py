@@ -25,7 +25,8 @@ def example_input_files():
         "cell_reads": parent_directory_absolute + "/input/Human_v2_snRNA_cell_reads.txt",
         "counting_mode": "sn_rna",
         "uniform_barcodes": parent_directory_absolute + "/input/barcodes.tsv",
-        "uniform_mtx": parent_directory_absolute + "/input/matrix.mtx"
+        "uniform_mtx": parent_directory_absolute + "/input/matrix.mtx",
+        "expected_cells": "3000"
     }
 
 def test_merge_matrices_column_existence(example_input_files):
