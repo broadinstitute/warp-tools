@@ -49,12 +49,13 @@ public:
   float genomic_read_quality; // 9
   float genomic_reads_base_quality_above_30; // 10
   int number_mappings; // 11
-  int perfect_molecule_barcode; // (12) 1 for yes, 0 for no
+  int number_tso; // 12
+  int perfect_molecule_barcode; // (13) 1 for yes, 0 for no
   // cigar N field (3) indicates a read is spliced if the value is non-zero
-  int read_spliced; // (13) 1 for yes, 0 for no
-  int read_is_duplicate; // (14) 1 for yes, 0 for no
-  int cell_barcode_perfect; // (15) 1 for yes, 0 for no
-  float molecule_barcode_base_above_30; // (16) fraction of umi qual score > 30
+  int read_spliced; // (14) 1 for yes, 0 for no
+  int read_is_duplicate; // (15) 1 for yes, 0 for no
+  int cell_barcode_perfect; // (16) 1 for yes, 0 for no
+  float molecule_barcode_base_above_30; // (17) fraction of umi qual score > 30
 };
 
 bool sortAlignmentsByTagTriple(std::unique_ptr<LineFields> const& a,

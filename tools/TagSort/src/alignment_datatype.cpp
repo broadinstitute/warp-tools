@@ -87,7 +87,7 @@ LineFields::LineFields(
     int _position, int _is_strand,
     float _barcode_qual, float _cell_barcode_base_above_30,
     float _genomic_read_quality, float _genomic_reads_base_quality_above_30,
-    int _number_mappings, int _perfect_molecule_barcode, int _read_spliced,
+    int _number_mappings, int _number_tso, int _perfect_molecule_barcode, int _read_spliced,
     int _read_is_duplicate, int _cell_barcode_perfect,
     float _molecule_barcode_base_above_30)
 : tag_triple(_tag_triple),
@@ -100,6 +100,7 @@ LineFields::LineFields(
   genomic_read_quality(_genomic_read_quality),
   genomic_reads_base_quality_above_30(_genomic_reads_base_quality_above_30),
   number_mappings(_number_mappings),
+  number_tso(_number_tso),
   perfect_molecule_barcode(_perfect_molecule_barcode),
   read_spliced(_read_spliced),
   read_is_duplicate(_read_is_duplicate),
@@ -122,11 +123,12 @@ LineFields::LineFields(std::string const& s)
   genomic_read_quality =                p.getNextFieldFloat(); // 9
   genomic_reads_base_quality_above_30 = p.getNextFieldFloat(); // 10
   number_mappings =                     p.getNextFieldInt(); // 11
-  perfect_molecule_barcode =            p.getNextFieldInt(); // 12
-  read_spliced =                        p.getNextFieldInt(); // 13
-  read_is_duplicate =                   p.getNextFieldInt(); // 14
-  cell_barcode_perfect =                p.getNextFieldInt(); // 15
-  molecule_barcode_base_above_30 =      p.getNextFieldFloat(); // 16
+  number_tso =                          p.getNextFieldInt(); // 12
+  perfect_molecule_barcode =            p.getNextFieldInt(); // 13
+  read_spliced =                        p.getNextFieldInt(); // 14
+  read_is_duplicate =                   p.getNextFieldInt(); // 15
+  cell_barcode_perfect =                p.getNextFieldInt(); // 16
+  molecule_barcode_base_above_30 =      p.getNextFieldFloat(); // 17
   if (p.hasMore())
     p.crashLF("Found more than the expected 17 fields in line.");
 }
@@ -145,6 +147,7 @@ void LineFields::writeTabbedToFile(std::ofstream& outfile)
           << genomic_read_quality << "\t"
           << genomic_reads_base_quality_above_30  << "\t"
           << number_mappings  << "\t"
+          << number_tso << "\t"
           << perfect_molecule_barcode << "\t"
           << read_spliced << "\t"
           << read_is_duplicate << "\t"
