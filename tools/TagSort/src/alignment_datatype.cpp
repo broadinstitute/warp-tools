@@ -209,8 +209,8 @@ std::string LineFieldsParser::getNextField()
   cur_tab_ = s_.find('\t', cur_start_);
   if (cur_tab_ == std::string::npos)
   {
-    if (fields_gotten_ != 16)
-      crashLF("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 17.");
+    if (fields_gotten_ != 17)
+      crashLF("Found " + std::to_string(fields_gotten_+1) + " fields in line; expected 18.");
 
     cur_tab_ = s_.length();
     std::string ret(s_.data() + cur_start_, cur_tab_ - cur_start_);

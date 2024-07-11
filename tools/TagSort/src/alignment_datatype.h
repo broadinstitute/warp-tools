@@ -31,7 +31,7 @@ public:
       int _position, int _is_strand,
       float _barcode_qual, float _cell_barcode_base_above_30,
       float _genomic_read_quality, float _genomic_reads_base_quality_above_30,
-      int _number_mappings, int _perfect_molecule_barcode, int _read_spliced,
+      int _number_mappings, int _number_tso, int _perfect_molecule_barcode, int _read_spliced,
       int _read_is_duplicate, int _cell_barcode_perfect,
       float _molecule_barcode_base_above_30);
 
