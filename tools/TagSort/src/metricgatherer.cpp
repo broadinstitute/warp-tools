@@ -82,7 +82,7 @@ bool MetricGatherer::isMitochondrial(LineFields const& fields) const
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
   n_reads_++; //with/without mt? == uniquely + multimapped
-  if (fields.number_tso > 20)
+  if (fields.number_tso > 19)
     tso_reads_++;
 
 
