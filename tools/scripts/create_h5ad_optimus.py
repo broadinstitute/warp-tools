@@ -153,7 +153,7 @@ def generate_col_attr(args):
     # Split the pandas DataFrame into different data types for storing in the ZARR
     IntColumnNames = [  # UInt
         "n_reads",
-        "tso_reads"
+        "tso_reads",
         "noise_reads",
         "perfect_molecule_barcodes",
         "reads_mapped_exonic",
