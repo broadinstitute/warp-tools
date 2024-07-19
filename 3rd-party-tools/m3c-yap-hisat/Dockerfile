@@ -3,7 +3,9 @@ FROM --platform="linux/amd64" mambaorg/micromamba:0.23.0
 
 WORKDIR /usr/gitc
 RUN echo $PATH
-ENV PATH="$PATH:/opt/conda/bin:/root/pkg/hisat-3n"
+ENV GCLOUD_DIR="/opt/gcloud" \
+    GOOGLE_CLOUD_CLI_VERSION="397.0.0" 
+ENV PATH="/opt/conda/bin:/root/pkg/hisat-3n:$GCLOUD_DIR/google-cloud-sdk/bin:$PATH"
 RUN echo $PATH
 
 USER root
@@ -49,4 +51,4 @@ RUN mkdir -p ~/pkg; \
     curl -so $HOME/google-cloud-cli.tar.gz https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GOOGLE_CLOUD_CLI_VERSION}-linux-x86_64.tar.gz; \
     tar -xzf $HOME/google-cloud-cli.tar.gz -C $GCLOUD_DIR; \
     .$GCLOUD_DIR/google-cloud-sdk/install.sh --usage-reporting false; \
-    rm $HOME/google-cloud-cli.tar.gz; \
+    rm $HOME/google-cloud-cli.tar.gz
