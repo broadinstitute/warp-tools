@@ -12,13 +12,13 @@ USER root
 # docker build --build-arg gcp=true -t mapping-gcp:tag .
 ARG gcp
 RUN if [ "$gcp" = "true" ] ; then \
-        apt-get update && \
-        apt-get install -y curl gnupg && \
+        apt-get update; \
+        apt-get install -y curl gnupg; \
         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | \
-        tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+        tee -a /etc/apt/sources.list.d/google-cloud-sdk.list; \
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
-        apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
-        apt-get update -y && \
+        apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - ; \
+        apt-get update -y; \
         apt-get install google-cloud-sdk -y;  \
       else echo 'no gcp install';  \
     fi
@@ -29,7 +29,7 @@ RUN apt-get update; \
     apt-get install -y build-essential
     
 COPY --chown=$MAMBA_USER:$MAMBA_USER hisat3n_env.yml /tmp/hisat3n_env.yml
-RUN micromamba install -y -f /tmp/hisat3n_env.yml && \
+RUN micromamba install -y -f /tmp/hisat3n_env.yml; \
     micromamba clean --all --yes
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
@@ -43,4 +43,10 @@ RUN mkdir -p ~/pkg; \
     git checkout -b hisat-3n origin/hisat-3n; \
     make; \
     echo 'export PATH=$HOME/pkg/hisat-3n:$PATH' >> ~/.bashrc; \
-    source ~/.bashrc
+    source ~/.bashrc; \
+    # get gsutil
+    mkdir -p $GCLOUD_DIR; \
+    curl -so $HOME/google-cloud-cli.tar.gz https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GOOGLE_CLOUD_CLI_VERSION}-linux-x86_64.tar.gz; \
+    tar -xzf $HOME/google-cloud-cli.tar.gz -C $GCLOUD_DIR; \
+    .$GCLOUD_DIR/google-cloud-sdk/install.sh --usage-reporting false; \
+    rm $HOME/google-cloud-cli.tar.gz; \
