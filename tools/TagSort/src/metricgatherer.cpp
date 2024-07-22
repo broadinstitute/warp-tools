@@ -109,11 +109,16 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (!isMitochondrial(fields))
+  bool is_mito = isMitochondrial(fields);
+  if (fields.number_mappings > 1)
+    reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
+  else
   {
-    if (fields.number_mappings == 1)
+    reads_mapped_uniquely_ += 1;
+    if (is_mito)
+      reads_mapped_mitochondrial_ += 1;
+    else
     {
-      reads_mapped_uniquely_ += 1;
       if (fields.alignment_location == 1 || fields.alignment_location == 3)
         reads_mapped_exonic_ += 1;
       else if (fields.alignment_location == 2 || fields.alignment_location == 4)
@@ -123,8 +128,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       else if (fields.alignment_location == 6)
         reads_mapped_intronic_as_ += 1;
     }
-    else
-      reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -183,7 +186,8 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_per_fragment << ","
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
-      << molecules_with_single_read_evidence;
+      << molecules_with_single_read_evidence << ","
+      << reads_mapped_mitochondrial_;
 }
 
 
@@ -199,7 +203,7 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<26; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
     metrics_csv_outfile_ << "," << cell_specific_headers[i];
@@ -321,7 +325,7 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<26; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<2; i++)
     metrics_csv_outfile_ << "," << gene_specific_headers[i];
