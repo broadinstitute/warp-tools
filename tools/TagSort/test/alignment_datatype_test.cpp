@@ -58,7 +58,7 @@ TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
 
 TEST(AlignmentDatatypeTest, EmptyStringFieldAllowed)
 {
-  LineFields lf("a\t\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
+  LineFields lf("a\t\tc\td\t1234\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
   EXPECT_EQ(lf.tag_triple.second, "");
 }
 
