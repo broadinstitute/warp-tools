@@ -130,7 +130,7 @@ LineFields::LineFields(std::string const& s)
   cell_barcode_perfect =                p.getNextFieldInt(); // 16
   molecule_barcode_base_above_30 =      p.getNextFieldFloat(); // 17
   if (p.hasMore())
-    p.crashLF("Found more than the expected 17 fields in line.");
+    p.crashLF("Found more than the expected 18 fields in line.");
 }
 
 void LineFields::writeTabbedToFile(std::ofstream& outfile)
