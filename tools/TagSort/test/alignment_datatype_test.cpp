@@ -29,7 +29,7 @@ TEST(AlignmentDatatypeTest, BasicParsing)
 
 TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
 {
-  LineFields lf("\t\t\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t1235\t0\t1\t0\t1\t0.9");
+  LineFields lf("\t\t\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t12345\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "");
   EXPECT_EQ(lf.tag_triple.second, "");
