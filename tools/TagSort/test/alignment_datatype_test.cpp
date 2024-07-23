@@ -5,14 +5,14 @@
 
 TEST(AlignmentDatatypeTest, BasicParsing)
 {
-  LineFields lf("a\tbbb\tc\td\t1234\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+  LineFields lf("a\tbbb\tc\td\t1234\t12345\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "a");
   EXPECT_EQ(lf.tag_triple.second, "bbb");
   EXPECT_EQ(lf.tag_triple.third, "c");
   EXPECT_EQ(lf.reference, "d");
   EXPECT_EQ(lf.alignment_location, 1234);
-  EXPECT_EQ(lf.number_tso, 1234);
+  EXPECT_EQ(lf.number_tso, 12345);
   EXPECT_EQ(lf.position, 123);
   EXPECT_EQ(lf.is_strand, 1);
   EXPECT_NEAR(lf.barcode_qual, 0.12f, 0.001f);
@@ -29,14 +29,14 @@ TEST(AlignmentDatatypeTest, BasicParsing)
 
 TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
 {
-  LineFields lf("\t\t\td\t1234\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+  LineFields lf("\t\t\td\t1234\t1235\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "");
   EXPECT_EQ(lf.tag_triple.second, "");
   EXPECT_EQ(lf.tag_triple.third, "");
   EXPECT_EQ(lf.reference, "d");
   EXPECT_EQ(lf.alignment_location, 1234);
-  EXPECT_EQ(lf.number_tso, 1234);
+  EXPECT_EQ(lf.number_tso, 12345);
   EXPECT_EQ(lf.position, 123);
   EXPECT_EQ(lf.is_strand, 1);
   EXPECT_NEAR(lf.barcode_qual, 0.12f, 0.001f);
@@ -53,69 +53,69 @@ TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
 
 TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
 {
-  LineFields lf("a\tbbb\tc\td\t1234\t1234\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
+  LineFields lf("a\tbbb\tc\td\t1234\t12345\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
 }
 
 TEST(AlignmentDatatypeTest, EmptyStringFieldAllowed)
 {
-  LineFields lf("a\t\tc\td\t1234\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
+  LineFields lf("a\t\tc\td\t1234\t12345\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
   EXPECT_EQ(lf.tag_triple.second, "");
 }
 
 TEST(AlignmentDatatypeDeathTest, EmptyIntFieldNotAllowed)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t12345\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("empty field"));
 }
 
 TEST(AlignmentDatatypeDeathTest, NotValidFloat)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t1\t2\tgibberish\t1.23"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t12345\t1\t2\tgibberish\t1.23"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("float parsing (std::stof) threw an exception"));
 }
 
 TEST(AlignmentDatatypeDeathTest, CharsGivenToInt)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\tBAD123\t2"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t12345\tBAD123\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("int parsing (std::stoi) threw an exception"));
 }
 
 TEST(AlignmentDatatypeDeathTest, CharsGivenAfterInt)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t123BAD\t2"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t12345\t123BAD\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after int"));
 }
 
 TEST(AlignmentDatatypeDeathTest, FloatGivenToInt)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t1.23\t2"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1235\t1.23\t2"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after int"));
 }
 
 TEST(AlignmentDatatypeDeathTest, CharsAfterFloat)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1\t2\t1.23e5f\t1"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t12345\t1\t2\t1.23e5f\t1"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("Extra characters after float"));
 }
 
 TEST(AlignmentDatatypeDeathTest, TooFewFields)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1235\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Found 16 fields in line; expected 17"));
+              testing::HasSubstr("Found 17 fields in line; expected 18"));
 }
 
 TEST(AlignmentDatatypeDeathTest, TooManyFields)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t1235\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Found more than the expected 17 fields in line."));
+              testing::HasSubstr("Found more than the expected 18 fields in line."));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)
