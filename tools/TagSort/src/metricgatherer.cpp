@@ -48,7 +48,8 @@ void MetricGatherer::clearCellAndGeneCommon()
   reads_mapped_exonic_as_ = 0;
   reads_mapped_intronic_ = 0;
   reads_mapped_intronic_as_ = 0;
-
+  reads_mapped_mitochondrial_ =0;
+  
   // alignment uniqueness information
   reads_mapped_uniquely_ = 0;
   reads_mapped_multiple_ = 0;
