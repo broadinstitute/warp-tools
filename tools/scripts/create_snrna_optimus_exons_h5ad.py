@@ -3,7 +3,6 @@ import csv
 import gzip
 import re
 import numpy as np
-import loompy
 from scipy import sparse
 from scipy.sparse import csr_matrix
 import pandas as pd
@@ -147,6 +146,7 @@ def generate_col_attr(barcode_1_path,barcode_2_path,cell_metrics_path):
     # Split the pandas DataFrame into different data types for storing in the ZARR
     IntColumnNames = [  # UInt
         "n_reads",
+        "tso_reads",
         "noise_reads",
         "perfect_molecule_barcodes",
         "reads_mapped_exonic",

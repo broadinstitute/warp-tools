@@ -84,6 +84,7 @@ protected:
   const std::string kCommonHeaders[26] =
   {
     "n_reads",
+    "tso_reads",
     "noise_reads",
     "perfect_molecule_barcodes",
     "reads_mapped_exonic",
@@ -124,6 +125,7 @@ protected:
 private:
   // count information
   int n_reads_ = 0;
+  int tso_reads_ = 0;
   const int noise_reads = 0; //# long polymers, N-sequences; NotImplemented
 
   std::unordered_map<std::string, int> fragment_histogram_;

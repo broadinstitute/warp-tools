@@ -35,6 +35,7 @@ MetricGatherer::~MetricGatherer() {}
 void MetricGatherer::clearCellAndGeneCommon()
 {
   n_reads_ = 0;
+  tso_reads_ = 0;
   // noise_reads = 0; //# long polymers, N-sequences; NotImplemented
   fragment_histogram_.clear();
   molecule_histogram_.clear();
@@ -82,6 +83,9 @@ bool MetricGatherer::isMitochondrial(LineFields const& fields) const
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
   n_reads_++; //with/without mt? == uniquely + multimapped
+  if (fields.number_tso > 19)
+    tso_reads_++;
+
 
   // the tags passed to this function define a molecule, this increments the counter,
   // identifying a new molecule only if a new tag combination is observed
@@ -164,6 +168,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
   metrics_csv_outfile_
       << prev_tag_ << ","
       << n_reads_ << ","
+      << tso_reads_ << ","
       << noise_reads << ","
       << perfect_molecule_barcodes_ << ","
       << reads_mapped_exonic_ << ","
