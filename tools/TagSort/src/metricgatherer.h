@@ -81,7 +81,7 @@ protected:
   void clearCellAndGeneCommon();
   bool isMitochondrial(LineFields const& fields) const;
 
-  const std::string kCommonHeaders[26] =
+  const std::string kCommonHeaders[27] =
   {
     "n_reads",
     "tso_reads",
