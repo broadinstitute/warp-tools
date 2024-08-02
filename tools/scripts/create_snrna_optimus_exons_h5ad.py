@@ -162,6 +162,7 @@ def generate_col_attr(barcode_1_path,barcode_2_path,cell_metrics_path):
         "n_fragments",
         "fragments_with_single_read_evidence",
         "molecules_with_single_read_evidence",
+        "reads_mapped_mitochondrial",
         "perfect_cell_barcodes",
         "reads_mapped_intergenic",
         "reads_unmapped",
