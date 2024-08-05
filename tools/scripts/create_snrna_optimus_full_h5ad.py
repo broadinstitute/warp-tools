@@ -159,6 +159,7 @@ def generate_col_attr(args):
         "n_fragments",
         "fragments_with_single_read_evidence",
         "molecules_with_single_read_evidence",
+        "reads_mapped_mitochondrial",
         "perfect_cell_barcodes",
         "reads_mapped_intergenic",
         "reads_unmapped",
