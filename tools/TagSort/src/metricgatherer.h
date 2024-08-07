@@ -81,7 +81,7 @@ protected:
   void clearCellAndGeneCommon();
   bool isMitochondrial(LineFields const& fields) const;
 
-  const std::string kCommonHeaders[26] =
+  const std::string kCommonHeaders[27] =
   {
     "n_reads",
     "tso_reads",
@@ -108,7 +108,8 @@ protected:
     "reads_per_fragment",
     "fragments_per_molecule",
     "fragments_with_single_read_evidence",
-    "molecules_with_single_read_evidence"
+    "molecules_with_single_read_evidence",
+    "reads_mapped_mitochondrial"
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
@@ -138,12 +139,15 @@ private:
 
   OnlineGaussianSufficientStatistic genomic_read_quality_;
 
+  // (Note that all of these reads_mapped fields count only unique reads; any
+  //  read that has duplicates does not contribute to them *at all*)
   // alignment location information
   int reads_mapped_exonic_ = 0;
   int reads_mapped_exonic_as_ = 0;
   int reads_mapped_intronic_ = 0;
   int reads_mapped_intronic_as_ = 0;
   //int reads_mapped_utr_ = 0;
+  int reads_mapped_mitochondrial_ = 0;
 
   // in future we can implement this when we have a gene model
   // self.reads_mapped_outside_window = 0  # reads should be within 1000 bases of UTR
