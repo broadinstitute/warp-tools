@@ -6,8 +6,16 @@ import argparse
 import scanpy as sc
 
 
-def compute_doublet_scores(gex_h5ad, proportion_artificial=0.2):
-    adata = ad.read_h5ad(gex_h5ad)
+def call_cells(cellbarcodes, gex_h5ad,input_id):
+    cells=pd.read_csv(cellbarcodes, sep="\t", header=None)
+    adata=ad.read_h5ad(gex_h5ad)
+    adata.obs["STAR_cell"] = False
+    adata.obs.loc[adata.obs.index.isin(cells[0]), 'STAR_cell'] = True
+    adata.write_h5ad(input_id+".h5ad")
+    return adata
+
+def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
+    adata = gex_h5ad_modified
     adata.var_names_make_unique()
     k = np.int64(np.round(np.min([100, adata.shape[0] * 0.01])))
     n_doublets = np.int64(np.round(adata.shape[0] / (1 - proportion_artificial) - adata.shape[0]))
@@ -96,6 +104,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process single-cell RNA-seq data and compute doublet scores.")
     parser.add_argument("--proportion_artificial", type=float, default=0.2, help="Proportion of artificial doublets to be generated (default is 0.2).")
     parser.add_argument("--gex_h5ad", type=str, required=True, help="Path to the GEX h5ad file.")
+    parser.add_argument("--cellbarcodes", type=str, required=True, help="Path to the cell barcodes file.")
     parser.add_argument("--gex_nhash_id", type=str, required=True, help="NHashID for the GEX data.")
     parser.add_argument("--library_csv", type=str, required=True, help="Path to the library metrics CSV file.")
     parser.add_argument("--input_id", type=str, required=True, help="Input ID for output files.")
@@ -104,8 +113,9 @@ if __name__ == "__main__":
 
     # Load the AnnData object
 
-    # Compute doublet scores
-    doublet_scores, percent_doublets = compute_doublet_scores(args.gex_h5ad, proportion_artificial=args.proportion_artificial)
+    # Compute cell calls and doublet scores
+    cell_h5ad=call_cells(args.cellbarcodes, args.gex_h5ad, args.input_id)
+    doublet_scores, percent_doublets = compute_doublet_scores(cell_h5ad, proportion_artificial=args.proportion_artificial)
     print("Printing adata: ", doublet_scores)
 
     # Output the results
