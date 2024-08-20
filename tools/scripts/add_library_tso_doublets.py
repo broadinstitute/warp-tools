@@ -58,8 +58,13 @@ def compute_doublet_scores(gex_h5ad, proportion_artificial=0.2):
     score1 = freq.mean(axis=1)
     score2 = freq[:, :np.int64(np.ceil(k/2))].mean(axis=1)
     adata.obs["doublet_score"] = [np.max([score1[i], score2[i]]) for i in range(adata.shape[0])]   
-    end_csv=adata.obs.loc[~adata.obs_names.isin(doublet_obs_names), ["doublet_score", "doublet_cell"]]
-    percent_doublets = end_csv[end_csv["doublet_cell"]==True].shape[0]/end_csv.shape[0]
+    end_csv=adata.obs.loc[~adata.obs_names.isin(doublet_obs_names), ["doublet_score"]]
+    
+    # Calculate the percentage of doublets with a doublet_score > 0.3
+    num_doublets = end_csv[end_csv["doublet_score"] > 0.3].shape[0]
+    total_cells = end_csv.shape[0]
+    percent_doublets = num_doublets / total_cells * 100
+
     return end_csv, percent_doublets 
 
 
@@ -79,7 +84,9 @@ def process_gex_data(gex_h5ad, gex_nhash_id, library_csv, input_id, doublets):
     dictionary = library.set_index(0)[1].to_dict()
     dictionary['frac_tso'] = tso_reads
     dictionary['percent_doublets'] = doublets
-    new_dictionary = {"NHashID": [gex_nhash_id]}
+    new_dictionary = {"NHashID": [gex_nhash_id]}  # This line is fine, it already has a list
+    # Update other scalar values to lists
+    dictionary = {key: [value] for key, value in dictionary.items()}
     new_dictionary.update(dictionary)
     new_dictionary = pd.DataFrame(new_dictionary)
     new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv")
