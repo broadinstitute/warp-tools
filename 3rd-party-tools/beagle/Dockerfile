@@ -16,15 +16,6 @@ WORKDIR /usr/gitc
 
 # Install dependencies
 RUN set -eux; \
-    #     apk add --no-cache \
-    #         bash \
-    #         curl \ 
-    #         findutils \
-    #         gcc \
-    #         jq \ 
-    #         unzip \
-    #         wget \
-    # ; \
     apk add --no-cache \
             autoconf \
             automake \
@@ -55,9 +46,8 @@ RUN set -eux; \
     cd ../; \
     rm -r bcftools-${BCFTOOLS_VERSION}; \
     rm bcftools-${BCFTOOLS_VERSION}.tar.bz2 \
-    ; 
+    ; \
 # Download Beagle jars
-RUN    \
     # beagle runs phasing and imputation
     curl -L https://faculty.washington.edu/browning/beagle/beagle.${BEAGLE_VERSION}.jar > beagle.${BEAGLE_VERSION}.jar \
     ; \
