@@ -6,17 +6,18 @@ import argparse
 import scanpy as sc
 
 
-def call_cells(cellbarcodes, gex_h5ad,input_id):
+def call_cells(cellbarcodes, gex_h5ad):
     cells=pd.read_csv(cellbarcodes, sep="\t", header=None)
     adata=ad.read_h5ad(gex_h5ad)
     adata.obs["STAR_cell"] = False
     adata.obs.loc[adata.obs.index.isin(cells[0]), 'STAR_cell'] = True
-    adata.write_h5ad(input_id+".h5ad")
     return adata
 
 def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     adata = gex_h5ad_modified
     adata.var_names_make_unique()
+    adata = adata[adata.obs["STAR_cell"] == True, :]
+    print("adata with STAR_cell == True", adata)
     k = np.int64(np.round(np.min([100, adata.shape[0] * 0.01])))
     n_doublets = np.int64(np.round(adata.shape[0] / (1 - proportion_artificial) - adata.shape[0]))
     real_cells_1 = np.random.choice(adata.obs_names, size=n_doublets, replace=True)
@@ -66,21 +67,21 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     score1 = freq.mean(axis=1)
     score2 = freq[:, :np.int64(np.ceil(k/2))].mean(axis=1)
     adata.obs["doublet_score"] = [np.max([score1[i], score2[i]]) for i in range(adata.shape[0])]   
-    end_csv=adata.obs.loc[~adata.obs_names.isin(doublet_obs_names), ["doublet_score"]]
+    doublet_csv=adata.obs.loc[~adata.obs_names.isin(doublet_obs_names), ["doublet_score"]]
     
     # Calculate the percentage of doublets with a doublet_score > 0.3
-    num_doublets = end_csv[end_csv["doublet_score"] > 0.3].shape[0]
-    total_cells = end_csv.shape[0]
+    num_doublets = doublet_csv[doublet_csv["doublet_score"] > 0.3].shape[0]
+    total_cells = doublet_csv.shape[0]
     percent_doublets = num_doublets / total_cells * 100
 
-    return end_csv, percent_doublets 
+    return doublet_csv, percent_doublets 
 
 
-def process_gex_data(gex_h5ad, gex_nhash_id, library_csv, input_id, doublets):
+def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores):
     print("Reading Optimus h5ad:")
-    gex_data = ad.read_h5ad(gex_h5ad)
+    gex_data = gex_h5ad_modified
     gex_data.uns['NHashID'] = gex_nhash_id
-    gex_data.write(f"{input_id}.h5ad")
+    #gex_data.write(f"{input_id}.h5ad")
 
     print("Reading library metrics")
     library = pd.read_csv(library_csv, header=None)
@@ -98,6 +99,15 @@ def process_gex_data(gex_h5ad, gex_nhash_id, library_csv, input_id, doublets):
     new_dictionary.update(dictionary)
     new_dictionary = pd.DataFrame(new_dictionary)
     new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv")
+    
+    # Adding doublet scores to barcodes that have been called as cells
+    all_barcodes = pd.DataFrame(index=gex_data.obs_names)
+    # Merge doublet scores with all barcodes, filling missing values with NA
+    all_barcodes = all_barcodes.join(doublet_scores, how='left')
+    # Assign the doublet scores back to the adata object
+    gex_data.obs['doublet_score'] = all_barcodes['doublet_score']
+
+    return gex_data
 
 
 if __name__ == "__main__":
@@ -111,19 +121,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Load the AnnData object
 
     # Compute cell calls and doublet scores
-    cell_h5ad=call_cells(args.cellbarcodes, args.gex_h5ad, args.input_id)
+    print("Calculating cell calls")
+    cell_h5ad=call_cells(args.cellbarcodes, args.gex_h5ad)
+    print("Calculating doublets based on cell calls")
     doublet_scores, percent_doublets = compute_doublet_scores(cell_h5ad, proportion_artificial=args.proportion_artificial)
-    print("Printing adata: ", doublet_scores)
-
+    print("Adding doublet scores, NHashID to h5ad and calculating library metrics")
+    revised_adata = process_gex_data(cell_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets, doublet_scores)
     # Output the results
     output_path = args.gex_h5ad.replace(".h5ad", "_doublet_scores.csv")
     print("Output path: ", output_path)
     doublet_scores.to_csv(output_path)
+    print("Saving revised adata object")
+    revised_adata.write(f"{args.input_id}.h5ad")
     print(f"Doublet scores saved to {output_path}")
     print("Percent_doublets: ", percent_doublets)
-
-    # Process GEX data
-    process_gex_data(args.gex_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets)
+    print("Done!")
