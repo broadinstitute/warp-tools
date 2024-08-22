@@ -77,7 +77,7 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     return doublet_csv, percent_doublets 
 
 
-def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores):
+def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores, counting_mode, expected_cells):
     print("Reading Optimus h5ad:")
     gex_data = gex_h5ad_modified
     gex_data.uns['NHashID'] = gex_nhash_id
@@ -90,15 +90,15 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     tso_reads = gex_data.obs.tso_reads.sum() / gex_data.obs.n_reads.sum()
     print("TSO reads:")
     print(tso_reads)
-    dictionary = library.set_index(0)[1].to_dict()
-    dictionary['frac_tso'] = tso_reads
-    dictionary['percent_doublets'] = doublets
-    new_dictionary = {"NHashID": [gex_nhash_id]}  # This line is fine, it already has a list
-    # Update other scalar values to lists
-    dictionary = {key: [value] for key, value in dictionary.items()}
-    new_dictionary.update(dictionary)
-    new_dictionary = pd.DataFrame(new_dictionary)
-    new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv")
+    
+    print("Calclating keeper metrics based on doublets and n_genes")
+    if counting_mode == "sc_rna":
+        gene_threshold = 1500
+    else:
+        gene_threshold = 1000
+
+    estimated_cells = len(gex_data.obs["STAR_cell"]==True)
+    expected_cells = int(expected_cells)  # Placeholder, replace with actual value
     
     # Adding doublet scores to barcodes that have been called as cells
     all_barcodes = pd.DataFrame(index=gex_data.obs_names)
@@ -106,6 +106,31 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     all_barcodes = all_barcodes.join(doublet_scores, how='left')
     # Assign the doublet scores back to the adata object
     gex_data.obs['doublet_score'] = all_barcodes['doublet_score']
+
+    # Adding keeper metrics
+    subset = gex_data[(gex_data.obs['STAR_cell']== True) & (gex_data.obs['doublet_score']<0.3) & (gex_data.obs['n_genes']> gene_threshold)]
+    keeper_cells = subset.shape[0]
+    keeper_mean_reads_per_cell = subset.obs["n_reads"].mean()
+    keeper_median_genes = subset.obs["n_genes"].median() 
+    percent_keeper = keeper_cells/estimated_cells
+    percent_usable = keeper_cells/expected_cells
+
+    # Updating library metrics
+    dictionary = library.set_index(0)[1].to_dict()
+    dictionary['frac_tso'] = tso_reads
+    dictionary['percent_doublets'] = doublets
+    dictionary['keeper_cells'] = keeper_cells
+    dictionary['keeper_mean_reads_per_cell'] = keeper_mean_reads_per_cell
+    dictionary['keeper_median_genes'] = keeper_median_genes
+    dictionary['percent_keeper'] = percent_keeper
+    dictionary['percent_usable'] = percent_usable
+
+    new_dictionary = {"NHashID": [gex_nhash_id]}  # This line is fine, it already has a list
+    # Update other scalar values to lists
+    dictionary = {key: [value] for key, value in dictionary.items()}
+    new_dictionary.update(dictionary)
+    new_dictionary = pd.DataFrame(new_dictionary)
+    new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv")
 
     return gex_data
 
@@ -118,6 +143,8 @@ if __name__ == "__main__":
     parser.add_argument("--gex_nhash_id", type=str, required=True, help="NHashID for the GEX data.")
     parser.add_argument("--library_csv", type=str, required=True, help="Path to the library metrics CSV file.")
     parser.add_argument("--input_id", type=str, required=True, help="Input ID for output files.")
+    parser.add_argument("--counting_mode", type=str, required=True, help="Counting mode for STARsolo alignment.")
+    parser.add_argument("--expected_cells", type=int, required=True, help="Expected number of cells.")
 
     args = parser.parse_args()
 
@@ -128,7 +155,7 @@ if __name__ == "__main__":
     print("Calculating doublets based on cell calls")
     doublet_scores, percent_doublets = compute_doublet_scores(cell_h5ad, proportion_artificial=args.proportion_artificial)
     print("Adding doublet scores, NHashID to h5ad and calculating library metrics")
-    revised_adata = process_gex_data(cell_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets, doublet_scores)
+    revised_adata = process_gex_data(cell_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets, doublet_scores, args.counting_mode, args.expected_cells)
     # Output the results
     output_path = args.gex_h5ad.replace(".h5ad", "_doublet_scores.csv")
     print("Output path: ", output_path)
