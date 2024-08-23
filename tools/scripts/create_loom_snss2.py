@@ -7,6 +7,13 @@ import loompy
 from scipy.sparse import csc_matrix
 
 def generate_col_attr(args):
+    """Converts the QC of Smart Seq2 gene file pipeline outputs to loom file
+    Args:
+        qc_path (str): path to the QCs csv
+    Retruns:
+         col_attrs: dict
+    """
+    # read the QC values
     qc_path = [p for p in args.qc_files if p.endswith(".csv")][0]
     with open(qc_path, 'r') as f:
         qc_values = [row for row in csv.reader(f)]
@@ -25,6 +32,8 @@ def generate_col_attr(args):
     numeric_metadata = {}
 
     for label, value in zip(metadata_labels, metadata_values):
+
+        # See if this is numeric or string
         numeric_value = None
         try:
             numeric_value = float(value)
@@ -39,11 +48,14 @@ def generate_col_attr(args):
         else:
             string_metadata[label] = value
 
+    # Metrics
+    # Write the string and numeric metadata separately
     sorted_string_labels = sorted(string_metadata.keys())
     sorted_string_values = [string_metadata[m] for m in sorted_string_labels]
     sorted_numeric_labels = sorted(numeric_metadata.keys())
     sorted_numeric_values = [numeric_metadata[m] for m in sorted_numeric_labels]
 
+    # Column attributes
     col_attrs = dict()
     col_attrs["cell_names"] = [cell_id]
     col_attrs["CellID"] = [cell_id]
@@ -53,22 +65,32 @@ def generate_col_attr(args):
 
     for i in range(numeric_field_names.shape[0]):
         name = numeric_field_names[i]
-        data = np.array([sorted_numeric_values])[:, i]
+        data = np.array([sorted_numeric_values])[:,i]
         col_attrs[name] = data
-
     string_field_names = np.array(sorted_string_labels)
     for i in range(string_field_names.shape[0]):
         name = string_field_names[i]
-        data = np.array([sorted_string_values])[:, i]
+        data = np.array([sorted_string_values])[:,i]
         col_attrs[name] = data
 
     return col_attrs
+
 
 def generate_csr_sparse_coo(expr):
     expr_coo = csc_matrix(expr[:])
     return expr_coo
 
 def generate_row_attr_and_matrix(count_results_path):
+    """Converts the Smart Seq2 intron and exon counts file to
+        csr_coos and row attribute dictionary
+    Args:
+        input_path (str): file where the SS2 pipeline expression counts are
+
+    Return:
+        row_attrs: dict of attributes
+        intron_expression_csr_coo: crs coo matrix for introns
+        exon_expression_csr_coo: crs coo matrix for exons
+    """
     reader = csv.DictReader(open(count_results_path), delimiter="\t")
 
     intron_expression_values = {}
@@ -87,7 +109,7 @@ def generate_row_attr_and_matrix(count_results_path):
         gene_names.append(row['gene_name'])
 
     intron_counts = [intron_expression_values[g] for g in gene_ids]
-    exon_counts = [exon_expression_values[g] for g in gene_ids]
+    exon_counts  = [exon_expression_values[g] for g in gene_ids]
     intron_lengths = [intron_lengths[g] for g in gene_ids]
     exon_lengths = [exon_lengths[g] for g in gene_ids]
 
