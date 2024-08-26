@@ -21,6 +21,7 @@ RUN set -eux && \
     curl -sSL https://sdk.cloud.google.com | bash 
 
 COPY . /warptools
+RUN ls -la
 #build C/C++ code and add binaries to usr's bin
 RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /warptools/fastqpreprocessing/bin/* /usr/local/bin/
 RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
