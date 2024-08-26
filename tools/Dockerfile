@@ -26,9 +26,7 @@ RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && 
 RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
 
 # Set the working directory to the scripts folder and install the package
-RUN cd /warptools/scripts && wget https://github.com/HumanCellAtlas/sctools/archive/refs/heads/master.zip && unzip master.zip && ls -la
-RUN pip install /warptools/scripts/sctools-master/
-
+RUN python -m pip install git+https://github.com/HumanCellAtlas/sctools.git#egg=sctools;
 
 # Set the default working directory for the container
 WORKDIR /warptools
