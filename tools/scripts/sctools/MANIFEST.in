@@ -1,3 +1,0 @@
-include src/sctools/test/data/*
-include README.rst
-include LICENSE

@@ -1,3 +1,0 @@
-sctools
-sctools/metrics
-sctools/test
