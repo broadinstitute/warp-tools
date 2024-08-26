@@ -26,7 +26,7 @@ RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && 
 RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
 
 # Set the working directory to the scripts folder and install the package
-WORKDIR /warptools/tools/scripts/sctools
+WORKDIR /warptools/tools/scripts/sctools-master
 RUN ls -la
 RUN pip install .
 
