@@ -11,7 +11,7 @@ CLASSIFIERS = [
 
 setup(
     name="sctools",
-    use_scm_version=False,
+    use_scm_version=True,
     setup_requires=["setuptools_scm"],
     description="Utilities for large-scale distributed single cell" + "data processing",
     url="https://github.com/humancellatlas/sctools.git",
