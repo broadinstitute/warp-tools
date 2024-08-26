@@ -25,7 +25,13 @@ COPY . /warptools
 RUN cd /warptools/fastqpreprocessing && ./fetch_and_make_dep_libs.sh && make && cp /warptools/fastqpreprocessing/bin/* /usr/local/bin/
 RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptools/TagSort/bin/* /usr/local/bin/
 
+# Set the working directory to the scripts folder and install the package
+WORKDIR /warptools/tools/scripts/sctools
+RUN pip install .
+
+# Set the default working directory for the container
 WORKDIR /warptools
 
 # Set tini as default entry point
 ENTRYPOINT ["/usr/bin/tini", "--"]
+
