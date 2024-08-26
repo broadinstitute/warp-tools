@@ -28,7 +28,7 @@ RUN cd /warptools/TagSort && ./fetch_and_make_dep_libs.sh && make && cp /warptoo
 
 # Set the working directory to the scripts folder and install the package
 RUN pwd
-RUN pip install /warptools/scripts/sctools/sctools
+RUN pip install /warptools/scripts/sctools
 
 # Set the default working directory for the container
 WORKDIR /warptools
