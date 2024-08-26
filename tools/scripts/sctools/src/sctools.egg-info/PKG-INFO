@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: sctools
+Version: 0.4.1.dev33+g1f28a47
+Summary: Utilities for large-scale distributed single celldata processing
+Home-page: https://github.com/humancellatlas/sctools.git
+Author: Ambrose J. Carr
+Author-email: mail@ambrosejcarr.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+License-File: LICENSE
