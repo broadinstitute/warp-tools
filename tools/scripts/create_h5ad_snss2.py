@@ -7,7 +7,7 @@ import anndata as ad
 import pandas as pd
 
 def generate_col_attr(args):
-    """Converts the QC of Smart Seq2 gene file pipeline outputs to loom file
+    """Converts the QC of Smart Seq2 gene file pipeline outputs to H5AD file
     Args:
         qc_path (str): path to the QCs csv
     Retruns:
@@ -145,14 +145,14 @@ def generate_row_attr_and_matrix(count_results_path):
 
 
 def create_h5ad_files(args):
-    """This function creates the loom file or folder structure in output_loom_path in
+    """This function creates the H5AD file or folder structure in output_h5ad_path in
        format file_format, with input_id from the input folder analysis_output_path
     Args:
         input_id (str): sample or cell id
         qc_analysis_output_files_string (str): a string with the file names in the QCGroup of SS2
             pipeline output, separated by commas
         rsem_genes_results_file (str): the file for the expression count
-        output_loom_path (str): location of the output loom
+        output_h5ad_path (str): location of the output H5AD file
     """
     # generate a dictionary of column attributes
     col_attrs =  generate_col_attr(args)
@@ -168,9 +168,6 @@ def create_h5ad_files(args):
     gene_attrs = row_attrs
     cell_attrs = col_attrs
     adata = ad.AnnData(exon_counts)
-    print(adata.X)
-
-
     attrDict = dict()
     attrDict['pipeline_version'] = args.pipeline_version
 
@@ -192,23 +189,12 @@ def create_h5ad_files(args):
     # set the layers to the intron counts
     adata.layers['intron_counts'] = intron_counts
 
-    # write the h5ad file
+    # Write the h5ad file
     adata.write_h5ad(args.output_h5ad_path + ".h5ad")
-
-
-    #generate loom file
-    #loompy.create(args.output_loom_path, exon_expr_csr_coo, row_attrs, col_attrs, file_attrs=attrDict)
-
-    #ds = loompy.connect(args.output_loom_path)
-
-    #ds.layers['intron_counts'] = intron_expr_csr_coo
-    #ds.close()
-
 
 def main():
     description = """This script converts the some of the SmartSeq2 pipeline outputs in to
-                   loom format (https://linnarssonlab.org/loompy/format/index.html) relevant output.
-                   This script can be used as a module or run as a command line script."""
+                   H5AD format. This script can be used as a module or run as a command line script."""
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--qc_files',
@@ -219,7 +205,7 @@ def main():
 
     parser.add_argument('--count_results',
                         dest="count_results_file",
-                        help='path to the intronic and exonic count and FPKM to be added to the loom')
+                        help='path to the intronic and exonic count and FPKM to be added to the H5AD')
 
     parser.add_argument('--output_h5ad_path',
                         dest="output_h5ad_path",
