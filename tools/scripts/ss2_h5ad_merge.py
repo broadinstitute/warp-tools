@@ -1,14 +1,17 @@
 import argparse
 import anndata as ad
-import pandas as pd
 
 def merge_h5ad_files(args):
     """This function merges multiple H5AD files into one, preserving metadata."""
     h5ad_files = args.input_h5ad_files
+    print(f"Input H5AD files: {h5ad_files}")
+
     adatas = [ad.read_h5ad(f) for f in h5ad_files]
+    print(f"Number of AnnData objects read: {len(adatas)}")
 
     # Concatenate the AnnData objects
-    merged_adata = ad.concat(adatas, axis=0)
+    merged_adata = ad.concat(adatas, axis=0, merge="same")
+
 
     # Add global attributes (uns)
     attrDict = dict()
@@ -26,12 +29,14 @@ def merge_h5ad_files(args):
         attrDict['project.provenance.document_id'] = args.project_id
     if args.project_name is not None:
         attrDict['project.project_core.project_short_name'] = args.project_name
-    
+
     # Assign these attributes to the merged AnnData object
     merged_adata.uns.update(attrDict)
-    
+    print(f"Global attributes added to the merged AnnData: {attrDict}")
+
     # Save the merged H5AD file
     merged_adata.write_h5ad(args.output_h5ad_file)
+    print(f"Merged H5AD file saved to: {args.output_h5ad_file}")
 
 def main():
     description = """Merge the outputs of multiple SS2 pipeline runs into a single H5AD file"""
@@ -77,4 +82,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
