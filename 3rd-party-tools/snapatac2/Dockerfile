@@ -1,11 +1,11 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" python:3.9
+FROM --platform="linux/amd64" python:3.10
 
 ENV TERM=xterm-256color \
         TINI_VERSION=v0.19.0\
         PATH=$PATH:/usr/gitc
 
-ARG SNAPATAC2_VERSION=2.6.3
+ARG SNAPATAC2_VERSION=2.7.0
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
         SNAPATAC2_VERSION=${SNAPATAC2_VERSION}
