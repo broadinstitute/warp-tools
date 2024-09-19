@@ -80,7 +80,12 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
 def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores, counting_mode, expected_cells):
     print("Reading Optimus h5ad:")
     gex_data = gex_h5ad_modified
-    gex_data.uns['NHashID'] = gex_nhash_id
+    if gex_nhash_id is not None:
+        gex_data.uns['NHashID'] = gex_nhash_id
+    else:
+        gex_nhash_id = "NA"
+        gex_data.uns['NHashID'] = gex_nhash_id
+
     #gex_data.write(f"{input_id}.h5ad")
 
     print("Reading library metrics")
