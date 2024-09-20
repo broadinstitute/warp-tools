@@ -135,7 +135,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     dictionary = {key: [value] for key, value in dictionary.items()}
     new_dictionary.update(dictionary)
     new_dictionary = pd.DataFrame(new_dictionary)
-    new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv")
+    new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv", header=None)
 
     return gex_data
 
