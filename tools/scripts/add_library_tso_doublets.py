@@ -9,15 +9,15 @@ import scanpy as sc
 def call_cells(cellbarcodes, gex_h5ad):
     cells=pd.read_csv(cellbarcodes, sep="\t", header=None)
     adata=ad.read_h5ad(gex_h5ad)
-    adata.obs["STAR_cell"] = False
-    adata.obs.loc[adata.obs.index.isin(cells[0]), 'STAR_cell'] = True
+    adata.obs["star_IsCell"] = False
+    adata.obs.loc[adata.obs.index.isin(cells[0]), 'star_IsCell'] = True
     return adata
 
 def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     adata = gex_h5ad_modified
     adata.var_names_make_unique()
-    adata = adata[adata.obs["STAR_cell"] == True, :]
-    print("adata with STAR_cell == True", adata)
+    adata = adata[adata.obs["star_IsCell"] == True, :]
+    print("adata with star_IsCell == True", adata)
     k = np.int64(np.round(np.min([100, adata.shape[0] * 0.01])))
     n_doublets = np.int64(np.round(adata.shape[0] / (1 - proportion_artificial) - adata.shape[0]))
     real_cells_1 = np.random.choice(adata.obs_names, size=n_doublets, replace=True)
@@ -102,7 +102,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     else:
         gene_threshold = 1000
 
-    estimated_cells = len(gex_data.obs["STAR_cell"]==True)
+    estimated_cells = len(gex_data.obs["star_IsCell"]==True)
     expected_cells = int(expected_cells)  # Placeholder, replace with actual value
     
     # Adding doublet scores to barcodes that have been called as cells
@@ -113,7 +113,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     gex_data.obs['doublet_score'] = all_barcodes['doublet_score']
 
     # Adding keeper metrics
-    subset = gex_data[(gex_data.obs['STAR_cell']== True) & (gex_data.obs['doublet_score']<0.3) & (gex_data.obs['n_genes']> gene_threshold)]
+    subset = gex_data[(gex_data.obs['star_IsCell']== True) & (gex_data.obs['doublet_score']<0.3) & (gex_data.obs['n_genes']> gene_threshold)]
     keeper_cells = subset.shape[0]
     keeper_mean_reads_per_cell = subset.obs["n_reads"].mean()
     keeper_median_genes = subset.obs["n_genes"].median() 
