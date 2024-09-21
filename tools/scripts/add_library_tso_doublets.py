@@ -102,7 +102,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     else:
         gene_threshold = 1000
 
-    estimated_cells = len(gex_data.obs["star_IsCell"]==True)
+    estimated_cells = len(gex_data[gex_data.obs["star_IsCell"]==True])
     expected_cells = int(expected_cells)  # Placeholder, replace with actual value
     
     # Adding doublet scores to barcodes that have been called as cells
