@@ -93,8 +93,8 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     total_genes_unique_detected = len(unique_rows)
 
    
-    percent_target = estimated_cells/expected_cells
-    percent_intronic_reads = reads_mapped_confidently_to_intronic_regions/n_reads
+    percent_target = estimated_cells/expected_cells*100
+    percent_intronic_reads = reads_mapped_confidently_to_intronic_regions/n_reads*100
 
     data = {
         "number_of_reads": [n_reads],

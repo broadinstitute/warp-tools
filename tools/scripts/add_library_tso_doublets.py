@@ -127,8 +127,8 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     dictionary['keeper_cells'] = keeper_cells
     dictionary['keeper_mean_reads_per_cell'] = keeper_mean_reads_per_cell
     dictionary['keeper_median_genes'] = keeper_median_genes
-    dictionary['percent_keeper'] = percent_keeper
-    dictionary['percent_usable'] = percent_usable
+    dictionary['percent_keeper'] = percent_keeper*100
+    dictionary['percent_usable'] = percent_usable*100
 
     new_dictionary = {"NHashID": [gex_nhash_id]}  # This line is fine, it already has a list
     # Update other scalar values to lists
