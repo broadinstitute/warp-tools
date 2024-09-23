@@ -136,7 +136,10 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     new_dictionary.update(dictionary)
     new_dictionary = pd.DataFrame(new_dictionary)
     new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv", header=None)
-
+    if gex_nhash_id is not None:
+        new_dictionary.transpose().to_csv(f"{input_id}_{gex_nhash_id}_library_metrics.csv", header=None)
+    else:
+        new_dictionary.transpose().to_csv(f"{input_id}_library_metrics.csv", header=None)
     return gex_data
 
 
