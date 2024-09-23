@@ -148,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument("--proportion_artificial", type=float, default=0.2, help="Proportion of artificial doublets to be generated (default is 0.2).")
     parser.add_argument("--gex_h5ad", type=str, required=True, help="Path to the GEX h5ad file.")
     parser.add_argument("--cellbarcodes", type=str, required=True, help="Path to the cell barcodes file.")
-    parser.add_argument("--gex_nhash_id", type=str, required=True, help="NHashID for the GEX data.")
+    parser.add_argument("--gex_nhash_id", type=str, required=False, help="NHashID for the GEX data.")
     parser.add_argument("--library_csv", type=str, required=True, help="Path to the library metrics CSV file.")
     parser.add_argument("--input_id", type=str, required=True, help="Input ID for output files.")
     parser.add_argument("--counting_mode", type=str, required=True, help="Counting mode for STARsolo alignment.")
