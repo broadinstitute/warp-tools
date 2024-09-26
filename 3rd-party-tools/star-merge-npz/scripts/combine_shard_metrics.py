@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 
 
+# Function that takes in STARsolo alignment metrics and filtered matrix to produce library-level metrics
+# The filtered matrix is produced by STARsolo and contains UMIs for barcodes flagged as actual cells
 def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_barcodes, uniform_mtx, expected_cells):
     # Read the whitelist into a set.
     expected_cells = int(expected_cells)
