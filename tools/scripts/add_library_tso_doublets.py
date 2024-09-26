@@ -6,6 +6,7 @@ import argparse
 import scanpy as sc
 
 
+# Function to flag cell barcodes that are filtered as cells by STARsolo
 def call_cells(cellbarcodes, gex_h5ad):
     cells=pd.read_csv(cellbarcodes, sep="\t", header=None)
     adata=ad.read_h5ad(gex_h5ad)
@@ -13,6 +14,8 @@ def call_cells(cellbarcodes, gex_h5ad):
     adata.obs.loc[adata.obs.index.isin(cells[0]), 'star_IsCell'] = True
     return adata
 
+# Function to compute doublet scores using a modified version of DoubletFinder
+# This python implementation was provided by the Allen Institute
 def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     adata = gex_h5ad_modified
     adata.var_names_make_unique()
@@ -77,9 +80,11 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     return doublet_csv, percent_doublets 
 
 
+# Function to calculate additional library metrics such as keeper cells
 def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores, counting_mode, expected_cells):
     print("Reading Optimus h5ad:")
     gex_data = gex_h5ad_modified
+    # NHashID is optional input, so the logic below sets it if undefined
     if gex_nhash_id is not None:
         gex_data.uns['NHashID'] = gex_nhash_id
     else:
@@ -91,6 +96,9 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     print("Reading library metrics")
     library = pd.read_csv(library_csv, header=None)
 
+    # Calculates total library TSO metrics
+    # TSO reads refer to reads derived from the Template Switch Oligo
+    # TSO reads per cell are calculated from the BAM cN BAM tag
     print("Calculating TSO frac")
     tso_reads = gex_data.obs.tso_reads.sum() / gex_data.obs.n_reads.sum()
     print("TSO reads:")
@@ -103,6 +111,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
         gene_threshold = 1000
 
     estimated_cells = len(gex_data[gex_data.obs["star_IsCell"]==True])
+    # Expected cells is the number expected from the experiment; usually 10,000 with 10x data
     expected_cells = int(expected_cells)  # Placeholder, replace with actual value
     
     # Adding doublet scores to barcodes that have been called as cells
