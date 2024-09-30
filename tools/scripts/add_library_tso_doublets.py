@@ -93,7 +93,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     #gex_data.write(f"{input_id}.h5ad")
 
     print("Reading library metrics")
-    library = pd.read_csv(library_csv, header=None, index_col=0, squeeze=True)
+    library = pd.read_csv(library_csv, header=None)
 
     # Calculates total library TSO metrics
     # TSO reads refer to reads derived from the Template Switch Oligo
