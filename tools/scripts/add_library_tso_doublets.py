@@ -10,8 +10,7 @@ import scanpy as sc
 def call_cells(cellbarcodes, gex_h5ad):
     cells=pd.read_csv(cellbarcodes, sep="\t", header=None)
     adata=ad.read_h5ad(gex_h5ad)
-    adata.obs["star_IsCell"] = False
-    adata.obs.loc[adata.obs.index.isin(cells[0]), 'star_IsCell'] = True
+    adata.obs["star_IsCell"] = adata.obs.index.isin(cells[0])
     return adata
 
 # Function to compute doublet scores using a modified version of DoubletFinder
@@ -26,7 +25,7 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     real_cells_1 = np.random.choice(adata.obs_names, size=n_doublets, replace=True)
     real_cells_2 = np.random.choice(adata.obs_names, size=n_doublets, replace=True)
     doublet_X = adata[real_cells_1, :].X + adata[real_cells_2, :].X
-    doublet_obs_names = ["X" + str(i) for i in range(n_doublets)]
+    doublet_obs_names = [f"X{i}" for i in range(n_doublets)]
     doublet_adata = ad.AnnData(X=doublet_X, obs=pd.DataFrame(index=doublet_obs_names), var=pd.DataFrame(index=adata.var_names))    
     adata = adata.concatenate(doublet_adata, index_unique=None)
 
@@ -68,8 +67,8 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
     dist_th = np.mean(dist1) + (1.64 * np.std(dist1))
     freq = (dist < dist_th) & (idx > adata[adata.obs["doublet_cell"] == False, :].shape[0])
     score1 = freq.mean(axis=1)
-    score2 = freq[:, :np.int64(np.ceil(k/2))].mean(axis=1)
-    adata.obs["doublet_score"] = [np.max([score1[i], score2[i]]) for i in range(adata.shape[0])]   
+    score2 = freq[:, :np.int(np.ceil(k/2))].mean(axis=1)
+    adata.obs["doublet_score"] = np.maximum(score1, score2)   
     doublet_csv=adata.obs.loc[~adata.obs_names.isin(doublet_obs_names), ["doublet_score"]]
     
     # Calculate the percentage of doublets with a doublet_score > 0.3
@@ -94,7 +93,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     #gex_data.write(f"{input_id}.h5ad")
 
     print("Reading library metrics")
-    library = pd.read_csv(library_csv, header=None)
+    library = pd.read_csv(library_csv, header=None, index_col=0, squeeze=True)
 
     # Calculates total library TSO metrics
     # TSO reads refer to reads derived from the Template Switch Oligo
@@ -122,7 +121,7 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     gex_data.obs['doublet_score'] = all_barcodes['doublet_score']
 
     # Adding keeper metrics
-    subset = gex_data[(gex_data.obs['star_IsCell']== True) & (gex_data.obs['doublet_score']<0.3) & (gex_data.obs['n_genes']> gene_threshold)]
+    subset = gex_data[gex_data.obs['star_IsCell'] & (gex_data.obs['doublet_score'] < 0.3) & (gex_data.obs['n_genes'] > gene_threshold)]
     keeper_cells = subset.shape[0]
     keeper_mean_reads_per_cell = subset.obs["n_reads"].mean()
     keeper_median_genes = subset.obs["n_genes"].median() 
@@ -147,8 +146,10 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     new_dictionary.transpose().to_csv("library_metrics.csv", header=None)
     return gex_data
 
-
-if __name__ == "__main__":
+def main():
+    description = """This script converts the some of the Optimus outputs in to
+                   h5ad format.
+                   This script can be used as a module or run as a command line script."""
     parser = argparse.ArgumentParser(description="Process single-cell RNA-seq data and compute doublet scores.")
     parser.add_argument("--proportion_artificial", type=float, default=0.2, help="Proportion of artificial doublets to be generated (default is 0.2).")
     parser.add_argument("--gex_h5ad", type=str, required=True, help="Path to the GEX h5ad file.")
@@ -160,9 +161,7 @@ if __name__ == "__main__":
     parser.add_argument("--expected_cells", type=int, required=True, help="Expected number of cells.")
 
     args = parser.parse_args()
-
-
-    # Compute cell calls and doublet scores
+        # Compute cell calls and doublet scores
     print("Calculating cell calls")
     cell_h5ad=call_cells(args.cellbarcodes, args.gex_h5ad)
     print("Calculating doublets based on cell calls")
@@ -178,3 +177,7 @@ if __name__ == "__main__":
     print(f"Doublet scores saved to {output_path}")
     print("Percent_doublets: ", percent_doublets)
     print("Done!")
+
+if __name__ == "__main__":
+    main()
+
