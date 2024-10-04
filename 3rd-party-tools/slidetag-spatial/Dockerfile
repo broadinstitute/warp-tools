@@ -87,5 +87,3 @@ RUN apt-get update ; \
     # Install python
     # TODO
 
-# Set tini as default entrypoint 
-ENTRYPOINT [ "/sbin/tini", "--" ]
