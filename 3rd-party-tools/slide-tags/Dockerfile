@@ -94,4 +94,4 @@ RUN apt-get update ; \
     # RUN pip install jupyterlab
 
 # Added to copy julia script to docker image
-COPY spatial-count.jl .
+# COPY spatial-count.jl .
