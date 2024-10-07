@@ -82,7 +82,7 @@ RUN apt-get update ; \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
-          BiocManager::install('rhdf5')"
+          BiocManager::install('rhdf5')" ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
