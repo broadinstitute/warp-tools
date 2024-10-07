@@ -82,11 +82,11 @@ RUN apt-get update ; \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
-          BiocManager::install('rhdf5')" 
+          BiocManager::install('rhdf5')" ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-    # "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
     
     # Install python + pip + jupyter
     # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
@@ -94,4 +94,4 @@ RUN apt-get update ; \
     # RUN pip install jupyterlab
 
 # Added to copy julia script to docker image
-# COPY spatial-count.jl .
+COPY spatial-count.jl .
