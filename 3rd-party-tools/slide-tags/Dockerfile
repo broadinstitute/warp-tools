@@ -6,8 +6,6 @@ SHELL ["/bin/bash", "-c"]
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org"
 
-WORKDIR /usr
-
 # Install system libraries
 RUN apt-get update ; \
     apt-get install -y --no-install-recommends zip unzip gzip less wget curl    ; \
