@@ -19,7 +19,7 @@ RUN apt-get update ; \
     apt-get install -y --no-install-recommends libfreetype6-dev libcairo2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev ; \
 
     # Get spatial count script
-    wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl -O /usr/spatial-count.jl; \
+    wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl; \
     pwd; \
     ls -l; \
 
@@ -99,8 +99,6 @@ RUN apt-get update ; \
     # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
     # RUN sudo apt-get update && sudo apt-get install python3-pip
     # RUN pip install jupyterlab
-
-ENV PATH $PATH:/usr     
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
