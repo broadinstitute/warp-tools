@@ -86,12 +86,12 @@ RUN apt-get update ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+    "${SHELL}" <(curl -L micro.mamba.pm/install.sh) ;\
     
     # Install python + pip + jupyter
     # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
     # RUN sudo apt-get update && sudo apt-get install python3-pip
     # RUN pip install jupyterlab
-
-# Added to copy julia script to docker image
-COPY spatial-count.jl .
+    
+    # Get spatial count script
+    wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl
