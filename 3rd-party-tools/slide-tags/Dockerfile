@@ -95,3 +95,6 @@ RUN apt-get update ; \
 
 # Added to copy julia script to docker image
 COPY . .
+
+# Set tini as default entry point
+ENTRYPOINT ["/usr/bin/tini", "--"]
