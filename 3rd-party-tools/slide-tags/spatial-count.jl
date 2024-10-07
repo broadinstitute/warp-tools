@@ -1,6 +1,7 @@
 using CSV
 using HDF5
 using FASTX
+using ArgParse
 using CodecZlib
 using IterTools: product
 using StatsBase: countmap, sample
@@ -9,23 +10,8 @@ using StringViews
 using LinearAlgebra: dot
 using Combinatorics: combinations
 
-# fastqpath is the path to a directory containing all fastq files to process
-# puckpath is the path to a directory containing all puck files to reference
-# Running this script will process all files in both directories and produce one output
-# - so be sure that these directories only contain the files for a specific run
-
-# Read the command-line arguments
-if length(ARGS) != 2
-    error("Usage: julia spatial-count.jl fastq_path puck_path")
-end
-fastqpath = ARGS[1]
-println("FASTQ path: "*fastqpath)
-@assert isdir(fastqpath) "FASTQ path not found"
-@assert !isempty(readdir(fastqpath)) "FASTQ path is empty"
-puckpath = ARGS[2]
-println("Puck path: "*puckpath)
-@assert isdir(puckpath) "Puck path not found"
-@assert !isempty(readdir(puckpath)) "Puck path is empty"
+# This file was taken from https://github.com/MacoskoLab/Macosko-Pipelines/blob/main/spatial-count/spatial-count.jl
+# Last commit: eae1682efc4a73966dd7057bb1e6ee591fbec273
 
 # Recognized bead types:
 # JJJJJJJJ  TCTTCAGCGTTCCCGAGA JJJJJJJ  NNNNNNNVV (V10)
@@ -33,10 +19,77 @@ println("Puck path: "*puckpath)
 # JJJJJJJJJJJJJJJ   CTGTTTCCTG NNNNNNNNN          (V15)
 # JJJJJJJJJJJJJJJJJ CTGTTTCCTG NNNNNNNNN          (V16)
 
+# fastq_path is the path to a directory containing all fastq files to read
+# puck_path is the path to a directory containing all puck files to use
+# Running this script will process all files in both directories and produce one output
+# - so be sure that these directories only contain the files for a specific run
+# out_path is the directory where the output SBcounts.h5 is written
+
+# Read the command-line arguments
+function get_args()
+    s = ArgParseSettings()
+
+    # Positional arguments
+    @add_arg_table s begin
+        "fastq_path"
+        help = "Path to the directory of FASTQ files"
+        arg_type = String
+        required = true
+
+        "puck_path"
+        help = "Path to the directory of Puck file(s)"
+        arg_type = String
+        required = true
+
+        "out_path"
+        help = "Output directory"
+        arg_type = String
+        required = true
+    end
+    
+    # Optional arguments
+    @add_arg_table s begin
+        "--downsampling_level", "-p"
+        help = "Level of downsampling"
+        arg_type = Float64
+        default = 1.0
+    end
+
+    return parse_args(ARGS, s)
+end
+
+# Load the command-line arguments
+args = get_args()
+const fastq_path = args["fastq_path"]
+const puck_path = args["puck_path"]
+const out_path = args["out_path"]
+const prob = args["downsampling_level"]
+
+println("FASTQ path: "*fastq_path)
+@assert isdir(fastq_path) "ERROR: FASTQ path not found"
+@assert !isempty(readdir(fastq_path)) "ERROR: FASTQ path is empty"
+
+println("Puck path: "*puck_path)
+@assert isdir(puck_path) "ERROR: Puck path not found"
+@assert !isempty(readdir(puck_path)) "ERROR: Puck path is empty"
+
+println("Output path: "*out_path)
+Base.Filesystem.mkpath(out_path)
+@assert isdir(out_path) "ERROR: Output path could not be created"
+
+@assert 0 < prob <= 1 "ERROR: Invalid downsampling level $prob"
+if prob < 1
+    println("Downsampling level: $prob")
+end
+
+println("Threads: $(Threads.nthreads())")
+
+println("") ; flush(stdout) ; GC.gc()
+
 ##### Load the puck data #######################################################
 
 # Load the pucks
-puck_paths = filter(x -> endswith(x, ".csv"), readdir(puckpath, join=true)) ; println("Pucks: ", basename.(puck_paths))
+puck_paths = filter(x -> endswith(x, ".csv"), readdir(puck_path, join=true)) ; println("Pucks: ", basename.(puck_paths))
 puckdfs = [rename(CSV.read(puck, DataFrame, header=false, types=[String, Float64, Float64]), [:sb,:x,:y]) for puck in puck_paths]
 
 # Get the spatial barcode length
@@ -76,10 +129,10 @@ println("Total number of unique spatial barcodes: $(length(sb_whitelist))")
 
 println("") ; flush(stdout) ; GC.gc()
 
-##### Load the FASTQ data ######################################################
+##### Load the FASTQ paths #####################################################
 
 # Load the FASTQ paths
-fastq_paths = readdir(fastqpath, join=true)
+fastq_paths = readdir(fastq_path, join=true) ; println("FASTQs:")
 fastq_paths = filter(fastq -> endswith(fastq, ".fastq.gz"), fastq_paths)
 @assert length(fastq_paths) > 1 "ERROR: No FASTQ pairs found"
 const R1s = filter(s -> occursin("_R1_", s), fastq_paths) ; println("R1s: ", basename.(R1s))
@@ -87,7 +140,13 @@ const R2s = filter(s -> occursin("_R2_", s), fastq_paths) ; println("R2s: ", bas
 @assert length(R1s) > 0 && length(R2s) > 0 "ERROR: No FASTQ pairs found"
 @assert length(R1s) == length(R2s) "ERROR: R1s and R2s are not all paired"
 @assert [replace(R1, "_R1_"=>"", count=1) for R1 in R1s] == [replace(R2, "_R2_"=>"", count=1) for R2 in R2s]
-println("$(length(R1s)) pair(s) of FASTQs found\n")
+println("$(length(R1s)) pair(s) of FASTQs found")
+
+println("") ; flush(stdout) ; GC.gc()
+
+##### Determine the FASTQ read structure #######################################
+
+println("Determining read structure:")
 
 # Read structure methods
 const SeqView = StringView{SubArray{UInt8, 1, Vector{UInt8}, Tuple{UnitRange{Int64}}, true}}
@@ -206,7 +265,11 @@ else
     error("ERROR: Unhandled bead type ($bead)")
 end
 
-##### Helper methods ###########################################################
+println("") ; flush(stdout) ; GC.gc()
+
+##### Create matching dictionaries #############################################
+
+print("Creating matching dictionaries... ") ; flush(stdout)
 
 # Returns a set of all strings within a certain hamming distance of the input
 function listHDneighbors(str, hd, charlist = ['A','C','G','T','N'])::Set{String}
@@ -289,8 +352,6 @@ function create_SBtoindex(sb_whitelist)
     return(SBtoindex)
 end
 
-print("Creating matching dictionaries... ") ; flush(stdout)
-
 const SBtoindex = create_SBtoindex(sb_whitelist)
 
 const UP_TOL = round(Int, length(UP)/6)
@@ -300,7 +361,7 @@ const UP_GG_whitelist = reduce(union, [listHDneighbors("G"^length(UP), i) for i 
 const UMI_TOL = round(Int, 12/6)
 const umi_homopolymer_whitelist = reduce(union, [listHDneighbors(c^12, i) for c in bases for i in 0:UMI_TOL])
 
-println("done") ; flush(stdout) ; GC.gc()
+println("done\n") ; flush(stdout) ; GC.gc()
 
 ##### Read the FASTQS ##########################################################
 
@@ -322,6 +383,9 @@ function process_fastqs(R1s, R2s)
         it1 = fastqpair[1] |> open |> GzipDecompressorStream |> FASTQ.Reader;
         it2 = fastqpair[2] |> open |> GzipDecompressorStream |> FASTQ.Reader;
         for record in zip(it1, it2)
+            # Random dropout for downsampling
+            prob < 1 && rand() > prob && continue
+            
             metadata["reads"] += 1
 
             seq1 = FASTQ.sequence(record[1])
@@ -416,13 +480,13 @@ df, cb_whitelist, metadata = process_fastqs(R1s, R2s)
 @assert metadata["SB"]["exact"] + metadata["SB"]["HD1"] == metadata["reads_filtered"] == sum(df.reads)
 @assert sum(values(metadata["SB_HD"])) == metadata["SB"]["HD1"]
 
-println("...done") ; flush(stdout) ; GC.gc()
+println("...done\n") ; flush(stdout) ; GC.gc()
 
 # Create a downsampling curve
 downsampling = UInt32[]
 table = countmap(df.reads)
-for prob in 0:0.05:1
-    s = [length(unique(floor.(sample(0:k*v-1, round(Int,k*v*prob), replace=false)/k))) for (k,v) in zip(keys(table),values(table))]
+for p in 0:0.05:1
+    s = [length(unique(floor.(sample(0:k*v-1, round(Int,k*v*p), replace=false)/k))) for (k,v) in zip(keys(table),values(table))]
     append!(downsampling, sum(s))
     GC.gc()
 end
@@ -431,7 +495,7 @@ end
 
 print("Saving results... ") ; flush(stdout)
 
-h5open("SBcounts.h5", "w") do file
+h5open(joinpath(out_path, "SBcounts.h5"), "w") do file
     create_group(file, "lists")
     file["lists/cb_list", compress=9] = String31.(cb_whitelist) # Vector{String}
     file["lists/sb_list", compress=9] = String31.(sb_whitelist) # Vector{String}

@@ -22,10 +22,10 @@ RUN apt-get update ; \
     # Install Rust
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y ; \
     # Install Julia
-    wget -P /software https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.5-linux-x86_64.tar.gz ; \
-    tar -xzvf /software/julia-1.10.5-linux-x86_64.tar.gz -C /software                                        ; \
-    rm /software/julia-1.10.5-linux-x86_64.tar.gz                                                            ; \
-    ln -s /software/julia-1.10.5/bin/julia /usr/local/bin/julia ; \
+    wget -P /opt https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.5-linux-x86_64.tar.gz ; \
+    tar -xzvf /opt/julia-1.10.5-linux-x86_64.tar.gz -C /opt                                        ; \
+    rm /opt/julia-1.10.5-linux-x86_64.tar.gz                                                            ; \
+    ln -s /opt/julia-1.10.5/bin/julia /usr/local/bin/julia ; \
 
     # Install Julia libraries
     RUN julia -e 'using Pkg;                     \
@@ -84,6 +84,14 @@ RUN apt-get update ; \
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
           BiocManager::install('rhdf5')"
 
-    # Install python
-    # TODO
+    # Install micromamba
+    # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+    
+    # Install python + pip + jupyter
+    # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
+    # RUN sudo apt-get update && sudo apt-get install python3-pip
+    # RUN pip install jupyterlab
 
+# Added to copy julia script to docker image
+COPY . .
