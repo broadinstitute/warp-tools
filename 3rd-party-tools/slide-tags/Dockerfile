@@ -16,6 +16,9 @@ RUN apt-get update ; \
     apt-get install -y --no-install-recommends apt-transport-https ca-certificates libssl-dev libxml2-dev zlib1g-dev ; \
     apt-get install -y --no-install-recommends libfreetype6-dev libcairo2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev ; \
 
+    # Get spatial count script
+    wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl; \
+     
     # Install Google Cloud SDK
     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && apt-get update -y && apt-get install google-cloud-sdk -y ;\
 
@@ -86,12 +89,11 @@ RUN apt-get update ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-    "${SHELL}" <(curl -L micro.mamba.pm/install.sh) ;\
+    "${SHELL}" <(curl -L micro.mamba.pm/install.sh) 
     
     # Install python + pip + jupyter
     # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
     # RUN sudo apt-get update && sudo apt-get install python3-pip
     # RUN pip install jupyterlab
-    
-    # Get spatial count script
-    wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl
+
+ 
