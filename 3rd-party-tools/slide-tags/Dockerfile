@@ -94,7 +94,7 @@ RUN apt-get update ; \
     # RUN pip install jupyterlab
 
 # Added to copy julia script to docker image
-COPY . .
+COPY spatial-count.jl .
 
 # Set tini as default entry point
 ENTRYPOINT ["/usr/bin/tini", "--"]
