@@ -33,7 +33,7 @@ RUN apt-get update ; \
     ln -s /opt/julia-1.10.5/bin/julia /usr/local/bin/julia ; \
 
     # Install Julia libraries
-    RUN julia -e 'using Pkg;                     \
+    julia -e 'using Pkg;                     \
                   Pkg.add(["CSV",                \
                        "GZip",               \
                        "SIMD",               \
@@ -97,3 +97,6 @@ RUN apt-get update ; \
     # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
     # RUN sudo apt-get update && sudo apt-get install python3-pip
     # RUN pip install jupyterlab
+
+# Set tini as default entrypoint
+ENTRYPOINT [ "/sbin/tini", "--" ]
