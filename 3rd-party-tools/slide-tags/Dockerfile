@@ -16,7 +16,7 @@ RUN apt-get update ; \
     apt-get install -y --no-install-recommends apt-transport-https ca-certificates libssl-dev libxml2-dev zlib1g-dev ; \
     apt-get install -y --no-install-recommends libfreetype6-dev libcairo2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev ; \
 
-    # Get spatial count script
+    # Get spatial count script -- will add this line later until we can pull it in
     wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl; \
 
     # Install Google Cloud SDK
