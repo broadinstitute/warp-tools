@@ -4,7 +4,7 @@
 FROM debian:bookworm
 SHELL ["/bin/bash", "-c"]
 
-LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org"
+LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
 
 # Install system libraries
 RUN apt-get update ; \
