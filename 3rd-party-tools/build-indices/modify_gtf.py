@@ -54,6 +54,11 @@ def get_features(features):
 
 def modify_attr(features_dic):
     modified_features = ""
+    if "gene_name" is not in features_dic.keys():
+        if "gene" in features_dic.keys():
+            features_dic["gene_name"] = features_dic["gene"]
+        else:
+            features_dic["gene_name"] = features_dic["gene_id"]
 
     for key in features_dic.copy():
         if key in ["exon_id","gene_id","transcript_id"]:
@@ -68,8 +73,6 @@ def modify_attr(features_dic):
             # If the version ids are not present in the dictionary, add them
             if version_key not in features_dic:
                 features_dic[version_key] = version
-        if key == 'gene' and "gene_name" not in features_dic.keys():
-            features_dic['gene_name'] = features_dic['gene']
 
     modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
 
