@@ -30,7 +30,6 @@ def main():
         print(f"Matrices are NOT identical: delta: {delta} delta_cutoff: {args.delta_cutoff}")
         sys.exit(1)
 
-
 if __name__ == "__main__":
     main()
 
