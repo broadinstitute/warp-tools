@@ -122,7 +122,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
         "mean_gene_per_cell": [mean_gene_per_cell],
         "median_gene_per_cell": [median_gene_per_cell],
         "total_genes_unique_detected": [total_genes_unique_detected],
-        "percent_target": [percent_target],
+        "gex_percent_target": [percent_target],
         "percent_intronic_reads": [percent_intronic_reads]
     }
 
