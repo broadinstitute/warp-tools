@@ -1,194 +1,272 @@
+#!/usr/bin/env python3
+
 import argparse
 import gzip
 import re
 
 def get_ref_source(input_gtf):
+    """Determine if the GTF is from RefSeq or GENCODE."""
     reference_source = ""
     with open(input_gtf, 'r') as fh:
         for line_num, line in enumerate(fh):
-            # search string
             if ('gene_type' in line) or ('transcript_type' in line):
                 reference_source = "Gencode"
                 print('Gencode Reference')
-                # don't continue the search if found at least one instance
                 break
             elif ('gene_biotype' in line) or ('transcript_biotype' in line):
                 reference_source = "Refseq"
                 print('Refseq reference')
-                # don't continue the search if found at least one instance
                 break
     return reference_source 
 
-def get_biotypes(biotypes_file_path):
-    allowable_biotypes= []
-    with open(biotypes_file_path,'r',encoding='utf-8-sig') as biotypesFile:
-        for line in biotypesFile:
-            if not line.startswith("#"):
-                fields = [x.strip() for x in line.strip().split("\t")]
-                if fields[1] == "Y" or fields[1]=="y":
-                    allowable_biotypes.append(fields[0])
-    return  allowable_biotypes
+def is_valid_chromosome_region(fields, species):
+    """
+    Check if the feature is in a valid chromosome region.
+    Only filters PAR regions for human.
+    """
+    if species != "human":
+        return True
+        
+    chromosome = fields[0]
+    if chromosome != "chrY":
+        return True
+        
+    start_pos = int(fields[3])
+    # For human chrY, check if it's in the valid region (2752083-56887903)
+    return 2752083 <= start_pos < 56887903
+
+def is_allowable_biotype(biotype, ref_source, features_dic=None):
+    """Check if biotype should be included based on reference source."""
+    # Handle mitochondrial genes first
+    if features_dic and (features_dic.get('gene', '').startswith('MT-') or 
+                        features_dic.get('gene_name', '').startswith('MT-')):
+        return True
+
+    if ref_source == "Refseq":
+        allowed_types = {
+            'mRNA',           
+            'tRNA',
+            'rRNA',
+            'C_gene_segment',
+            'V_gene_segment',
+            'lnc_RNA',      
+        }
+    else:  # Gencode/Ensembl
+        allowed_types = {
+            'protein_coding',
+            'protein_coding_LoF',
+            'lncRNA',
+            'tRNA',
+            'rRNA',
+            'mRNA',
+            'IG_C_gene',
+            'IG_D_gene',
+            'IG_J_gene',
+            'IG_LV_gene',
+            'IG_V_gene',
+            'IG_V_pseudogene',
+            'IG_J_pseudogene',
+            'IG_C_pseudogene',
+            'TR_C_gene',
+            'TR_D_gene',
+            'TR_J_gene',
+            'TR_V_gene',
+            'TR_V_pseudogene',
+            'TR_J_pseudogene'
+        }
+    
+    # Handle cases where biotype is missing but it's an MT gene
+    if biotype is None and features_dic and features_dic.get('gene', '').startswith('MT-'):
+        return True
+        
+    return biotype in allowed_types
 
 def get_features(features):
+    """Parse GTF attributes into a dictionary."""
     features_dict = {}
     key_value_pairs = features.split(';')
-    #Process each key-value pair
     for pair in key_value_pairs:
-        # Split each pair into key and value
         key_value = pair.strip().split(' ', 1)
-
-        # Ensure there is a key (and at least one element in the key-value pair)
         if len(key_value) == 2:
             key, value = key_value
             key = key.strip()
             value = value.strip(' "')
-
-            # Add the key-value pair to the dictionary
             if key:
                 features_dict[key] = value
         elif len(key_value) == 1:
-            # Handle the case where a key is present but the value is missing
             key = key_value[0].strip()
             features_dict[key] = ""
     return features_dict
 
 def modify_attr(features_dic):
-    modified_features = ""
-    if "gene_name" not in features_dic.keys():
-        if "gene" in features_dic.keys():
-            features_dic["gene_name"] = features_dic["gene"]
-        else:
-            features_dic["gene_name"] = features_dic["gene_id"]
-
+    """Modify attribute fields to version format."""
     for key in features_dic.copy():
-        if key in ["exon_id","gene_id","transcript_id"]:
+        if key in ["exon_id", "gene_id", "transcript_id"]:
             version_key = key.replace("_id", "_version")
-            # Check if the gene_id has a version and split on the period
             if '.' in features_dic[key]:
-                features_dic[key], version = features_dic[key].split(".",1)
+                features_dic[key], version = features_dic[key].split(".", 1)
             else:
                 features_dic[key] = features_dic[key]
                 version = 0
 
-            # If the version ids are not present in the dictionary, add them
             if version_key not in features_dic:
                 features_dic[version_key] = version
+        if key == 'gene' and "gene_name" not in features_dic.keys():
+            features_dic['gene_name'] = features_dic['gene']
 
     modified_features = "; ".join([f'{key} "{value}"' for key, value in features_dic.items() if key and value is not None])
-
     return modified_features
 
-def get_gene_ids_Refseq(input_gtf, biotypes):
-    gene_ids =[]
+def get_gene_ids_Refseq(input_gtf, species):
+    """Collect gene IDs from RefSeq GTF that meet filtering criteria."""
+    gene_ids = []
     with open(input_gtf, 'r') as input_file:
         for line in input_file:
             if not line.startswith('#'):
                 fields = [x.strip() for x in line.strip().split('\t')]
-                if fields[2]=='gene':
+                if not is_valid_chromosome_region(fields, species):
+                    continue
+                    
+                if fields[2] == 'transcript':
                     features = re.sub('"', '', line.strip().split('\t')[8].strip())
                     features_dic = get_features(features)
-                    if ('gene_biotype' in features_dic.keys()) and (features_dic['gene_biotype'] in biotypes):
-                        gene=features_dic['gene_id'].split('.',1)[0]
+
+                    # Special handling for mitochondrial genes
+                    if fields[0] == "chrM" or features_dic.get('gene', '').startswith('MT-'):
+                        gene = features_dic['gene_id'].split('.', 1)[0]
                         if gene not in gene_ids:
                             gene_ids.append(gene)
-    input_file.close()
+                        continue
+
+                    biotype = features_dic.get('transcript_biotype') or features_dic.get('gene_biotype')
+                    if biotype and is_allowable_biotype(biotype, "Refseq", features_dic):
+                        gene = features_dic['gene_id'].split('.', 1)[0]
+                        if gene not in gene_ids:
+                            gene_ids.append(gene)
+                    elif features_dic.get('gene', '').startswith('MT-'):
+                        # Handle MT genes without biotype
+                        gene = features_dic['gene_id'].split('.', 1)[0]
+                        if gene not in gene_ids:
+                            gene_ids.append(gene)
     return gene_ids
 
-def get_gene_ids_Gencode(input_gtf, biotypes):
+def get_gene_ids_Gencode(input_gtf, species):
+    """Collect gene IDs from GENCODE GTF that meet filtering criteria."""
     gene_ids = set()
     with open(input_gtf, 'r') as input_file:
-        print("open succesful")
+        print("open successful")
         for line in input_file:
             if line.startswith('#'):
                 continue
             fields = [x.strip() for x in line.strip().split('\t')]
+            
+            if not is_valid_chromosome_region(fields, species):
+                continue
+                
             if fields[2] != 'transcript':
                 continue
+            
             features = re.sub('"', '', line.strip().split('\t')[8].strip())
             features_dic = get_features(features)
 
-            if (features_dic['gene_type'] not in biotypes) or (features_dic['transcript_type'] not in biotypes):
+            # Special handling for mitochondrial genes
+            if fields[0] == "chrM" or features_dic.get('gene', '').startswith('MT-'):
+                gene = features_dic['gene_id']
+                if gene not in gene_ids:
+                    gene_ids.add(gene)
                 continue
 
-            if 'tag' in features_dic:
-                if ('readthrough_transcript' not in features_dic['tag']) and (
-                    'PAR' not in features_dic['tag']):
-                    gene=features_dic['gene_id']
-                    if gene not in gene_ids:
-                        gene_ids.add(gene)
-
-            else:
-                gene=features_dic['gene_id']
+            gene_type = features_dic.get('gene_type')
+            transcript_type = features_dic.get('transcript_type') or features_dic.get('transcript_biotype')
+            
+            # Handle MT genes without biotype
+            if features_dic.get('gene', '').startswith('MT-'):
+                gene = features_dic['gene_id']
+                if gene not in gene_ids:
+                    gene_ids.add(gene)
+                continue
+                
+            if (gene_type and is_allowable_biotype(gene_type, "Gencode", features_dic) and
+                (transcript_type is None or is_allowable_biotype(transcript_type, "Gencode", features_dic))):
+                gene = features_dic['gene_id']
                 if gene not in gene_ids:
                     gene_ids.add(gene)
 
-    input_file.close()
     return list(gene_ids)
 
+def filter_gtf(input_gtf, output_gtf, species, gene_ids):
+    """Filter and write the GTF file."""
+    with open(input_gtf, 'r') as input_file:
+        with open(output_gtf, 'w') as output_gtf:
+            for line in input_file:
+                if line.startswith("#"):
+                    output_gtf.write(line)
+                    continue
+                    
+                fields = [x.strip() for x in line.strip().split("\t")]
+                
+                if not is_valid_chromosome_region(fields, species):
+                    continue
+                    
+                features = re.sub('"', '', line.strip().split('\t')[8].strip())
+                if features.endswith(';'):
+                    features = features[:-1]                     
+                features_dic = get_features(features)
+                
+                # For human, skip XGY2 gene explicitly
+                if species == "human" and features_dic.get('gene_id') == "ENSG00000290840":
+                    continue
+                    
+                if features_dic['gene_id'] in gene_ids:
+                    modified_fields = fields.copy()
+                    modified_fields[8] = modify_attr(features_dic)
+                    output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
+
 def main():
-    """ This script filters a GTF file for all genes that have at least one transcript with a biotype.
-    The complete list of biotypes is passed and the desired biotypes are marked by a boolean Y or N.
-    The new gtf file attributes exon_id, gene_id and transcript_id are modified by removing the versions to match Cellranger IDs.
-    """
-    parser = argparse.ArgumentParser()
+    """Main function to process GTF files."""
+    parser = argparse.ArgumentParser(description="Filter GTF files based on biotypes and format specifications")
     parser.add_argument(
         "--input-gtf",
         "-i",
         dest="input_gtf",
-        default=None,
         required=True,
-        help="input GTF",
+        help="input GTF file"
     )
     parser.add_argument(
         "--output-gtf",
         "-o",
         dest="output_gtf",
-        default=None,
-        help="output GTF"
+        required=True,
+        help="output GTF file"
     )
     parser.add_argument(
-        "--biotypes",
-        "-b",
-        dest="biotypes_file",
-        default=None,
+        "--species",
+        "-s",
+        dest="species",
         required=True,
-        help="List of all gene_type or transcript_type fields and a boolean to choose which biotypes to filter in the GTF file."
+        help="Species name (e.g., human, mouse, etc.)"
     )
     args = parser.parse_args()
 
-    allowable_biotypes = get_biotypes(biotypes_file_path=args.biotypes_file)
-    print("Filtering the gtf for biotypes:", allowable_biotypes)
-    ref_source = get_ref_source(input_gtf=args.input_gtf)
-    if ref_source == "Refseq":
-        gene_ids = get_gene_ids_Refseq(input_gtf=args.input_gtf, biotypes=allowable_biotypes)
-    elif ref_source == "Gencode":
-        gene_ids = get_gene_ids_Gencode(input_gtf=args.input_gtf, biotypes=allowable_biotypes)
-    else:
-        print("The input gtf file cannot be processed with this script. Provided biotype attributes should be from Gencode or Refseq.")
-        exit(0)
+    print(f"Processing {args.species} GTF file...")
 
-    print("Writing the output file based on selected genes with biotype")
-    with open(args.input_gtf, 'r') as input_file:
-        with open(args.output_gtf, 'w') as output_gtf:
-            for line in input_file:
-                if line.startswith("#"):
-                    output_gtf.write(line.strip() + "\n")
-                else:
-                    fields = [x.strip() for x in line.strip().split("\t")]
-                    features = re.sub('"', '', line.strip().split('\t')[8].strip())
-                    # Remove the trailing semicolon if it exists
-                    if features.endswith(';'):
-                      features = features[:-1]                     
-                    #print("Features:",features,'\n', fields[8])
-                    features_dic = get_features(features)
-                    #print(features_dic)
-                    if features_dic['gene_id'] in gene_ids:
-                        # The two lines below for modified filed were moved into this if statement
-                        # We want to find the valid genes first and then modify the GTF fields
-                        modified_fields = fields.copy()
-                        modified_fields[8] = modify_attr(features_dic)
-                     #   print("modfied:",modified_fields[8])
-                        output_gtf.write("{}".format("\t".join(modified_fields)+ "\n"))
+    print("Determining reference source...")
+    ref_source = get_ref_source(input_gtf=args.input_gtf)
+    
+    print("Collecting gene IDs...")
+    if ref_source == "Refseq":
+        gene_ids = get_gene_ids_Refseq(input_gtf=args.input_gtf, species=args.species)
+    elif ref_source == "Gencode":
+        gene_ids = get_gene_ids_Gencode(input_gtf=args.input_gtf, species=args.species)
+    else:
+        print("Error: The input GTF file format is not recognized. Must be either GENCODE or RefSeq format.")
+        exit(1)
+
+    print(f"Found {len(gene_ids)} genes matching criteria")
+    print("Writing filtered GTF file...")
+    
+    filter_gtf(args.input_gtf, args.output_gtf, args.species, gene_ids)
+    print("Done! Filtered GTF file has been written to:", args.output_gtf)
 
 if __name__ == "__main__":
     main()
