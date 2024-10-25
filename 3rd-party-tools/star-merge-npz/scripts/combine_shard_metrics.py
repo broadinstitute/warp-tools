@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 
 
+# Function that takes in STARsolo alignment metrics and filtered matrix to produce library-level metrics
+# The filtered matrix is produced by STARsolo and contains UMIs for barcodes flagged as actual cells
 def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_barcodes, uniform_mtx, expected_cells):
     # Read the whitelist into a set.
     expected_cells = int(expected_cells)
@@ -92,23 +94,9 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     unique_rows = filtered[0].unique()
     total_genes_unique_detected = len(unique_rows)
 
-    # Keeper cell metrics
-    # Expected number of cells is unknown, so this commented out for now
-    #expected_cells = 3000  # Placeholder, replace with actual value
-    percent_target = estimated_cells/expected_cells
-    percent_intronic_reads = reads_mapped_confidently_to_intronic_regions/n_reads
-
-    if counting_mode == "sc_rna":
-        gene_threshold = 1500
-    else:
-        gene_threshold = 1000
-
-    keeper_cells = cells_filtered[cells_filtered["nGenesUnique"] > gene_threshold]
-    keeper_mean_reads_per_cell = keeper_cells["countedU"].mean()
-    keeper_median_genes = keeper_cells["nGenesUnique"].median()
-    keeper_cells_count = len(keeper_cells)
-    percent_keeper = keeper_cells_count/estimated_cells
-    percent_usable = keeper_cells_count/expected_cells
+   
+    percent_target = estimated_cells/expected_cells*100
+    percent_intronic_reads = reads_mapped_confidently_to_intronic_regions/n_reads*100
 
     data = {
         "number_of_reads": [n_reads],
@@ -135,12 +123,7 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
         "median_gene_per_cell": [median_gene_per_cell],
         "total_genes_unique_detected": [total_genes_unique_detected],
         "percent_target": [percent_target],
-        "percent_intronic_reads": [percent_intronic_reads],
-        "keeper_mean_reads_per_cell": [keeper_mean_reads_per_cell],
-        "keeper_median_genes": [keeper_median_genes],
-        "keeper_cells": [keeper_cells_count],
-        "percent_keeper": [percent_keeper],
-        "percent_usable": [percent_usable]
+        "percent_intronic_reads": [percent_intronic_reads]
     }
 
     df = pd.DataFrame(data)
