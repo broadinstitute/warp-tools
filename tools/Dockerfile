@@ -17,7 +17,7 @@ RUN set -eux && \
     mkdir -p /warptools && \
     apt-get update && apt-get upgrade -y && apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
     pip install --upgrade pip && \
-    pip install loompy==3.0.6 anndata==0.7.8 numpy==1.23.0 pandas==1.3.5 scipy pysam==0.21 && \
+    pip install loompy==3.0.6 anndata==0.10.8 numpy==1.23.0 pandas==2.2.2 scikit-learn==1.5.1 scanpy==1.10.2 scipy pysam==0.21 && \
     curl -sSL https://sdk.cloud.google.com | bash 
 
 COPY . /warptools
