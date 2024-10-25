@@ -54,7 +54,7 @@ def get_features(features):
 
 def modify_attr(features_dic):
     modified_features = ""
-    if "gene_name" is not in features_dic.keys():
+    if "gene_name" not in features_dic.keys():
         if "gene" in features_dic.keys():
             features_dic["gene_name"] = features_dic["gene"]
         else:
