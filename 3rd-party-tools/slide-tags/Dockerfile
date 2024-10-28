@@ -73,6 +73,7 @@ RUN apt-get update ; \
                              'hdf5r',       \
                              'dbscan',      \
                              'future',      \
+                             'parallelly',  \
                              'Seurat',      \
                              'cowplot',     \
                              'ggplot2',     \
