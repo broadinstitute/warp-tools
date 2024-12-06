@@ -28,12 +28,12 @@ def create_gene_id_name_map(gtf_file):
     ) as fpin:
         for _line in fpin:
             line = _line.strip()
-            gene_id_res = re.search(r"gene_id ([^;]*);", line)
-            gene_name_res = re.search(r"gene_name ([^;]*);", line)
+            gene_id_res = re.search(r'\bgene_id\s+"([^"]+)"', line)
+            gene_name_res = re.search(r'\bgene_name\s+"([^"]+)"', line)
 
             if gene_id_res and gene_name_res:
-                gene_id = gene_id_res.group(1).replace('"', "")
-                gene_name = gene_name_res.group(1).replace('"', "")
+                gene_id = gene_id_res.group(1)
+                gene_name = gene_name_res.group(1)
                 gene_id_name_map[gene_id] = gene_name
 
     return gene_id_name_map
