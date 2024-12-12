@@ -59,27 +59,27 @@ jobs:
     - name: Push image
       run: "docker push ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
 
-  build-for-acr:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 3rd-party-tools/snapatac2
-    steps:
-      # checkout the repo
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v3
+  # build-for-acr:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: 3rd-party-tools/snapatac2
+  #   steps:
+  #     # checkout the repo
+  #     - name: 'Checkout GitHub Action'
+  #       uses: actions/checkout@v3
 
-      - name: 'Login via Azure CLI'
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #     - name: 'Login via Azure CLI'
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 'Build and push image'
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - run: |
-          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
-          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
+  #     - name: 'Build and push image'
+  #       uses: azure/docker-login@v1
+  #       with:
+  #         login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+  #         username: ${{ secrets.REGISTRY_USERNAME }}
+  #         password: ${{ secrets.REGISTRY_PASSWORD }}
+  #     - run: |
+  #         docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
+  #         docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/${ACR_PATH}:${TAG}
