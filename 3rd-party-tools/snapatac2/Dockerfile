@@ -18,6 +18,7 @@ RUN apt-get update; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
     pip install snapatac2==${SNAPATAC2_VERSION}; \
+    pip install scanpy; \
     # Install TINI
     mkdir temp; \
     cd temp; \
