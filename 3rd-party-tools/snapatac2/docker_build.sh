@@ -13,7 +13,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/"
 QUAY_URL="quay.io/broadinstitute/gotc-prod-snapatac2/"
 
 # SnapATAC2 version
-SNAPATAC2_VERSION="2.6.3"
+SNAPATAC2_VERSION="2.7.1"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
