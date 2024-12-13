@@ -2,13 +2,21 @@ name: GTF Comparison Tests
 
 on:
   push:
+    paths:
+      - '3rd-party-tools/build-indices/**'
     branches: [ main ]
   pull_request:
+    paths:
+      - '3rd-party-tools/build-indices/**'
     branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: 3rd-party-tools/build-indices
     
     steps:
     - uses: actions/checkout@v2
@@ -24,7 +32,9 @@ jobs:
         pip install pandas
     
     - name: Create test data directory
-      run: mkdir -p test_data test_output
+      run: |
+        mkdir -p test_data
+        mkdir -p test_output
     
     - name: Run tests
       run: python -m unittest test_gtf_comparison.py -v
@@ -33,5 +43,5 @@ jobs:
       uses: actions/upload-artifact@v2
       if: always()
       with:
-        name: test-results
-        path: test_output/
+        name: gtf-test-results
+        path: 3rd-party-tools/build-indices/test_output/
