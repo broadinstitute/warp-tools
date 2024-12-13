@@ -2,7 +2,6 @@ name: GTF Comparison Tests
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   pull_request:
     branches: [ "develop", "master" ]
     paths:
@@ -28,14 +27,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas
 
-    # Change to the directory containing the scripts
-    - name: Change working directory
-      run: cd 3rd-party-tools/build-indices
-      shell: bash
-
-    # Create test data directory (relative to the script location)
-    - name: Create test data directory
-      run: mkdir -p 3rd-party-tools/build-indices/test_data 3rd-party-tools/build-indices/test_output
+    # Set PYTHONPATH to include the build-indices directory
+    - name: Set PYTHONPATH
+      run: export PYTHONPATH="${PYTHONPATH}:3rd-party-tools/build-indices"
 
     # Create test data
     - name: Create test data
