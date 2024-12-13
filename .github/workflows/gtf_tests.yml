@@ -27,17 +27,47 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas
 
-    - name: Create directories
+    - name: Create directories and verify structure
       run: |
+        # Create directory structure
         mkdir -p test_data
-        mkdir -p test_output
         mkdir -p test_output/comparison_files
         mkdir -p test_data/reference_outputs
+        
+        # Debug: Print directory structure
+        echo "Directory structure:"
+        tree .
 
-    - name: Create test data
+    - name: Create and verify test data
       run: |
+        # Create test data
         python create_test_gtfs.py
-        ls -la test_data/  # Debug: List test data directory contents
+        
+        # Verify test files were created
+        echo "Checking test data files:"
+        ls -la test_data/
+        
+        if [ ! -f "test_data/test1.gtf" ]; then
+          echo "Error: test1.gtf was not created"
+          exit 1
+        fi
+
+    - name: Create reference GTF
+      run: |
+        # Create reference GTF file
+        python modify_gtf.py \
+          -i test_data/test1.gtf \
+          -o test_data/reference_outputs/reference_modified.gtf \
+          -b Biotypes.tsv
+        
+        # Verify reference file was created
+        if [ ! -f "test_data/reference_outputs/reference_modified.gtf" ]; then
+          echo "Error: Reference GTF was not created"
+          exit 1
+        fi
+        
+        echo "Reference GTF created successfully:"
+        ls -la test_data/reference_outputs/
 
     - name: Run modify_gtf script
       env:
@@ -48,30 +78,47 @@ jobs:
           -o test_output/modified_test1.gtf \
           -b Biotypes.tsv
         
-        # Verify output was created
-        ls -la test_output/modified_test1.gtf || echo "Modified GTF was not created"
+        if [ ! -f "test_output/modified_test1.gtf" ]; then
+          echo "Error: Modified GTF was not created"
+          exit 1
+        fi
+        
+        echo "Modified GTF created successfully:"
+        ls -la test_output/modified_test1.gtf
 
     - name: Run comparison
       id: comparison
       env:
         PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
       run: |
-        if [ ! -f "test_output/modified_test1.gtf" ]; then
-          echo "Error: Modified GTF file not found"
-          exit 1
-        fi
+        # Verify all required files exist
+        for file in "test_data/test1.gtf" "test_output/modified_test1.gtf"; do
+          if [ ! -f "$file" ]; then
+            echo "Error: Required file $file not found"
+            exit 1
+          fi
+        done
         
         python compare_gtfs.py \
           test_data/test1.gtf \
           test_output/modified_test1.gtf \
           --output-prefix test_output/comparison_files/comparison
-      continue-on-error: true
+        
+        # Verify comparison output was created
+        if [ ! -f "test_output/comparison_files/comparison_structural_diff.txt" ]; then
+          echo "Error: Comparison output was not created"
+          exit 1
+        fi
+
+    - name: Run unit tests
+      id: unit_tests
+      env:
+        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
+      run: python -m unittest test_gtf_comparison.py -v
 
     - name: Create comparison summary
       if: always()
       run: |
-        mkdir -p test_output/comparison_files
-        
         {
           echo "GTF Comparison Summary"
           echo "Generated on: $(date)"
@@ -80,46 +127,25 @@ jobs:
           echo "Modified GTF: test_output/modified_test1.gtf"
           echo
           
-          echo "=== Structural Differences ==="
-          if [ -f test_output/comparison_files/comparison_structural_diff.txt ]; then
-            cat test_output/comparison_files/comparison_structural_diff.txt
-          else
-            echo "No structural differences file found"
-          fi
-          
-          echo
-          echo "=== Gene Differences ==="
-          if [ -f test_output/comparison_files/comparison_gene_diff.txt ]; then
-            cat test_output/comparison_files/comparison_gene_diff.txt
-          else
-            echo "No gene differences file found"
-          fi
-          
-          echo
-          echo "=== Attribute Differences ==="
-          if [ -f test_output/comparison_files/comparison_attribute_diff.txt ]; then
-            cat test_output/comparison_files/comparison_attribute_diff.txt
-          else
-            echo "No attribute differences file found"
-          fi
+          for diff_type in structural gene attribute; do
+            echo "=== ${diff_type^} Differences ==="
+            if [ -f "test_output/comparison_files/comparison_${diff_type}_diff.txt" ]; then
+              cat "test_output/comparison_files/comparison_${diff_type}_diff.txt"
+            else
+              echo "No ${diff_type} differences file found"
+            fi
+            echo
+          done
         } > test_output/comparison_files/summary.txt
-
-    - name: Run unit tests
-      id: unit_tests
-      env:
-        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
-      run: |
-        python -m unittest test_gtf_comparison.py -v
-      continue-on-error: true
 
     - name: Zip comparison results
       if: always()
       run: |
-        # Ensure the directory exists and has content before zipping
         if [ -d "test_output/comparison_files" ] && [ "$(ls -A test_output/comparison_files)" ]; then
           cd test_output
           zip -r comparison_results.zip comparison_files/
           cd ..
+          echo "Comparison results zipped successfully"
         else
           echo "No comparison files to zip"
           touch test_output/comparison_results.zip
@@ -134,6 +160,7 @@ jobs:
           3rd-party-tools/build-indices/test_output/comparison_results.zip
           3rd-party-tools/build-indices/test_output/modified_test1.gtf
           3rd-party-tools/build-indices/test_data/test1.gtf
+          3rd-party-tools/build-indices/test_data/reference_outputs/*
           3rd-party-tools/build-indices/Biotypes.tsv
         compression-level: 9
 
@@ -141,6 +168,8 @@ jobs:
       if: always()
       run: |
         echo "=== Test Results Summary ==="
+        
+        TESTS_FAILED=false
         
         # Check unit tests result
         if [ "${{ steps.unit_tests.outcome }}" == "success" ]; then
@@ -164,7 +193,6 @@ jobs:
           TESTS_FAILED=true
         fi
         
-        # Fail if any tests failed
         if [ "$TESTS_FAILED" = true ]; then
           exit 1
         fi
