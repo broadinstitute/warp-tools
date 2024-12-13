@@ -1,0 +1,47 @@
+name: GTF Comparison Tests
+
+on:
+  push:
+    paths:
+      - '3rd-party-tools/build-indices/**'
+    branches: [ main ]
+  pull_request:
+    paths:
+      - '3rd-party-tools/build-indices/**'
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: 3rd-party-tools/build-indices
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+    
+    - name: Create test data directory
+      run: |
+        mkdir -p test_data
+        mkdir -p test_output
+    
+    - name: Run tests
+      run: python -m unittest test_gtf_comparison.py -v
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: gtf-test-results
+        path: 3rd-party-tools/build-indices/test_output/
