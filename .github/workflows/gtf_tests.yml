@@ -27,47 +27,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas
 
-    - name: Create directories and verify structure
+    - name: Create output directories
       run: |
-        # Create directory structure
-        mkdir -p test_data
         mkdir -p test_output/comparison_files
         mkdir -p test_data/reference_outputs
-        
-        # Debug: Print directory structure
-        echo "Directory structure:"
-        tree .
 
-    - name: Create and verify test data
+    - name: Verify test data
       run: |
-        # Create test data
-        python create_test_gtfs.py
-        
-        # Verify test files were created
-        echo "Checking test data files:"
-        ls -la test_data/
-        
         if [ ! -f "test_data/test1.gtf" ]; then
-          echo "Error: test1.gtf was not created"
+          echo "Error: Required test file test_data/test1.gtf not found"
           exit 1
         fi
-
-    - name: Create reference GTF
-      run: |
-        # Create reference GTF file
-        python modify_gtf.py \
-          -i test_data/test1.gtf \
-          -o test_data/reference_outputs/reference_modified.gtf \
-          -b Biotypes.tsv
-        
-        # Verify reference file was created
-        if [ ! -f "test_data/reference_outputs/reference_modified.gtf" ]; then
-          echo "Error: Reference GTF was not created"
+        if [ ! -f "Biotypes.tsv" ]; then
+          echo "Error: Required Biotypes.tsv file not found"
           exit 1
         fi
-        
-        echo "Reference GTF created successfully:"
-        ls -la test_data/reference_outputs/
+        echo "Test files present:"
+        ls -l test_data/test1.gtf Biotypes.tsv
 
     - name: Run modify_gtf script
       env:
@@ -82,33 +58,16 @@ jobs:
           echo "Error: Modified GTF was not created"
           exit 1
         fi
-        
-        echo "Modified GTF created successfully:"
-        ls -la test_output/modified_test1.gtf
 
     - name: Run comparison
       id: comparison
       env:
         PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
       run: |
-        # Verify all required files exist
-        for file in "test_data/test1.gtf" "test_output/modified_test1.gtf"; do
-          if [ ! -f "$file" ]; then
-            echo "Error: Required file $file not found"
-            exit 1
-          fi
-        done
-        
         python compare_gtfs.py \
           test_data/test1.gtf \
           test_output/modified_test1.gtf \
           --output-prefix test_output/comparison_files/comparison
-        
-        # Verify comparison output was created
-        if [ ! -f "test_output/comparison_files/comparison_structural_diff.txt" ]; then
-          echo "Error: Comparison output was not created"
-          exit 1
-        fi
 
     - name: Run unit tests
       id: unit_tests
@@ -145,7 +104,6 @@ jobs:
           cd test_output
           zip -r comparison_results.zip comparison_files/
           cd ..
-          echo "Comparison results zipped successfully"
         else
           echo "No comparison files to zip"
           touch test_output/comparison_results.zip
@@ -159,9 +117,6 @@ jobs:
         path: |
           3rd-party-tools/build-indices/test_output/comparison_results.zip
           3rd-party-tools/build-indices/test_output/modified_test1.gtf
-          3rd-party-tools/build-indices/test_data/test1.gtf
-          3rd-party-tools/build-indices/test_data/reference_outputs/*
-          3rd-party-tools/build-indices/Biotypes.tsv
         compression-level: 9
 
     - name: Check test results
