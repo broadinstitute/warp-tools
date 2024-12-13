@@ -1,30 +1,67 @@
-# GTF File Comparison Tools
+# Build_indices
 
-This directory contains tools for comparing and testing GTF (Gene Transfer Format) file modifications. The tools are designed to work together to ensure consistency in GTF file processing and to detect and report differences between GTF files.
+## Quick reference
 
-## Components
+Copy and paste to pull this image:
 
-### Scripts
-- `compare_gtfs.py` - Main comparison tool for analyzing differences between two GTF files
+#### `docker pull us.gcr.io/broad-gotc-prod/build-indices:1.0.0-2.7.10a-1663605340`
+
+- __What is this image:__ This image is a Debian-based custom image with STAR installed and pre-configured along with python scripts to build indices.
+- __What is STAR:__ Spliced Transcripts Alignment to a Reference (STAR) is a fast RNA-seq read mapper, with support for splice-junction and fusion read detection. STAR aligns reads by finding the Maximal Mappable Prefix (MMP) hits between reads (or read pairs) and the genome, using a Suffix Array index, [more info here](https://github.com/alexdobin/STAR).
+- __How to see tool version used in image:__ Please see below.
+
+## Versioning
+
+Build_indices uses the following convention for versioning:
+
+#### `us.gcr.io/broad-gotc-prod/build-indices:<image-version>-<star-version>-<unix-timestamp>`
+
+We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+
+You can see more information about the image, including the tool versions, by running the following command:
+
+```bash
+$ docker pull us.gcr.io/broad-gotc-prod/build-indices:1.0.0-2.7.10a-1663605340
+$ docker inspect us.gcr.io/broad-gotc-prod/build-indices:1.0.0-2.7.10a-1663605340
+```
+
+## Usage
+
+### Build_indices Docker Container
+
+```bash
+$ docker run --rm -it \
+    us.gcr.io/broad-gotc-prod/build-indices:1.0.0-2.7.10a-1663605340 \
+    build-indices bash
+```
+
+Then you can exec into the container and use STAR or any of the scripts accordingly. Alternatively, you can run one-off commands by passing the command as a docker run parameter.
+
+## GTF Comparison Tools
+
+This repository includes tools for comparing and testing GTF (Gene Transfer Format) file modifications. These tools ensure consistency in GTF processing and provide detailed comparison reports.
+
+### Components
+
+#### Scripts
+- `compare_gtfs.py` - Analyzes differences between two GTF files
 - `test_gtf_comparison.py` - Unit tests for GTF comparison functionality
-- `modify_gtf.py` - Script to modify GTF files (referenced in tests)
+- `modify_gtf.py` - Script to modify GTF files
 
-### Required Files
+#### Required Files
 - `test_data/test1.gtf` - Test GTF file
 - `Biotypes.tsv` - File containing allowed biotypes
 
-## Features
+### Features
 
 The comparison tool analyzes:
-- Structural differences in the first 8 GTF fields
-- Attribute differences in the 9th field, including:
+- Structural differences in GTF fields
+- Attribute differences, including:
   - Reordered attributes
   - Extra or missing attributes
   - Different attribute values
 - Gene-level differences
 - Mitochondrial gene comparisons
-
-## Usage
 
 ### Running GTF Comparison
 
@@ -37,63 +74,51 @@ Example:
 python compare_gtfs.py test_data/test1.gtf modified_output.gtf --output-prefix comparison
 ```
 
-This will generate three output files:
-- `<prefix>_structural_diff.txt` - Differences in GTF structure
-- `<prefix>_attribute_diff.txt` - Detailed attribute differences
-- `<prefix>_gene_diff.txt` - Gene-level comparison results
+### Testing
 
-### Running Tests
-
+Run the test suite:
 ```bash
 python -m unittest test_gtf_comparison.py -v
 ```
 
-## GitHub Actions Integration
+### GitHub Actions Integration
 
-The repository includes GitHub Actions workflows that automatically:
-1. Run GTF comparison tests
-2. Generate comparison reports
-3. Upload test artifacts
+Automated testing is configured via GitHub Actions:
+- Runs comparison tests
+- Generates reports
+- Uploads test artifacts
 
-### Workflow Files
-- `.github/workflows/gtf_tests.yml` - Main test workflow configuration
+Configuration file: `.github/workflows/gtf_tests.yml`
 
-## Output Reports
+### Output Reports
 
-### Structural Differences Report
-Contains information about:
-- Total row counts
-- Row-by-row field differences
-- Sample differences for each field
+1. Structural Differences (`<prefix>_structural_diff.txt`):
+   - Row counts
+   - Field differences
+   - Sample comparisons
 
-### Attribute Differences Report
-Shows:
-- Summary of attribute differences
-- Detailed attribute comparisons
-- Extra attributes in each file
-- Value differences for common attributes
+2. Attribute Differences (`<prefix>_attribute_diff.txt`):
+   - Attribute summaries
+   - Detailed comparisons
+   - Value differences
 
-### Gene Differences Report
-Includes:
-- Total gene counts
-- Unique genes in each file
-- Mitochondrial gene analysis
+3. Gene Differences (`<prefix>_gene_diff.txt`):
+   - Gene counts
+   - Unique gene lists
+   - MT gene analysis
 
-## Requirements
+### Requirements
 
 - Python 3.x
 - pandas
-- Standard Python libraries (argparse, os, collections)
+- Standard Python libraries
 
-## Installation
-
-No special installation required. Just ensure you have the required Python packages:
-
+Install dependencies:
 ```bash
 pip install pandas
 ```
 
-## Directory Structure
+### Directory Structure
 
 ```
 build-indices/
@@ -108,46 +133,26 @@ build-indices/
 └── Biotypes.tsv
 ```
 
-## Contributing
+### Error Handling
 
-When modifying these scripts:
-1. Ensure all tests pass
-2. Update test cases for new functionality
-3. Maintain compatibility with GitHub Actions workflow
-4. Update documentation as needed
-
-## Error Handling
-
-The scripts include comprehensive error handling for:
-- Missing input files
+The tools include comprehensive error handling for:
+- Missing files
 - Malformed GTF content
-- Directory creation/access issues
+- Directory issues
 - Attribute parsing errors
 
-## Output Examples
+### Contributing
 
-Example attribute difference report:
-```
-Attribute Differences (9th field):
+When modifying these tools:
+1. Ensure all tests pass
+2. Update test cases for new features
+3. Maintain Docker compatibility
+4. Update documentation
+5. Follow GitHub Actions workflow requirements
 
-Attribute Key           Only in GTF1    Only in GTF2    Different Values
--------------------------------------------------------------------------
-gene_id                 0              0              5
-gene_type              2              0              3
-transcript_id          1              0              0
+## Notes
 
-Detailed Attribute Differences:
-Row 1:
-  Different values:
-    gene_id: GTF1="ENSG01", GTF2="ENSG01.1"
-```
-
-## Note
-
-This comparison tool is sensitive to:
-- GTF format variations
-- Attribute ordering
-- Whitespace differences
-- Version numbers in IDs
-
-Make sure your input files follow standard GTF formatting for best results.
+- GTF comparison is sensitive to format variations
+- Docker container provides consistent environment
+- All scripts are accessible within the container
+- Use reference files for reliable testing
