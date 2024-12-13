@@ -27,19 +27,38 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas
 
-    - name: Create test directories
-      run: |
-        mkdir -p test_data
-        mkdir -p test_output
+    - name: Create output directory
+      run: mkdir -p test_output
 
-    - name: Run tests
+    - name: Verify required files exist
+      run: |
+        ls test_data/test1.gtf
+        ls Biotypes.tsv
+
+    - name: Run modify_gtf script
       env:
         PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
-      run: python -m unittest test_gtf_comparison.py -v
+      run: |
+        python modify_gtf.py \
+          -i test_data/test1.gtf \
+          -o test_output/modified_test1.gtf \
+          -b Biotypes.tsv
+
+    - name: Run comparison tests
+      env:
+        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
+      run: |
+        python compare_gtfs.py \
+          test_data/test1.gtf \
+          test_output/modified_test1.gtf \
+          --output-prefix test_output/comparison
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: gtf-test-results
-        path: 3rd-party-tools/build-indices/test_output/
+        path: |
+          3rd-party-tools/build-indices/test_output/
+          3rd-party-tools/build-indices/test_data/test1.gtf
+          3rd-party-tools/build-indices/Biotypes.tsv
