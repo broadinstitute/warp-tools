@@ -1,10 +1,11 @@
 name: GTF Comparison Tests
-
+# Controls when the workflow will run
 on:
-  push:
-    branches: [ main ]
+  # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   pull_request:
-    branches: [ main ]
+    branches: [ "develop", "master" ]
+    paths:
+      - '3rd-party-tools/build-indices/**'
 
 jobs:
   test:
@@ -25,7 +26,10 @@ jobs:
     
     - name: Create test data directory
       run: mkdir -p test_data test_output
-    
+
+    - name: Create test data 
+      run: python create_test_gtfs.py
+
     - name: Run tests
       run: python -m unittest test_gtf_comparison.py -v
     
