@@ -36,78 +36,61 @@ jobs:
       run: |
         if [ ! -f "test_data/test1.gtf" ]; then
           echo "Error: Required test file test_data/test1.gtf not found"
+          ls -la test_data/
           exit 1
         fi
         if [ ! -f "Biotypes.tsv" ]; then
           echo "Error: Required Biotypes.tsv file not found"
+          ls -la
           exit 1
         fi
         echo "Test files present:"
         ls -l test_data/test1.gtf Biotypes.tsv
 
-    - name: Run modify_gtf script
+    - name: Run GTF modification and comparison
+      id: gtf_tests
       env:
         PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
       run: |
-        python modify_gtf.py \
-          -i test_data/test1.gtf \
-          -o test_output/modified_test1.gtf \
-          -b Biotypes.tsv
+        # Run the unit tests
+        python -m unittest test_gtf_comparison.py -v
+      continue-on-error: true
+
+    - name: Prepare artifacts
+      if: always()
+      run: |
+        # Create directory for all artifacts
+        mkdir -p artifact_output
         
-        if [ ! -f "test_output/modified_test1.gtf" ]; then
-          echo "Error: Modified GTF was not created"
-          exit 1
+        # Copy test input files
+        cp test_data/test1.gtf artifact_output/
+        cp Biotypes.tsv artifact_output/
+        
+        # Copy test outputs if they exist
+        if [ -d "test_output" ]; then
+          cp -r test_output/* artifact_output/
         fi
-
-    - name: Run comparison
-      id: comparison
-      env:
-        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
-      run: |
-        python compare_gtfs.py \
-          test_data/test1.gtf \
-          test_output/modified_test1.gtf \
-          --output-prefix test_output/comparison_files/comparison
-
-    - name: Run unit tests
-      id: unit_tests
-      env:
-        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
-      run: python -m unittest test_gtf_comparison.py -v
-
-    - name: Create comparison summary
-      if: always()
-      run: |
+        
+        # Copy reference outputs if they exist
+        if [ -d "test_data/reference_outputs" ]; then
+          mkdir -p artifact_output/reference_outputs
+          cp -r test_data/reference_outputs/* artifact_output/reference_outputs/
+        fi
+        
+        # Create manifest
         {
-          echo "GTF Comparison Summary"
-          echo "Generated on: $(date)"
-          echo
-          echo "Input GTF: test_data/test1.gtf"
-          echo "Modified GTF: test_output/modified_test1.gtf"
-          echo
-          
-          for diff_type in structural gene attribute; do
-            echo "=== ${diff_type^} Differences ==="
-            if [ -f "test_output/comparison_files/comparison_${diff_type}_diff.txt" ]; then
-              cat "test_output/comparison_files/comparison_${diff_type}_diff.txt"
-            else
-              echo "No ${diff_type} differences file found"
-            fi
-            echo
-          done
-        } > test_output/comparison_files/summary.txt
-
-    - name: Zip comparison results
-      if: always()
-      run: |
-        if [ -d "test_output/comparison_files" ] && [ "$(ls -A test_output/comparison_files)" ]; then
-          cd test_output
-          zip -r comparison_results.zip comparison_files/
-          cd ..
-        else
-          echo "No comparison files to zip"
-          touch test_output/comparison_results.zip
-        fi
+          echo "GTF Test Artifacts"
+          echo "Generated: $(date)"
+          echo ""
+          echo "Test Input Files:"
+          ls -l artifact_output/test1.gtf artifact_output/Biotypes.tsv
+          echo ""
+          echo "Test Outputs:"
+          ls -R artifact_output/test_output/ 2>/dev/null || echo "No test outputs found"
+          echo ""
+          echo "Reference Outputs:"
+          ls -R artifact_output/reference_outputs/ 2>/dev/null || echo "No reference outputs found"
+        } > artifact_output/manifest.txt
 
     - name: Upload test artifacts
       if: always()
@@ -115,39 +98,36 @@ jobs:
       with:
         name: gtf-test-results
         path: |
-          3rd-party-tools/build-indices/test_output/comparison_results.zip
-          3rd-party-tools/build-indices/test_output/modified_test1.gtf
+          3rd-party-tools/build-indices/artifact_output/**/*
+          3rd-party-tools/build-indices/test_output/**/*
+          3rd-party-tools/build-indices/test_data/reference_outputs/**/*
         compression-level: 9
+        retention-days: 14
 
     - name: Check test results
       if: always()
       run: |
         echo "=== Test Results Summary ==="
         
-        TESTS_FAILED=false
-        
-        # Check unit tests result
-        if [ "${{ steps.unit_tests.outcome }}" == "success" ]; then
-          echo "✅ Unit tests passed"
+        # Check unit test results
+        if [ "${{ steps.gtf_tests.outcome }}" == "success" ]; then
+          echo "✅ GTF tests passed"
         else
-          echo "❌ Unit tests failed"
-          TESTS_FAILED=true
-        fi
-        
-        # Check comparison results
-        if [ -f "test_output/comparison_files/comparison_structural_diff.txt" ]; then
-          if grep -q "differs in" test_output/comparison_files/comparison_structural_diff.txt; then
-            echo "❌ GTF comparison found differences"
-            cat test_output/comparison_files/summary.txt
-            TESTS_FAILED=true
-          else
-            echo "✅ GTF comparison passed"
+          echo "❌ GTF tests failed"
+          
+          # Display difference report if it exists
+          if [ -f "test_output/comparison_files/difference_report.txt" ]; then
+            echo ""
+            echo "Differences found:"
+            cat test_output/comparison_files/difference_report.txt
           fi
-        else
-          echo "❌ GTF comparison failed to generate output"
-          TESTS_FAILED=true
-        fi
-        
-        if [ "$TESTS_FAILED" = true ]; then
+          
+          # Display test summary if it exists
+          if [ -f "test_output/comparison_files/test_summary.txt" ]; then
+            echo ""
+            echo "Test Summary:"
+            cat test_output/comparison_files/test_summary.txt
+          fi
+          
           exit 1
         fi
