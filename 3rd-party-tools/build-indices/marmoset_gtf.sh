@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Parse command line arguments
