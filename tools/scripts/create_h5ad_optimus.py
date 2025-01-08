@@ -390,6 +390,8 @@ def create_h5ad_files(args):
     # Set variable names
     new_data.var_names = [x for x in new_data.var["Gene"]]
     
+    # Add GTF to uns field
+    new_data.uns["GTF"] = str(args.annotation_file)
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
 
