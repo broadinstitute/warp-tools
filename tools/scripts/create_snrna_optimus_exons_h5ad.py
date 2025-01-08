@@ -352,6 +352,9 @@ def create_h5ad_files(args):
     # Set the layer = to the exon_counts csr matrix
     new_data.layers["exon_counts"]=exon_counts
     
+    # Add GTF to uns field
+    new_data.uns["GTF"] = str(args.annotation_file)
+    
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
 
