@@ -352,8 +352,20 @@ def create_h5ad_files(args):
     # Set the layer = to the exon_counts csr matrix
     new_data.layers["exon_counts"]=exon_counts
     
-    # Add GTF to uns field
-    new_data.uns["GTF"] = str(args.annotation_file)
+    # Original path from args.annotation_file
+    annotation_gtf = args.annotation_file  # e.g., '/cromwell_root/gcp-public-data--broad-references/hg38/v0/star/v2_7_10a/modified_v43.annotation.gtf'
+
+    # Transform the path
+    if annotation_gtf.startswith('/cromwell_root/'):
+        stripped_path = annotation_gtf[len('/cromwell_root/'):]  # Remove '/cromwell_root/'
+        updated_path = f'gs://{stripped_path}'  # Add 'gs://' prefix
+    else:
+        updated_path = str(args.annotation_file)
+    
+    new_data.uns["reference_gtf_file"] = updated_path
+    
+    # Write h5ad file
+    new_data.write(args.output_h5ad_path + ".h5ad")
     
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
