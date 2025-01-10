@@ -474,8 +474,8 @@ def main():
     )
 
     parser.add_argument(
-        "--gtf-path",
-        dest="gtf-path",
+        "--gtf_path",
+        dest="gtf_path",
         default=None,
         required=False,
         help="annotation file path",
