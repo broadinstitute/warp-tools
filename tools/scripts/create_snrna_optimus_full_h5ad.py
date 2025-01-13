@@ -335,17 +335,10 @@ def create_h5ad_files(args):
     # Set variable names
     new_data.var_names = [x for x in new_data.var["Gene"]]
     
-    # Original path from args.annotation_file
-    annotation_gtf = args.annotation_file  # e.g., '/cromwell_root/gcp-public-data--broad-references/hg38/v0/star/v2_7_10a/modified_v43.annotation.gtf'
+    # Add GTF to uns field
 
-    # Transform the path
-    if annotation_gtf.startswith('/cromwell_root/'):
-        stripped_path = annotation_gtf[len('/cromwell_root/'):]  # Remove '/cromwell_root/'
-        updated_path = f'gs://{stripped_path}'  # Add 'gs://' prefix
-    else:
-        updated_path = str(args.annotation_file)
-    
-    new_data.uns["reference_gtf_file"] = updated_path
+    gtf_path = args.gtf_path
+    new_data.uns["reference_gtf_file"] = gtf_path
     
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
@@ -403,6 +396,14 @@ def main():
         default=None,
         required=False,
         help="annotation file in GTF format",
+    )
+
+    parser.add_argument(
+        "--gtf_path",
+        dest="gtf_path",
+        default=None,
+        required=False,
+        help="annotation file path",
     )
 
     parser.add_argument(
