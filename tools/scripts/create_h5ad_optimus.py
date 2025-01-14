@@ -390,6 +390,11 @@ def create_h5ad_files(args):
     # Set variable names
     new_data.var_names = [x for x in new_data.var["Gene"]]
     
+    # Add GTF to uns field
+
+    gtf_path = args.gtf_path
+    new_data.uns["reference_gtf_file"] = gtf_path
+    
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
 
@@ -456,6 +461,14 @@ def main():
         default=None,
         required=False,
         help="annotation file in GTF format",
+    )
+
+    parser.add_argument(
+        "--gtf_path",
+        dest="gtf_path",
+        default=None,
+        required=False,
+        help="annotation file path",
     )
 
     parser.add_argument(

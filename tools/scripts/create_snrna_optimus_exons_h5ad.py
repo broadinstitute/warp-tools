@@ -352,6 +352,15 @@ def create_h5ad_files(args):
     # Set the layer = to the exon_counts csr matrix
     new_data.layers["exon_counts"]=exon_counts
     
+    # Original path from args.annotation_file
+    # Add GTF to uns field
+
+    gtf_path = args.gtf_path
+    new_data.uns["reference_gtf_file"] = gtf_path
+    
+    # Write h5ad file
+    new_data.write(args.output_h5ad_path + ".h5ad")
+    
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
 
@@ -424,6 +433,14 @@ def main():
         default=None,
         required=False,
         help="annotation file in GTF format",
+    )
+
+    parser.add_argument(
+        "--gtf_path",
+        dest="gtf_path",
+        default=None,
+        required=False,
+        help="annotation file path",
     )
 
     parser.add_argument(
