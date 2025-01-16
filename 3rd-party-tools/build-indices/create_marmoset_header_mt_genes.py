@@ -80,7 +80,6 @@ def add_gene_entries(gtf_file):
         for line in f:
             if not line.startswith("#"):
                 print(line.strip())
-    print("Writing gene entries")
     for entry in gene_entries:
         print(entry)
 
