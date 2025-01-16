@@ -5,6 +5,7 @@ def add_gene_entries(gtf_file):
     genes = {}
     
     # First collect ALL features for each gene
+    print("Colleting features of gene")
     for line in open(gtf_file):
         fields = line.strip().split('\t')
         if len(fields) != 9:
@@ -64,6 +65,7 @@ def add_gene_entries(gtf_file):
 
 
     
+    print("Setting up header")
     with open(gtf_file) as f:
 
                 # First print the new header
@@ -80,6 +82,7 @@ def add_gene_entries(gtf_file):
         for line in f:
             if not line.startswith("#"):
                 print(line.strip())
+    print("Writing gene entries")
     for entry in gene_entries:
         print(entry)
 
