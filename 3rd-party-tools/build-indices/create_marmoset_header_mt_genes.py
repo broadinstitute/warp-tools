@@ -5,7 +5,6 @@ def add_gene_entries(gtf_file):
     genes = {}
     
     # First collect ALL features for each gene
-    print("Colleting features of gene")
     for line in open(gtf_file):
         fields = line.strip().split('\t')
         if len(fields) != 9:
@@ -65,10 +64,9 @@ def add_gene_entries(gtf_file):
 
 
     
-    print("Setting up header")
     with open(gtf_file) as f:
 
-                # First print the new header
+        # First print the new header
         new_header = """#gtf-version 2.2
 #!genome-build mCalJa1.2.pat.X
 #!genome-build-accession NCBI_Assembly:GCF_011100555.1
