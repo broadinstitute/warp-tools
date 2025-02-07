@@ -1,0 +1,133 @@
+name: GTF Comparison Tests
+
+on:
+  pull_request:
+    branches: [ "develop", "master" ]
+    paths:
+      - '3rd-party-tools/build-indices/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: 3rd-party-tools/build-indices
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+
+    - name: Create output directories
+      run: |
+        mkdir -p test_output/comparison_files
+        mkdir -p test_data/reference_outputs
+
+    - name: Verify test data
+      run: |
+        if [ ! -f "test_data/test1.gtf" ]; then
+          echo "Error: Required test file test_data/test1.gtf not found"
+          ls -la test_data/
+          exit 1
+        fi
+        if [ ! -f "Biotypes.tsv" ]; then
+          echo "Error: Required Biotypes.tsv file not found"
+          ls -la
+          exit 1
+        fi
+        echo "Test files present:"
+        ls -l test_data/test1.gtf Biotypes.tsv
+
+    - name: Run GTF modification and comparison
+      id: gtf_tests
+      env:
+        PYTHONPATH: ${{ github.workspace }}/3rd-party-tools/build-indices
+      run: |
+        # Run the unit tests
+        python -m unittest test_gtf_comparison.py -v
+      continue-on-error: true
+
+    - name: Prepare artifacts
+      if: always()
+      run: |
+        # Create directory for all artifacts
+        mkdir -p artifact_output
+        
+        # Copy test input files
+        cp test_data/test1.gtf artifact_output/
+        cp Biotypes.tsv artifact_output/
+        
+        # Copy test outputs if they exist
+        if [ -d "test_output" ]; then
+          cp -r test_output/* artifact_output/
+        fi
+        
+        # Copy reference outputs if they exist
+        if [ -d "test_data/reference_outputs" ]; then
+          mkdir -p artifact_output/reference_outputs
+          cp -r test_data/reference_outputs/* artifact_output/reference_outputs/
+        fi
+        
+        # Create manifest
+        {
+          echo "GTF Test Artifacts"
+          echo "Generated: $(date)"
+          echo ""
+          echo "Test Input Files:"
+          ls -l artifact_output/test1.gtf artifact_output/Biotypes.tsv
+          echo ""
+          echo "Test Outputs:"
+          ls -R artifact_output/test_output/ 2>/dev/null || echo "No test outputs found"
+          echo ""
+          echo "Reference Outputs:"
+          ls -R artifact_output/reference_outputs/ 2>/dev/null || echo "No reference outputs found"
+        } > artifact_output/manifest.txt
+
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gtf-test-results
+        path: |
+          3rd-party-tools/build-indices/artifact_output/**/*
+          3rd-party-tools/build-indices/test_output/**/*
+          3rd-party-tools/build-indices/test_data/reference_outputs/**/*
+        compression-level: 9
+        retention-days: 14
+
+    - name: Check test results
+      if: always()
+      run: |
+        echo "=== Test Results Summary ==="
+        
+        # Check unit test results
+        if [ "${{ steps.gtf_tests.outcome }}" == "success" ]; then
+          echo "✅ GTF tests passed"
+        else
+          echo "❌ GTF tests failed"
+          
+          # Display difference report if it exists
+          if [ -f "test_output/comparison_files/difference_report.txt" ]; then
+            echo ""
+            echo "Differences found:"
+            cat test_output/comparison_files/difference_report.txt
+          fi
+          
+          # Display test summary if it exists
+          if [ -f "test_output/comparison_files/test_summary.txt" ]; then
+            echo ""
+            echo "Test Summary:"
+            cat test_output/comparison_files/test_summary.txt
+          fi
+          
+          exit 1
+        fi
