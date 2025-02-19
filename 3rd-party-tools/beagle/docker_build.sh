@@ -67,8 +67,7 @@ function main(){
     # TODO: add `--squash` when ready to productionize. https://docs.docker.com/reference/cli/docker/image/build/#squash
     docker build -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg BEAGLE_VERSION="$BEAGLE_VERSION" \
-        $DIR   
-        # --no-cache $DIR\
+        --no-cache $DIR
     docker push "$GCR_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
