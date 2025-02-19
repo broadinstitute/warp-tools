@@ -1,8 +1,8 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" adoptopenjdk/openjdk8:alpine-slim
 
-ARG BEAGLE_VERSION=01Mar24.d36 \
-    BREF3_VERSION=22Jul22.46e \
+ARG BEAGLE_VERSION=17Dec24.224 \
+    BREF3_VERSION=17Dec24.224 \
     BCFTOOLS_VERSION=1.10.2
 
 ENV TERM=xterm-256color \
@@ -10,6 +10,7 @@ ENV TERM=xterm-256color \
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
         BEAGLE_VERSION=${BEAGLE_VERSION} \
+        BREF3_VERSION=${BREF3_VERSION} \
         BCFTOOLS_VERSION=${BCFTOOLS_VERSION}
 
 WORKDIR /usr/gitc

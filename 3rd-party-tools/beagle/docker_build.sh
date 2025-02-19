@@ -2,22 +2,22 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=0.0.1
+DOCKER_IMAGE_VERSION=0.0.2 # TODO UPDATE TO 1.0.0 WHEN READY
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
-# GCR_URL="us.gcr.io/broad-gotc-prod/imputation-beagle"
+GCR_URL="us.gcr.io/broad-gotc-prod/imputation-beagle"
 
 # GAR setup
-GAR_REGION="us-central1"
-GAR_PROJECT="morgan-fieldeng-gcp"
-GAR_REPOSITORY="imputation-beagle-development"
-GAR_IMAGE="imputation-beagle"
-GAR_URL="${GAR_REGION}-docker.pkg.dev/${GAR_PROJECT}/${GAR_REPOSITORY}/${GAR_IMAGE}"
+# GAR_REGION="us-central1"
+# GAR_PROJECT="morgan-fieldeng-gcp"
+# GAR_REPOSITORY="imputation-beagle-development"
+# GAR_IMAGE="imputation-beagle"
+# GAR_URL="${GAR_REGION}-docker.pkg.dev/${GAR_PROJECT}/${GAR_REPOSITORY}/${GAR_IMAGE}"
 
 # Beagle version
-BEAGLE_VERSION="01Mar24.d36"
+BEAGLE_VERSION="17Dec24.224"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
@@ -62,16 +62,16 @@ function main(){
 
     IMAGE_TAG="$DOCKER_IMAGE_VERSION-$BEAGLE_VERSION-$TIMESTAMP"
 
-    echo "building and pushing GCR Image - $GAR_URL:$IMAGE_TAG"
+    echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
 
     # TODO: add `--squash` when ready to productionize. https://docs.docker.com/reference/cli/docker/image/build/#squash
-    docker build -t "$GAR_URL:$IMAGE_TAG" \
+    docker build -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg BEAGLE_VERSION="$BEAGLE_VERSION" \
         $DIR   
         # --no-cache $DIR\
-    docker push "$GAR_URL:$IMAGE_TAG"
+    docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo -e "$GAR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
+    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 
