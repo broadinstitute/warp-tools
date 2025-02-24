@@ -35,7 +35,7 @@ RUN set -eux; \
             xz-dev \
             zlib-dev \
     ; \
-# Install BCFTools
+    # Install BCFTools
     wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2; \
     tar xf bcftools-${BCFTOOLS_VERSION}.tar.bz2; \
     cd bcftools-${BCFTOOLS_VERSION}; \
@@ -48,14 +48,14 @@ RUN set -eux; \
     rm -r bcftools-${BCFTOOLS_VERSION}; \
     rm bcftools-${BCFTOOLS_VERSION}.tar.bz2 \
     ; \
-# Download Beagle jars
+    # Download Beagle jars
     # beagle runs phasing and imputation
     curl -L https://faculty.washington.edu/browning/beagle/beagle.${BEAGLE_VERSION}.jar > beagle.${BEAGLE_VERSION}.jar \
     ; \
     # bref3 converts a reference panel from vcf to the bref3 format that Beagle needs
        curl -L https://faculty.washington.edu/browning/beagle/bref3.${BREF3_VERSION}.jar > bref3.${BREF3_VERSION}.jar \
     ; \
-# Install tini
+    # Install tini
     wget https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini -O /sbin/tini; \
     chmod +x /sbin/tini;
 
