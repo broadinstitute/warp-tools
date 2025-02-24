@@ -2,19 +2,12 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=0.0.2 # TODO UPDATE TO 1.0.0 WHEN READY
+DOCKER_IMAGE_VERSION=1.0.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/imputation-beagle"
-
-# GAR setup
-# GAR_REGION="us-central1"
-# GAR_PROJECT="morgan-fieldeng-gcp"
-# GAR_REPOSITORY="imputation-beagle-development"
-# GAR_IMAGE="imputation-beagle"
-# GAR_URL="${GAR_REGION}-docker.pkg.dev/${GAR_PROJECT}/${GAR_REPOSITORY}/${GAR_IMAGE}"
 
 # Beagle version
 BEAGLE_VERSION="17Dec24.224"
@@ -64,7 +57,7 @@ function main(){
 
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
 
-    # TODO: add `--squash` when ready to productionize. https://docs.docker.com/reference/cli/docker/image/build/#squash
+    # consider: add `--squash` when ready to productionize. https://docs.docker.com/reference/cli/docker/image/build/#squash
     docker build -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg BEAGLE_VERSION="$BEAGLE_VERSION" \
         --no-cache $DIR
