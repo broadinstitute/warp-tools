@@ -14,6 +14,7 @@ RUN set -eux; \
     apt-get install -y libhdf5-dev vim apt-utils liblzma-dev libbz2-dev tini && \
     \
     # Install STAR
+    pwd; \
     mkdir temp; \
     cd temp; \
     wget ${STAR_URL}; \
