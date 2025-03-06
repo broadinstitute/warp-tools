@@ -37,7 +37,10 @@ RUN set -eux; \
     ./configure && make && make install && \
     \
     # Cleanup
-    cd /usr/gitc && rm -rf temp
+    cd /usr/gitc && rm -rf temp && \
+    mkdir -p /scripts && \
+    pip install --upgrade pip && \
+    pip install loompy==3.0.6 anndata==0.7.8 numpy==1.23.0 pandas==1.3.5 scipy pysam==0.21
 
 # Copy scripts
 COPY . /scripts
