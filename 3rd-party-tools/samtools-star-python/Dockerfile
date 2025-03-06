@@ -24,10 +24,6 @@ RUN set -eux; \
     chmod +x ./STAR; \
     cp ./STAR /usr/local/bin; \
     \
-    # Cleanup
-    cd /usr/gitc; \
-    rm -r temp; \
-    \
     # Install Python and required packages
     apt-get install -y python3 python3-pip && \
     pip install --upgrade pip && \
@@ -38,6 +34,3 @@ COPY . /scripts
 
 # Set working directory
 WORKDIR /warptools
-
-# Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
