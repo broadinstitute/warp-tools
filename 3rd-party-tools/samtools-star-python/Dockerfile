@@ -8,8 +8,6 @@ ENV TERM=xterm-256color \
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
       STAR_VERSION=${STAR_VERSION}
 
-WORKDIR /usr/gitc
-
 RUN set -eux; \
     # Update and install necessary dependencies
     apt-get update && apt-get upgrade -y && \
