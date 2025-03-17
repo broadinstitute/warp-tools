@@ -9,23 +9,19 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     # Read the whitelist into a set.
     expected_cells = int(expected_cells)
     print("Reading Aligning features txt file")
-    align = pd.read_csv(align_file, sep="\s+", header=None)
-    align.columns = ("metric", "value", "shard")
-    align_pv = align.pivot(index="shard", columns="metric", values="value")
+    align_df = pd.read_csv(align_file, sep="\s+", header=None, names=["metric", "value"])
     
     print("Reading summary txt file")
-    summary = pd.read_csv(summary_file, sep=",", header=None)
-    summary.columns = ("metric", "value", "shard")
-    summary_pv = summary.pivot(index="shard", columns="metric", values="value")
+    summary_df = pd.read_csv(summary_file, sep=",", header=None, names=["metric", "value"])
     
-    merge_pv = pd.merge(summary_pv, align_pv, left_index=True, right_index=True, how='outer')
-    merge_pv.reset_index()
+    merge_df = pd.merge(summary_df, align_df, left_index=True, right_index=True, how='outer')
+    merge_df.reset_index()
     
     print("Setting n_reads to numeric")
-    for x in merge_pv.columns:
-        merge_pv[x] = pd.to_numeric(merge_pv[x], errors='coerce')
+    for x in merge_df.columns:
+        merge_df[x] = pd.to_numeric(merge_df[x], errors='coerce')
     
-    n_reads = merge_pv["Number of Reads"].sum()
+    n_reads = merge_df["Number of Reads"].sum()
     
     if counting_mode == "sc_rna":
         counting = "Gene"
@@ -35,20 +31,20 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     print(counting)
     
     print("Calculating metrics")
-    merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"] = merge_pv[f'Reads Mapped to {counting}: Unique {counting}'] * merge_pv['Number of Reads']
-    sum_reads_mapped_unique_gene = merge_pv[f"Reads Mapped to {counting}: Unique {counting}*n_reads"].sum()
+    merge_df[f"Reads Mapped to {counting}: Unique {counting}*n_reads"] = merge_df[f'Reads Mapped to {counting}: Unique {counting}'] * merge_df['Number of Reads']
+    sum_reads_mapped_unique_gene = merge_df[f"Reads Mapped to {counting}: Unique {counting}*n_reads"].sum()
     total_reads_mapped_unique_gene = sum_reads_mapped_unique_gene / n_reads 
-    merge_pv["Reads Mapped to Genome: Unique*n_reads"] = merge_pv["Reads Mapped to Genome: Unique"] * merge_pv['Number of Reads']
-    merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"] = merge_pv["Reads Mapped to Genome: Unique+Multiple"] * merge_pv['Number of Reads']
-    merge_pv["Q30 Bases in RNA read*n_reads"] = merge_pv["Q30 Bases in RNA read"] * merge_pv['Number of Reads']
-    merge_pv["Q30 Bases in CB+UMI*n_reads"] = merge_pv["Q30 Bases in CB+UMI"] * merge_pv['Number of Reads']
-    merge_pv["Reads With Valid Barcodes*n_reads"] = merge_pv["Reads With Valid Barcodes"] * merge_pv['Number of Reads']  
-    sequencing_saturations_total = 1 - (merge_pv["yesUMIs"].sum() / merge_pv["yessubWLmatch_UniqueFeature"].sum())
-    reads_mapped_genome_unique = merge_pv["Reads Mapped to Genome: Unique*n_reads"].sum() / n_reads
-    reads_mapped_genome_unique_multi = merge_pv["Reads Mapped to Genome: Unique+Multiple*n_reads"].sum() / n_reads
-    q30_rna = merge_pv["Q30 Bases in RNA read*n_reads"].sum() / n_reads
-    q30_cb_umi = merge_pv["Q30 Bases in CB+UMI*n_reads"].sum() / n_reads
-    valid_barcodes = merge_pv["Reads With Valid Barcodes*n_reads"].sum() / n_reads
+    merge_df["Reads Mapped to Genome: Unique*n_reads"] = merge_df["Reads Mapped to Genome: Unique"] * merge_df['Number of Reads']
+    merge_df["Reads Mapped to Genome: Unique+Multiple*n_reads"] = merge_df["Reads Mapped to Genome: Unique+Multiple"] * merge_df['Number of Reads']
+    merge_df["Q30 Bases in RNA read*n_reads"] = merge_df["Q30 Bases in RNA read"] * merge_df['Number of Reads']
+    merge_df["Q30 Bases in CB+UMI*n_reads"] = merge_df["Q30 Bases in CB+UMI"] * merge_df['Number of Reads']
+    merge_df["Reads With Valid Barcodes*n_reads"] = merge_df["Reads With Valid Barcodes"] * merge_df['Number of Reads']  
+    sequencing_saturations_total = 1 - (merge_df["yesUMIs"].sum() / merge_df["yessubWLmatch_UniqueFeature"].sum())
+    reads_mapped_genome_unique = merge_df["Reads Mapped to Genome: Unique*n_reads"].sum() / n_reads
+    reads_mapped_genome_unique_multi = merge_df["Reads Mapped to Genome: Unique+Multiple*n_reads"].sum() / n_reads
+    q30_rna = merge_df["Q30 Bases in RNA read*n_reads"].sum() / n_reads
+    q30_cb_umi = merge_df["Q30 Bases in CB+UMI*n_reads"].sum() / n_reads
+    valid_barcodes = merge_df["Reads With Valid Barcodes*n_reads"].sum() / n_reads
     
     print("Calculating cell read metrics")
     
