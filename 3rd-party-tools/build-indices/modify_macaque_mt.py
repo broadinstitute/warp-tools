@@ -80,7 +80,7 @@ def add_gene_entries(gtf_file, mito_txt_file):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("Usage: python script.py input.gtf mito_gene_list.txt")
+        print("Usage: python3 script.py input.gtf mito_gene_list.txt")
         sys.exit(1)
     add_gene_entries(sys.argv[1], sys.argv[2])
 
