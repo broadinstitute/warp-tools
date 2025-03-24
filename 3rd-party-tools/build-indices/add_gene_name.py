@@ -1,4 +1,3 @@
-# Script for adding gene_name as an additional attribute
 import re
 
 input_gtf = "genes.gtf"
@@ -17,16 +16,16 @@ with open(input_gtf, "r") as infile, open(output_gtf, "w") as outfile:
 
         attributes = fields[8]
 
-        # Extract gene value
-        match = re.search(r'gene\s+"([^"]+)"', attributes)
-        if match:
-            gene_value = match.group(1)
-            # Only add gene_name if it doesn't already exist
-            if 'gene_name' not in attributes:
-                attributes = attributes.replace(
-                    f'gene "{gene_value}";',
-                    f'gene "{gene_value}"; gene_name "{gene_value}";'
-                )
+        # Parse attributes into a dictionary
+        attr_dict = dict(re.findall(r'(\S+)\s+"(.*?)"', attributes))
+
+        # If gene_name is missing, try to add it
+        if "gene_name" not in attr_dict:
+            # Try to use 'gene' first, then 'gene_id', then 'transcript_id'
+            gene_value = attr_dict.get("gene") or attr_dict.get("gene_id") or attr_dict.get("transcript_id")
+            if gene_value:
+                # Add the gene_name at the end of the attributes string
+                attributes = attributes.strip() + f' gene_name "{gene_value}";'
+
         fields[8] = attributes
         outfile.write("\t".join(fields) + "\n")
-
