@@ -9,20 +9,19 @@ def merge_matrices(summary_file, align_file, cell_reads, counting_mode, uniform_
     # Read the whitelist into a set.
     expected_cells = int(expected_cells)
     print("Reading Aligning features txt file")
-    align_df = pd.read_csv(align_file, sep="\s+", header=None, names=["metric", "value"])
-    
+    align_df = pd.read_csv("Features.stats", sep="\s+", header=None, names=["metric", "value"], index_col=0)
+        
     print("Reading summary txt file")
-    summary_df = pd.read_csv(summary_file, sep=",", header=None, names=["metric", "value"])
-    
-    merge_df = pd.merge(summary_df, align_df, left_index=True, right_index=True, how='outer')
-    merge_df.reset_index()
-    
+    summary_df = pd.read_csv("Summary.csv", sep=",", header=None, names=["metric", "value"], index_col=0)
+        
+    merge_df =pd.concat([summary_df, align_df], axis=1).T
+            
     print("Setting n_reads to numeric")
     for x in merge_df.columns:
         merge_df[x] = pd.to_numeric(merge_df[x], errors='coerce')
-    
+            
     n_reads = merge_df["Number of Reads"].sum()
-    
+        
     if counting_mode == "sc_rna":
         counting = "Gene"
     else:
