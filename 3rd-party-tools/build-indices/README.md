@@ -156,3 +156,25 @@ When modifying these tools:
 - Docker container provides consistent environment
 - All scripts are accessible within the container
 - Use reference files for reliable testing
+
+## Macaque add_gene_names.py and modify_macaque_mt.py
+These scripts are currently used as standalone script to modify a Cell Ranger output GTF (for NCBI) and make it compatible with warp-tools TagSort.
+
+### Usage
+Cell ranger produces a genes.gtf file. First, run the add_gene_names.py script in the local folder with the genes.gtf. It will produce an `output_gene_name.gtf`.
+
+Run:
+```python3 add_gene_name.py```
+
+Next, run the modify_macaque_mt. This requires as input the `output_gene_name.gtf`, the text file containing the genes that are mitochondrial genes. An example can be found at gs://warp-testing-public/references/BuildIndices_outs/Macaque_MT_genes.txt.
+
+Overall, this script identifies all GTF entries for the listed mitochondrial genes and enters and extra record in the GTF with these genes listed as `gene` in the 3rd GTF field. This allows TagSort to quantify these genes.
+
+Run:
+
+```python
+python3 modify_macaque_mt.py output_gene_name.gtf Macaque_MT_genes.txt > mt_modified.gtf
+```
+
+The result `mt_modified.gtf` can be used with STARsolo indexing. 
+
