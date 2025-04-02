@@ -4,7 +4,7 @@
 FROM --platform=linux/amd64 rockylinux:8.5 
 
 
-ARG DRAGMAP_VERSION=1.2.1 \
+ARG DRAGMAP_VERSION=1.3.0 \
         PICARD_VERSION=2.26.10 \
         SAMTOOLS_VERSION=1.11
 
