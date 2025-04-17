@@ -83,7 +83,10 @@ RUN apt-get update ; \
                              'jsonlite',    \
                              'magrittr',    \
                              'gridExtra',   \
-                             'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
+                             'SeuratObject', \
+                             'optparse', \
+                             'BiocManager', \
+                             'IRanges'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
           BiocManager::install('rhdf5')" ; \
