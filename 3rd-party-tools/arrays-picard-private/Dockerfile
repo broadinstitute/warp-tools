@@ -5,7 +5,7 @@ ARG PICARD_PRIVATE_VERSION=c24d8e2dfd6de9c663416278040a9f91b6a5e3eb
 
 ENV TERM=xterm-256color \
     NO_VAULT=true \
-    ARTIFACTORY_URL=https://broadinstitute.jfrog.io/artifactory/libs-snapshot-local/org/broadinstitute/picard-private \
+    ARTIFACTORY_URL=https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-snapshot/org/broadinstitute/picard-private \
     TINI_VERSION=v0.19.0 \
     PATH=$PATH:/root/google-cloud-sdk/bin 
 
