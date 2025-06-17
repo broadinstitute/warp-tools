@@ -7,7 +7,7 @@ ARG GATK3_VERSION=3.5
 
 ENV TERM=xterm-256color \
     GATK4_URL=https://github.com/broadinstitute/gatk/releases/download/${GATK4_VERSION}/gatk-${GATK4_VERSION}.zip \
-    GATK3_URL=https://broadinstitute.jfrog.io/artifactory/libs-release-local/org/broadinstitute/gatk/gatk-utils/${GATK3_VERSION}/gatk-utils-${GATK3_VERSION}.jar
+    GATK3_URL=https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-release/org/broadinstitute/gatk/gatk-utils/${GATK3_VERSION}/gatk-utils-${GATK3_VERSION}.jar
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
         GATK4_VERSION=${GATK4_VERSION} \
