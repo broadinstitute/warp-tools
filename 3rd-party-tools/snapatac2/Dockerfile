@@ -2,7 +2,7 @@
 FROM --platform="linux/amd64" python:3.10
 
 ENV TERM=xterm-256color \
-        TINI_VERSION=v0.19.0\
+        TINI_VERSION=v0.19.0 \
         PATH=$PATH:/usr/gitc
 
 ARG SNAPATAC2_VERSION=2.7.1
@@ -18,6 +18,7 @@ RUN apt-get update; \
     curl https://sh.rustup.rs -sSf | sh -s -- -y; \
     source "$HOME/.cargo/env"; \
     pip install snapatac2==${SNAPATAC2_VERSION}; \
+    pip install "polars-lts-cpu>=0.20.0"; \  # <-- ✅ Add this line
     pip install scanpy; \
     # Install TINI
     mkdir temp; \
