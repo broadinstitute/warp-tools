@@ -1,3 +1,16 @@
+FROM --platform="linux/amd64" python:3.10
+
+ENV TERM=xterm-256color \
+        TINI_VERSION=v0.19.0 \
+        PATH=$PATH:/usr/gitc
+
+ARG SNAPATAC2_VERSION=2.7.1
+
+LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org" \
+        SNAPATAC2_VERSION=${SNAPATAC2_VERSION}
+
+WORKDIR /usr/gitc
+
 RUN apt-get update; \
     apt-get install -y tabix; \
     pip install cmake; \
@@ -13,3 +26,7 @@ RUN apt-get update; \
     wget https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -O /sbin/tini; \
     chmod +x /sbin/tini; \
     rm -r /usr/gitc/temp;
+
+
+# Set tini as default entrypoint
+ENTRYPOINT [ "/sbin/tini", "--" ]
