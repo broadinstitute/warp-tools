@@ -40,7 +40,7 @@ RUN pip3 install --no-cache-dir biopython requests
 RUN pip2.7 install --no-cache-dir pillow==6.2.2
 
 # Install MitoFinder
-ENV MITOFINDER_VERSION=v1.4
+ENV MITOFINDER_VERSION=v1.4.2
 
 RUN cd /opt && \
     wget https://github.com/RemiAllio/MitoFinder/archive/refs/tags/${MITOFINDER_VERSION}.zip -O mitofinder.zip && \
