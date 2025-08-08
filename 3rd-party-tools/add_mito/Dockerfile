@@ -67,5 +67,5 @@ RUN chmod +x /opt/cleanome/cleanome/add_mito.py && \
 
 WORKDIR /data
 
-# Set tini as the entrypoint and run add_mito.py
-ENTRYPOINT ["/usr/bin/tini", "--", "python3", "/opt/cleanome/cleanome/add_mito.py"]
+# Set tini as the entrypoint
+ENTRYPOINT [ "/sbin/tini", "--" ]
