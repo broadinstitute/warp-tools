@@ -1,7 +1,7 @@
 # Start from the official Hail image (pick your version)
 FROM hailgenetics/hail:0.2.133
 
-ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION=v0.19.0
 
 # Install Tini + dependencies + mtSwirl
 RUN apt-get update && apt-get install -y --no-install-recommends wget \

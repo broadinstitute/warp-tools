@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget curl git libpq-dev build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION=v0.19.0
 
 RUN wget -O /sbin/tini https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini \
     && chmod +x /sbin/tini
@@ -19,8 +19,7 @@ RUN rm -rf mtSwirl \
     && git clone https://github.com/jamesemery/mtSwirl.git
 
 # Clone gnomad_qc, move, and install
-RUN rm -rf gnomad_qc gnomad_qc_hold \
-    && git clone https://github.com/broadinstitute/gnomad_qc.git \
+RUN git clone https://github.com/broadinstitute/gnomad_qc.git \
     && mv gnomad_qc gnomad_qc_hold \
     && mv gnomad_qc_hold/gnomad_qc ./ \
     && rm -rf gnomad_qc_hold \
