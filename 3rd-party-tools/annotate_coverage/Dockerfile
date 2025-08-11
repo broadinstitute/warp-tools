@@ -3,16 +3,17 @@ FROM hailgenetics/hail:0.2.133
 
 ENV TINI_VERSION=v0.19.0
 
-# Install system deps needed for gnomad & aiohttp compilation
+# Install system deps + pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     build-essential \
     python3-dev \
+    python3-pip \
     openjdk-11-jdk \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip, setuptools, wheel first
+# Upgrade pip, setuptools, wheel
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Install Python dependencies
