@@ -13,5 +13,3 @@ RUN pip install --upgrade pip && \
 # Set the mtSwirl directory in PATH for easier access
 ENV PATH="/opt/mtSwirl:${PATH}"
 
-# Set working directory back to root for task execution
-WORKDIR /
