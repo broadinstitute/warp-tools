@@ -1,4 +1,4 @@
-# Start from the official Hail image (pick your version)
+# Start from the official Hail image
 FROM hailgenetics/hail:0.2.133
 
 ENV TINI_VERSION=v0.19.0
@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip, setuptools, wheel first
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Install Python dependencies
-RUN pip install --no-cache-dir aiohttp==3.12.15 \
-    && pip install --no-cache-dir gnomad==0.8.2
+RUN python3 -m pip install --no-cache-dir aiohttp==3.12.15 \
+    && python3 -m pip install --no-cache-dir gnomad==0.8.2
 
 # Install mtSwirl
 RUN git clone --branch main --depth 1 https://github.com/jamesemery/mtSwirl.git /opt/mtSwirl
@@ -27,11 +27,9 @@ RUN wget https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini 
     && chmod +x /sbin/tini
 
 # Set Python path so mtSwirl scripts are discoverable
-ENV PYTHONPATH="/opt/mtSwirl:${PYTHONPATH}"
+ENV PYTHONPATH="/opt/mtSwirl:\${PYTHONPATH}"
 
 WORKDIR /usr/gitc
 
-# Set tini as default entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]
-
 CMD ["python3"]
