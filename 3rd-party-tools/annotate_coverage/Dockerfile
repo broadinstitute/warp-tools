@@ -7,8 +7,8 @@ WORKDIR /opt
 RUN git clone https://github.com/jamesemery/mtSwirl.git
 
 # Upgrade pip and install only essential dependencies
-RUN pip install --upgrade pip && \
-    pip install --upgrade aiohttp
+RUN pip install --upgrade pip==25.2 && \
+    pip install --upgrade aiohttp==3.12.15
 
 # Set the mtSwirl directory in PATH for easier access
 ENV PATH="/opt/mtSwirl:${PATH}"
