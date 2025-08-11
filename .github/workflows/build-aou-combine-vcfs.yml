@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/aou_combine_vcfs
+        working-directory: 3rd-party-tools/aou_combine_vcf
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
