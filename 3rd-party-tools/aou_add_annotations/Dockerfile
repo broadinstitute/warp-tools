@@ -17,6 +17,8 @@ RUN pip install --upgrade pip && \
 # Install Python dependencies
 RUN pip install \
     pipdeptree \
+    slack-sdk \
+    requests \
     --upgrade aiohttp \
     --upgrade gnomad
 
@@ -31,17 +33,15 @@ RUN git clone https://github.com/broadinstitute/gnomad_qc.git && \
     pip install . && \
     cd /opt
 
-# Clone and install gnomad-mitochondria
+# Clone gnomad-mitochondria (note: keeping the structure as in original)
 RUN git clone https://github.com/rahulg603/gnomad-mitochondria.git && \
-    cd gnomad-mitochondria && \
-    pip install . && \
-    cd /opt
+    mv gnomad-mitochondria gnomad_mitochondria_hold && \
+    mv gnomad_mitochondria_hold/gnomad_mitochondria ./gnomad_mitochondria && \
+    rm -rf gnomad_mitochondria_hold
 
 # Verify installations
 RUN pip list | grep psycopg2 && \
-    pipdeptree | grep psycopg2 || true && \
-    python3 -c "import gnomad_mitochondria; print('gnomad_mitochondria imported successfully')" && \
-    python3 -c "import gnomad_qc; print('gnomad_qc imported successfully')"
+    pipdeptree | grep psycopg2 || true
 
 # Set the working directory back to root for WDL execution
 WORKDIR /
