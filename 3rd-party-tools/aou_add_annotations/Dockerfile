@@ -22,7 +22,8 @@ RUN pip install \
 
 # Clone and install mtSwirl
 RUN git clone https://github.com/jamesemery/mtSwirl.git && \
-    chmod +x mtSwirl/generate_mtdna_call_mt/add_annotations.py
+    chmod +x mtSwirl/generate_mtdna_call_mt/add_annotations.py && \
+    ls -la mtSwirl/generate_mtdna_call_mt/add_annotations.py
 
 # Clone and install gnomad_qc
 RUN git clone https://github.com/broadinstitute/gnomad_qc.git && \
@@ -30,15 +31,17 @@ RUN git clone https://github.com/broadinstitute/gnomad_qc.git && \
     pip install . && \
     cd /opt
 
-# Clone gnomad-mitochondria (note: keeping the structure as in original)
+# Clone and install gnomad-mitochondria
 RUN git clone https://github.com/rahulg603/gnomad-mitochondria.git && \
-    mv gnomad-mitochondria gnomad_mitochondria_hold && \
-    mv gnomad_mitochondria_hold/gnomad_mitochondria ./gnomad_mitochondria && \
-    rm -rf gnomad_mitochondria_hold
+    cd gnomad-mitochondria && \
+    pip install . && \
+    cd /opt
 
 # Verify installations
 RUN pip list | grep psycopg2 && \
-    pipdeptree | grep psycopg2 || true
+    pipdeptree | grep psycopg2 || true && \
+    python3 -c "import gnomad_mitochondria; print('gnomad_mitochondria imported successfully')" && \
+    python3 -c "import gnomad_qc; print('gnomad_qc imported successfully')"
 
 # Set the working directory back to root for WDL execution
 WORKDIR /
