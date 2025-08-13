@@ -18,10 +18,17 @@ RUN pip install --upgrade pip && \
 RUN pip install \
     pipdeptree \
     slack-sdk \
+    slackclient \
     requests \
+    google-cloud-storage \
     --upgrade aiohttp \
     --upgrade gnomad
 
+# Verify slack installation
+RUN python3 -c "from slack import WebClient; print('Slack SDK installed successfully')"
+
+# Verify gnomad_mitochondria installation
+RUN python3 -c "import gnomad_mitochondria; print('gnomad_mitochondria installed successfully')"
 
 # Clone and install mtSwirl
 RUN git clone https://github.com/jamesemery/mtSwirl.git && \
@@ -34,11 +41,11 @@ RUN git clone https://github.com/broadinstitute/gnomad_qc.git && \
     pip install . && \
     cd /opt
 
-# Clone gnomad-mitochondria (note: keeping the structure as in original)
+# Clone and install gnomad-mitochondria
 RUN git clone https://github.com/rahulg603/gnomad-mitochondria.git && \
-    mv gnomad-mitochondria gnomad_mitochondria_hold && \
-    mv gnomad_mitochondria_hold/gnomad_mitochondria ./gnomad_mitochondria && \
-    rm -rf gnomad_mitochondria_hold
+    cd gnomad-mitochondria && \
+    pip install . && \
+    cd /opt
 
 # Verify installations
 RUN pip list | grep psycopg2 && \
