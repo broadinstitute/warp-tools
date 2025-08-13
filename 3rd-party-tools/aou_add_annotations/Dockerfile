@@ -22,6 +22,7 @@ RUN pip install \
     --upgrade aiohttp \
     --upgrade gnomad
 
+
 # Clone and install mtSwirl
 RUN git clone https://github.com/jamesemery/mtSwirl.git && \
     chmod +x mtSwirl/generate_mtdna_call_mt/add_annotations.py && \
