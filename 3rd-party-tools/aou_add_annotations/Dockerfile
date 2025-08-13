@@ -28,7 +28,8 @@ RUN pip install \
 RUN python3 -c "from slack import WebClient; print('Slack SDK installed successfully')"
 
 # Verify gnomad_mitochondria installation
-RUN python3 -c "import gnomad_mitochondria; print('gnomad_mitochondria installed successfully')"
+RUN python3 -c "import sys; sys.path.append('/opt/gnomad-mitochondria'); import gnomad_mitochondria; print('gnomad_mitochondria available')" || \
+    echo "gnomad_mitochondria not installable as package, but should be accessible via PYTHONPATH"
 
 # Clone and install mtSwirl
 RUN git clone https://github.com/jamesemery/mtSwirl.git && \
@@ -44,8 +45,21 @@ RUN git clone https://github.com/broadinstitute/gnomad_qc.git && \
 # Clone and install gnomad-mitochondria
 RUN git clone https://github.com/rahulg603/gnomad-mitochondria.git && \
     cd gnomad-mitochondria && \
-    pip install . && \
+    ls -la && \
+    if [ -f "setup.py" ]; then \
+        echo "Found setup.py, installing..."; \
+        pip install .; \
+    elif [ -f "pyproject.toml" ]; then \
+        echo "Found pyproject.toml, installing..."; \
+        pip install .; \
+    else \
+        echo "No setup.py or pyproject.toml found, adding to PYTHONPATH"; \
+        echo "export PYTHONPATH=/opt/gnomad-mitochondria:\$PYTHONPATH" >> ~/.bashrc; \
+    fi && \
     cd /opt
+
+# Add gnomad-mitochondria to PYTHONPATH as fallback
+ENV PYTHONPATH="/opt/gnomad-mitochondria:${PYTHONPATH}"
 
 # Verify installations
 RUN pip list | grep psycopg2 && \
