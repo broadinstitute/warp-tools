@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and handle psycopg2 dependencies
-RUN pip install --upgrade pip && \
+RUN pip install --no-cache-dir pip==25.2  && \
     pip uninstall -y psycopg2 psycopg2-binary || true && \
     pip install psycopg2-binary
 
@@ -21,8 +21,8 @@ RUN pip install \
     slackclient \
     requests \
     google-cloud-storage \
-    --upgrade aiohttp \
-    --upgrade gnomad
+    --no-cache-dir aiohttp==3.12.15 \
+    --no-cache-dir gnomad==0.8.2
 
 # Verify slack installation
 RUN python3 -c "from slack import WebClient; print('Slack SDK installed successfully')"
