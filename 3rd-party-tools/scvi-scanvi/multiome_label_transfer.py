@@ -1,6 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+import argparse
 import snapatac2 as snap
 import anndata as ad
 import numpy as np
@@ -405,7 +406,8 @@ def check_cell_matches(gex, atac):
 
     return mismatched_barcodes
 
-def main():
+
+def main(gex_file, atac_file, ref_file):
     # This block performs initial preprocessing steps for integrating Multiome RNA and ATAC data
     # with a reference scRNA-seq dataset using scvi-tools.
     #
@@ -422,7 +424,7 @@ def main():
     start = time.time()
 
     # Load the GEX, ATAC, and reference datasets into memory
-    gex, atac, ref = read_h5ad("test_gex.h5ad", "human.cellbybin.h5ad", "pbmc.h5ad")
+    gex, atac, ref = read_h5ad(gex_file, atac_file, ref_file)
 
     # Filter the GEX data to retain only high-quality cells and genes
     gex_filt = filt_gex(gex)
@@ -525,7 +527,7 @@ def main():
     timing_summary['Label Transfer'] = time.time() - start
 
     # Write output
-    data.write("20250618_atac_gex_scanvi")
+    data.write("atac_gex_scanvi")
 
     # ----------------------------------------------
     # Subset Multiome Data for RNA and ATAC
@@ -550,7 +552,7 @@ def main():
     # and `atac_unannotated`, and saved to disk for further use in downstream analyses.
 
     # Read h5ad output
-    df = ad.read_h5ad("20250618_atac_gex_scanvi")
+    df = ad.read_h5ad("atac_gex_scanvi")
     # Print dataframe
     print(df)
     rna_unannotated, atac_unannotated = subset_multiome_data(df)
@@ -586,8 +588,8 @@ def main():
         'C_scANVI'].to_numpy()
     gex_shared.obs['final_annotation'] = data.obs.loc[gex_shared.obs_names + '_rna_unannotated']['C_scANVI'].to_numpy()
     # Write the annotated matrices
-    atac_shared.write("20250618_atac_annotated_matrix.h5ad")
-    gex_shared.write("20250618_gex_annotated_matrix.h5ad")
+    atac_shared.write("atac_annotated_matrix.h5ad")
+    gex_shared.write("gex_annotated_matrix.h5ad")
     # Compare predicted cell type labels with Leiden clusters
     # The predicted annotations align well with Leiden cluster structure.
     # However, due to fewer cells in the ATAC-seq dataset, resolution is limited—
@@ -595,9 +597,16 @@ def main():
     # as well as other closely related cell types.
     # Save SCANVI predictions for Multiome data using shared gene features
     # (Note: previous predictions may not have used a shared gene space across modalities)
-    data.write("SCANVI_predictions_20250618_2.h5ad")
+    data.write("SCANVI_predictions.h5ad")
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('-g', '--gex-file', required=True, help="Input gene expression AnnData file")
+    parser.add_argument('-a', '--atac-file', required=True, help="Input ATAC AnnData file")
+    parser.add_argument('-r', '--ref-file', required=True, help="Input label reference AnnData file")
+    parsed_args = parser.parse_args()
+    main(parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file)
 

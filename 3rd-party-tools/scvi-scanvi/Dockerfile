@@ -10,12 +10,11 @@ WORKDIR /usr/local
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y wget tini gcc zlib1g-dev; \
+    apt-get install -y tini gcc zlib1g-dev; \
     # install pip and required packages
     pip install --upgrade pip; \
     pip install snapatac2==2.7 scvi-tools==${SCVI_TOOLS_VERSION} scanpy numpy; \
     pip install --user scikit-misc; \
-    wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.basic.annotation.gff3.gz; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY multiome_label_transfer.py .

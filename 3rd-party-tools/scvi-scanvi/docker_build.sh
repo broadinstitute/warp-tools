@@ -59,11 +59,11 @@ function main(){
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg SCVI_TOOLS_VERSION="$SCVI_TOOLS_VERSION" "$DIR"
-    # docker push "$GCR_URL:$IMAGE_TAG"
+    docker push "$GCR_URL:$IMAGE_TAG"
 
     echo "tagging and pushing Quay Image"
     docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    # docker push "$QUAY_URL:$IMAGE_TAG"
+    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
