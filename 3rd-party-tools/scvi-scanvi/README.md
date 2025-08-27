@@ -6,6 +6,39 @@ reference dataset to an ATAC-seq query dataset for downstream analysis and visua
 We use a full Multiome dataset with peak calling as our query, and the annotated PBMC reference from the scArches tutorial.
 
 This workflow follows the SnapATAC2 annotation tutorial: SnapATAC2 Tutorial https://kzhang.org/SnapATAC2/tutorials/annotation.html
+
+## Quick reference
+
+Copy and paste to pull this image
+
+#### `docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975`
+
+## Versioning
+
+This image uses the following convention for versioning:
+
+#### `us.gcr.io/broad-gotc-prod/scvi-scanvi:<image-version>-<scvi-version>-<unix-timestamp>` 
+
+We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+
+You can see more information about the image, including the tool versions, by running the following commands:
+
+```bash
+$ docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975
+$ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975
+```
+
+## Usage
+```bash
+$ docker run --rm -it \
+    -v /files:/files \
+    us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975 \
+    python multiome_label_transfer.py --gex-file /files/gex.h5ad \
+    --atac-file /files/atac.h5ad --ref-file /files/pbmc.h5ad 
+
+```
+
+
 ## Environment Setup
 Environment Setup
 Note: GPU acceleration is required to run this tutorial efficiently. Ensure that GPU support is enabled when creating your environment.
