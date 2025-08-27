@@ -31,17 +31,18 @@ $ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975
 ## Usage
 ```bash
 $ docker run --rm -it \
-    -v /files:/files \
+    -v /files:/files --gpus all \
     us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975 \
     python multiome_label_transfer.py --gex-file /files/gex.h5ad \
     --atac-file /files/atac.h5ad --ref-file /files/pbmc.h5ad 
-
 ```
 
 
 ## Environment Setup
 Environment Setup
-Note: GPU acceleration is required to run this tutorial efficiently. Ensure that GPU support is enabled when creating your environment.
+Note: GPU acceleration is strongly recommended in order to run this container efficiently, though it is not a strict hardware requirement. 
+Ensure that GPU support is enabled when creating your environment. When running the container, you must grant access to 
+any GPUs by setting the `--gpus all` flag in `docker run`.
 
 VM Specifications:
 
