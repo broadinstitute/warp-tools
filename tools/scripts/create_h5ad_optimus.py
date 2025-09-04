@@ -3,7 +3,6 @@ import csv
 import gzip
 import re
 import numpy as np
-import loompy
 from scipy import sparse
 from scipy.sparse import csr_matrix
 import pandas as pd
@@ -29,12 +28,12 @@ def create_gene_id_name_map(gtf_file):
     ) as fpin:
         for _line in fpin:
             line = _line.strip()
-            gene_id_res = re.search(r"gene_id ([^;]*);", line)
-            gene_name_res = re.search(r"gene_name ([^;]*);", line)
+            gene_id_res = re.search(r'\bgene_id\s+"([^"]+)"', line)
+            gene_name_res = re.search(r'\bgene_name\s+"([^"]+)"', line)
 
             if gene_id_res and gene_name_res:
-                gene_id = gene_id_res.group(1).replace('"', "")
-                gene_name = gene_name_res.group(1).replace('"', "")
+                gene_id = gene_id_res.group(1)
+                gene_name = gene_name_res.group(1)
                 gene_id_name_map[gene_id] = gene_name
 
     return gene_id_name_map
@@ -154,6 +153,7 @@ def generate_col_attr(args):
     # Split the pandas DataFrame into different data types for storing in the ZARR
     IntColumnNames = [  # UInt
         "n_reads",
+        "tso_reads",
         "noise_reads",
         "perfect_molecule_barcodes",
         "reads_mapped_exonic",
@@ -169,6 +169,7 @@ def generate_col_attr(args):
         "n_fragments",
         "fragments_with_single_read_evidence",
         "molecules_with_single_read_evidence",
+        "reads_mapped_mitochondrial",
         "perfect_cell_barcodes",
         "reads_mapped_intergenic",
         "reads_unmapped",
@@ -389,6 +390,11 @@ def create_h5ad_files(args):
     # Set variable names
     new_data.var_names = [x for x in new_data.var["Gene"]]
     
+    # Add GTF to uns field
+
+    gtf_path = args.gtf_path
+    new_data.uns["reference_gtf_file"] = gtf_path
+    
     # Write h5ad file
     new_data.write(args.output_h5ad_path + ".h5ad")
 
@@ -455,6 +461,14 @@ def main():
         default=None,
         required=False,
         help="annotation file in GTF format",
+    )
+
+    parser.add_argument(
+        "--gtf_path",
+        dest="gtf_path",
+        default=None,
+        required=False,
+        help="annotation file path",
     )
 
     parser.add_argument(

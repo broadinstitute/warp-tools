@@ -81,9 +81,10 @@ protected:
   void clearCellAndGeneCommon();
   bool isMitochondrial(LineFields const& fields) const;
 
-  const std::string kCommonHeaders[25] =
+  const std::string kCommonHeaders[27] =
   {
     "n_reads",
+    "tso_reads",
     "noise_reads",
     "perfect_molecule_barcodes",
     "reads_mapped_exonic",
@@ -107,7 +108,8 @@ protected:
     "reads_per_fragment",
     "fragments_per_molecule",
     "fragments_with_single_read_evidence",
-    "molecules_with_single_read_evidence"
+    "molecules_with_single_read_evidence",
+    "reads_mapped_mitochondrial"
   };
 
   void parseAlignedReadFields(LineFields const& fields, std::string hyphenated_tags);
@@ -123,6 +125,7 @@ protected:
 private:
   // count information
   int n_reads_ = 0;
+  int tso_reads_ = 0;
   const int noise_reads = 0; //# long polymers, N-sequences; NotImplemented
 
   std::unordered_map<std::string, int> fragment_histogram_;
@@ -136,12 +139,15 @@ private:
 
   OnlineGaussianSufficientStatistic genomic_read_quality_;
 
+  // (Note that all of these reads_mapped fields count only unique reads; any
+  //  read that has duplicates does not contribute to them *at all*)
   // alignment location information
   int reads_mapped_exonic_ = 0;
   int reads_mapped_exonic_as_ = 0;
   int reads_mapped_intronic_ = 0;
   int reads_mapped_intronic_as_ = 0;
   //int reads_mapped_utr_ = 0;
+  int reads_mapped_mitochondrial_ = 0;
 
   // in future we can implement this when we have a gene model
   // self.reads_mapped_outside_window = 0  # reads should be within 1000 bases of UTR

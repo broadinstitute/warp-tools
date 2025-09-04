@@ -35,6 +35,7 @@ MetricGatherer::~MetricGatherer() {}
 void MetricGatherer::clearCellAndGeneCommon()
 {
   n_reads_ = 0;
+  tso_reads_ = 0;
   // noise_reads = 0; //# long polymers, N-sequences; NotImplemented
   fragment_histogram_.clear();
   molecule_histogram_.clear();
@@ -48,7 +49,8 @@ void MetricGatherer::clearCellAndGeneCommon()
   reads_mapped_exonic_as_ = 0;
   reads_mapped_intronic_ = 0;
   reads_mapped_intronic_as_ = 0;
-
+  reads_mapped_mitochondrial_ =0;
+  
   // alignment uniqueness information
   reads_mapped_uniquely_ = 0;
   reads_mapped_multiple_ = 0;
@@ -81,6 +83,9 @@ bool MetricGatherer::isMitochondrial(LineFields const& fields) const
 void MetricGatherer::ingestLineCellAndGeneCommon(LineFields const& fields)
 {
   n_reads_++; //with/without mt? == uniquely + multimapped
+  if (fields.number_tso > 19)
+    tso_reads_++;
+
 
   // the tags passed to this function define a molecule, this increments the counter,
   // identifying a new molecule only if a new tag combination is observed
@@ -109,11 +114,16 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
                                  is_strand + "\t" + hyphenated_tags;
   fragment_histogram_[ref_pos_str_tags] += 1;
 
-  if (!isMitochondrial(fields))
+  bool is_mito = isMitochondrial(fields);
+  if (fields.number_mappings > 1)
+    reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
+  else
   {
-    if (fields.number_mappings == 1)
+    reads_mapped_uniquely_ += 1;
+    if (is_mito)
+      reads_mapped_mitochondrial_ += 1;
+    else
     {
-      reads_mapped_uniquely_ += 1;
       if (fields.alignment_location == 1 || fields.alignment_location == 3)
         reads_mapped_exonic_ += 1;
       else if (fields.alignment_location == 2 || fields.alignment_location == 4)
@@ -123,8 +133,6 @@ void MetricGatherer::parseAlignedReadFields(LineFields const& fields, std::strin
       else if (fields.alignment_location == 6)
         reads_mapped_intronic_as_ += 1;
     }
-    else
-      reads_mapped_multiple_ += 1;  // without multi-mapping, this number is zero!
   }
 
   // in futher check if read maps outside window (when we add a  gene model)
@@ -160,6 +168,7 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
   metrics_csv_outfile_
       << prev_tag_ << ","
       << n_reads_ << ","
+      << tso_reads_ << ","
       << noise_reads << ","
       << perfect_molecule_barcodes_ << ","
       << reads_mapped_exonic_ << ","
@@ -183,7 +192,8 @@ void MetricGatherer::outputMetricsLineCellAndGeneCommon()
       << reads_per_fragment << ","
       << fragments_per_molecule << ","
       << fragments_with_single_read_evidence << ","
-      << molecules_with_single_read_evidence;
+      << molecules_with_single_read_evidence << ","
+      << reads_mapped_mitochondrial_;
 }
 
 
@@ -199,7 +209,7 @@ CellMetricGatherer::CellMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<27; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<11; i++)
     metrics_csv_outfile_ << "," << cell_specific_headers[i];
@@ -321,7 +331,7 @@ GeneMetricGatherer::GeneMetricGatherer(std::string metric_output_file,
 {
   // write metrics csv header
   std::string s;
-  for (int i=0; i<25; i++)
+  for (int i=0; i<27; i++)
     metrics_csv_outfile_ << "," << kCommonHeaders[i]; // TODO ok to start with ,?
   for (int i=0; i<2; i++)
     metrics_csv_outfile_ << "," << gene_specific_headers[i];

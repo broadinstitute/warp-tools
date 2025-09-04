@@ -5,7 +5,7 @@
 
 TEST(AlignmentDatatypeTest, BasicParsing)
 {
-  LineFields lf("a\tbbb\tc\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+  LineFields lf("a\tbbb\tc\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t12345\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "a");
   EXPECT_EQ(lf.tag_triple.second, "bbb");
@@ -19,6 +19,7 @@ TEST(AlignmentDatatypeTest, BasicParsing)
   EXPECT_NEAR(lf.genomic_read_quality, 0.6f, 0.001f);
   EXPECT_NEAR(lf.genomic_reads_base_quality_above_30, 0.7f, 0.001f);
   EXPECT_EQ(lf.number_mappings, 8);
+    EXPECT_EQ(lf.number_tso, 12345);
   EXPECT_EQ(lf.perfect_molecule_barcode, 0);
   EXPECT_EQ(lf.read_spliced, 1);
   EXPECT_EQ(lf.read_is_duplicate, 0);
@@ -28,7 +29,7 @@ TEST(AlignmentDatatypeTest, BasicParsing)
 
 TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
 {
-  LineFields lf("\t\t\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t0\t1\t0\t1\t0.9");
+  LineFields lf("\t\t\td\t1234\t123\t1\t0.12\t4.56e10\t0.6\t0.7\t8\t12345\t0\t1\t0\t1\t0.9");
 
   EXPECT_EQ(lf.tag_triple.first, "");
   EXPECT_EQ(lf.tag_triple.second, "");
@@ -42,6 +43,7 @@ TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
   EXPECT_NEAR(lf.genomic_read_quality, 0.6f, 0.001f);
   EXPECT_NEAR(lf.genomic_reads_base_quality_above_30, 0.7f, 0.001f);
   EXPECT_EQ(lf.number_mappings, 8);
+  EXPECT_EQ(lf.number_tso, 12345);
   EXPECT_EQ(lf.perfect_molecule_barcode, 0);
   EXPECT_EQ(lf.read_spliced, 1);
   EXPECT_EQ(lf.read_is_duplicate, 0);
@@ -51,18 +53,18 @@ TEST(AlignmentDatatypeTest, BasicParsingButEmptyTag)
 
 TEST(AlignmentDatatypeTest, TabAfterFinalFieldAllowed)
 {
-  LineFields lf("a\tbbb\tc\td\t1234\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t");
+  LineFields lf("a\tbbb\tc\td\t1234\t123\t1\t0.12\t4.56e10\t0\t0\t0\t0\t0\t0\t0\t0\t0\t");
 }
 
 TEST(AlignmentDatatypeTest, EmptyStringFieldAllowed)
 {
-  LineFields lf("a\t\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
+  LineFields lf("a\t\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0");
   EXPECT_EQ(lf.tag_triple.second, "");
 }
 
 TEST(AlignmentDatatypeDeathTest, EmptyIntFieldNotAllowed)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t0\t\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
               testing::HasSubstr("empty field"));
 }
@@ -104,16 +106,16 @@ TEST(AlignmentDatatypeDeathTest, CharsAfterFloat)
 
 TEST(AlignmentDatatypeDeathTest, TooFewFields)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Found 16 fields in line; expected 17"));
+              testing::HasSubstr("Found 17 fields in line; expected 18"));
 }
 
 TEST(AlignmentDatatypeDeathTest, TooManyFields)
 {
-  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
+  EXPECT_EXIT(LineFields lf("a\tb\tc\td\t1234\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0\t0"),
               testing::ExitedWithCode(1),
-              testing::HasSubstr("Found more than the expected 17 fields in line."));
+              testing::HasSubstr("Found more than the expected 18 fields in line."));
 }
 
 TEST(TagTripleTest, TagOrderFromCommandLine)

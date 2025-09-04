@@ -14,7 +14,7 @@ QUAY_URL="quay.io/broadinstitute/gotc-prod-samtools-star"
 SAMTOOLS_VERSION="1.11"
 
 # STAR version
-STAR_VERSION="2.7.10a"
+STAR_VERSION="2.7.11a"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)

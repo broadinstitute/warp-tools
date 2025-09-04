@@ -4,7 +4,7 @@ FROM --platform="linux/amd64" frolvlad/alpine-mono:5.4-glibc
 ARG IAAP_CLI_VERSION=iaap-cli-linux-x64-1.1.0-sha.80d7e5b3d9c1fdfc2e99b472a90652fd3848bbc7
 
 ENV TERM=xterm-256color \
-    IAAP_CLI_URL=https://broadinstitute.jfrog.io/artifactory/libs-release-local/org/broadinstitute/illumina-iaap-cli
+    IAAP_CLI_URL=https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-release/org/broadinstitute/illumina-iaap-cli
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
         IAAP_CLI_VERSION=${IAAP_CLI_VERSION}

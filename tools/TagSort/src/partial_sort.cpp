@@ -40,7 +40,7 @@ inline int get_itag_or_default(bam1_t* aln, const char* tagname, int default_val
 inline int get_Btag_or_default(bam1_t* aln, const char* tagname, int default_value)
 {
   uint8_t* p;
-  //changed default to -2 because -1 is used int he sf tag
+  //changed default to -2 because -1 is used in the sf tag
   int tag_value = -2;
   if ((p = bam_aux_get(aln, tagname)) == nullptr)
     tag_value = default_value;
@@ -125,6 +125,7 @@ std::unique_ptr<LineFields> parseOneAlignment(
 
   char* gene_id = get_Ztag_or_default(aln, options.gene_tag.c_str(), none);
   int location_tag = get_Btag_or_default(aln, "sF", -2);
+  int tso_tag = get_Btag_or_default(aln, "cN", -1);
   int nh_num = get_itag_or_default(aln, "NH", -1);
 
   const char* chr = (aln->core.tid == -1) ? nochr : bam_hdr->target_name[aln->core.tid];
@@ -164,7 +165,7 @@ std::unique_ptr<LineFields> parseOneAlignment(
   return std::make_unique<LineFields>(
       makeTriplet(barcode, umi, gene_id, tag_order), chr, location_tag, pos,
       isrev, avg_cell_barcode_qual, cell_barcode_qual_above_threshold,
-      avg_sequence_qual, qual_above_threshold, nh_num, perfect_molecule_barcode,
+      avg_sequence_qual, qual_above_threshold, nh_num, tso_tag, perfect_molecule_barcode,
       spliced_read, is_duplicate, perfect_cell_barcode,
       frac_umi_qual_above_threshold);
 }

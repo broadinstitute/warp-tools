@@ -8,6 +8,7 @@ This directory contains the following scripts:
 * `loomCompare.py` compares differences between loom files
 * `ss2_loom_merge.py` creates a single loom file from multiple single sample loom files
 * `makeCompliantBAM.py` make a BAM file with cellular barcodes in the read names compliant by moving them to the CB tag
+* `gex_h5ad_comparison.py` compares the GEX h5ad files from the Optimus pipeline
 
 The following scripts create a loom file from counts, metadata, and metrics from each pipeline:
 * `create_loom_optimus.py` for Optimus pipeline
