@@ -42,8 +42,8 @@ def is_remote_file(file_path):
     if is_gs_url:
         bucket_name, remote_path = get_bucket_and_path(file_path)
         storage_client = storage.Client()
-        source_blob = storage.Blob(bucket=bucket_name, name=remote_path)
-        return source_blob.exists(storage_client)
+        blob = storage_client.blob(remote_path)
+        return blob.exists()
     else:
         return False
 
