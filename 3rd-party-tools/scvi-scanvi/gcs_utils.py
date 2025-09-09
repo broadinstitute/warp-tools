@@ -57,8 +57,11 @@ def pull_all_files(file_list):
 
     :param file_list: list of remote file paths
     """
+    local_files = []
     for f in file_list:
         if is_remote_file(f):
             bucket_name, remote_path = get_bucket_and_path(f)
             filename = f.split('/')[-1]
             download_from_bucket(bucket_name, remote_path, filename)
+            local_files.append(filename)
+    return local_files

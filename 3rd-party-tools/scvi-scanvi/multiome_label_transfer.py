@@ -618,8 +618,10 @@ if __name__ == '__main__':
     )
     parsed_args = parser.parse_args()
     if parsed_args.localize:
-        pull_all_files([parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file])
-    main(parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file)
+        gex, atac, ref = pull_all_files([parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file])
+        main(gex, atac, ref)
+    else:
+        main(parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file)
     if parsed_args.localize:
         bucket_name = get_bucket_and_path(parsed_args.ref_file)[0]
         delocalize_file(bucket_name, "SCANVI_predictions.h5ad", "SCANVI_predictions.h5ad")
