@@ -1,5 +1,15 @@
 from google.cloud import storage
 
+def get_bucket_blob(bucket_name, remote_path):
+    """Downloads file from Google Cloud Storage bucket
+
+    :param bucket_name: GCS bucket name
+    :param file_path: local file path
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    return bucket.blob(remote_path)
+
 def download_from_bucket(bucket_name, remote_path, local_path):
     """Downloads file from Google Cloud Storage bucket
 
@@ -7,9 +17,7 @@ def download_from_bucket(bucket_name, remote_path, local_path):
     :param file_path: local file path
     """
     print(f'Downloading file: {remote_path}')
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.blob(remote_path)
+    blob = get_bucket_blob(bucket_name, remote_path)
     blob.download_to_filename(local_path)
     print(f"{remote_path} downloaded to {local_path}.")
 
@@ -21,9 +29,7 @@ def delocalize_file(bucket_name, file_to_delocalize, bucket_destination):
     :param bucket_destination: path in Google bucket to write file to
     """
     print(f'Uploading file: {file_to_delocalize}')
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.blob(bucket_destination)
+    blob = get_bucket_blob(bucket_name, bucket_destination)
     blob.upload_from_filename(file_to_delocalize)
     print(f"File {file_to_delocalize} uploaded to {bucket_destination}.")
 
@@ -41,8 +47,7 @@ def is_remote_file(file_path):
     is_gs_url = file_path[:5] == "gs://"
     if is_gs_url:
         bucket_name, remote_path = get_bucket_and_path(file_path)
-        storage_client = storage.Client()
-        blob = storage_client.blob(remote_path)
+        blob = get_bucket_blob(bucket_name, remote_path)
         return blob.exists()
     else:
         return False
