@@ -8,6 +8,7 @@ import numpy as np
 import scanpy as sc
 import scvi
 import time
+from gcs_utils import *
 
 def read_h5ad(gex_path, cellbybin_path, reference_path):
     """
@@ -607,6 +608,17 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--gex-file', required=True, help="Input gene expression AnnData file")
     parser.add_argument('-a', '--atac-file', required=True, help="Input ATAC AnnData file")
     parser.add_argument('-r', '--ref-file', required=True, help="Input label reference AnnData file")
+    parser.add_argument(
+        '-l',
+        '--localize',
+        required=True,
+        default=False,
+        help="Localize input files and push outputs back to bucket"
+    )
     parsed_args = parser.parse_args()
+    if parsed_args.localize:
+        pull_all_files([parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file])
     main(parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file)
-
+    if parsed_args.localize:
+        bucket_name = get_bucket_and_path(parsed_args.ref_file)[0]
+        delocalize_file(bucket_name, "SCANVI_predictions.h5ad", "SCANVI_predictions.h5ad")
