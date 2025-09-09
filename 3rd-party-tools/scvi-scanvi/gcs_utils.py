@@ -39,7 +39,7 @@ def get_bucket_and_path(remote_file):
     :param remote_file: remote file path
     """
     bucket = remote_file[5:].split("/")[0]
-    path = remote_file[5:].split("/")[1]
+    path = remote_file[5:].split(bucket)[1][1:]
     return bucket, path
 
 def is_remote_file(file_path):
