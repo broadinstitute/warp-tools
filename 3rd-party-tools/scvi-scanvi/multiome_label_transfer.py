@@ -613,6 +613,7 @@ if __name__ == '__main__':
         '--localize',
         required=True,
         default=False,
+        action="store_true",
         help="Localize input files and push outputs back to bucket"
     )
     parsed_args = parser.parse_args()
