@@ -171,7 +171,7 @@ def main():
                                 mod_fields[2] = "intron"
                                 mod_fields[3] = str(intron[0])
                                 mod_fields[4] = str(intron[1])
-                                mod_fields[8] = mod_fields[8] + ' intron_id "{}"'.format(str(intron_no))
+                                mod_fields[8] = mod_fields[8] + '; intron_id "{}"'.format(str(intron_no))
                                 intron_no += 1
                                 if args.output_gtf.endswith(".gz"):
                                     output_gtf.write(
