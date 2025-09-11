@@ -6,6 +6,9 @@ SHELL ["/bin/bash", "-c"]
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
 
+# Install DropSift
+RUN R -e "remotes::install_github('broadinstitute/DropSift')"
+
 # Install system libraries
 RUN apt-get update ; \
     apt-get install -y --no-install-recommends zip unzip gzip less wget curl    ; \
