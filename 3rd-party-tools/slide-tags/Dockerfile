@@ -6,7 +6,6 @@ SHELL ["/bin/bash", "-c"]
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
 
-
 # Install system libraries
 RUN apt-get update ; \
     apt-get install -y --no-install-recommends zip unzip gzip less wget curl    ; \
@@ -88,9 +87,7 @@ RUN apt-get update ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
           BiocManager::install('rhdf5')" ; \
-
-    # Install DropSift
-    RUN R -e "remotes::install_github('broadinstitute/DropSift')"
+    R -e "remotes::install_github('broadinstitute/DropSift')" ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
