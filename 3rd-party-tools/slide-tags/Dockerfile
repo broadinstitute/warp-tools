@@ -85,6 +85,8 @@ RUN apt-get update ; \
                              'gridExtra',   \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
+    R -e "install.packages(c('optparse', 'BiocManager'), repos='https://cloud.r-project.org'); BiocManager::install('IRanges')"; \
+
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
           BiocManager::install('rhdf5')" ; \
 
