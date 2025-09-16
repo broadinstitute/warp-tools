@@ -95,12 +95,12 @@ RUN apt-get update ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
           BiocManager::install('rhdf5')"
-    #R -e "remotes::install_github('broadinstitute/DropSift')" ; \
+
     # Install DropSift and verify installation
 RUN R -e "if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes', repos='http://cran.rstudio.com/'); \
           remotes::install_github('broadinstitute/DropSift'); \
           library(DropSift); \
-          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')"
+          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')" ; \
 
 
     # Install micromamba
