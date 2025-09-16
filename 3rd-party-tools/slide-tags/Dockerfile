@@ -94,8 +94,14 @@ RUN apt-get update ; \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
-          BiocManager::install('rhdf5')" ; \
-    R -e "remotes::install_github('broadinstitute/DropSift')" ; \
+          BiocManager::install('rhdf5')"
+    #R -e "remotes::install_github('broadinstitute/DropSift')" ; \
+    # Install DropSift and verify installation
+RUN R -e "if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes', repos='http://cran.rstudio.com/'); \
+          remotes::install_github('broadinstitute/DropSift'); \
+          library(DropSift); \
+          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')"
+
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
