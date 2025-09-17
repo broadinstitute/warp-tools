@@ -112,17 +112,17 @@ def shared_barcodes(rna, atac):
         - Writes the filtered objects to "gex_filtered.h5ad" and "atac_filtered.h5ad".
     """
     # Find the shared barcodes
-    shared_barcodes = atac.obs.index.intersection(rna.obs.index)
+    shared_codes = atac.obs.index.intersection(rna.obs.index)
 
     # Subset both AnnData objects
-    atac_shared = atac[atac.obs.index.isin(shared_barcodes)].copy()
-    gex_shared = rna[rna.obs.index.isin(shared_barcodes)].copy()
+    atac_shared = atac[atac.obs.index.isin(shared_codes)].copy()
+    gex_shared = rna[rna.obs.index.isin(shared_codes)].copy()
 
     # Save the filtered AnnData objects
     atac_shared.write_h5ad("atac_filtered.h5ad")
     gex_shared.write_h5ad("gex_filtered.h5ad")
 
-    print(f"Filtered ATAC and GEX files saved with {len(shared_barcodes)} shared barcodes.")
+    print(f"Filtered ATAC and GEX files saved with {len(shared_codes)} shared barcodes.")
     return gex_shared, atac_shared
 
 
