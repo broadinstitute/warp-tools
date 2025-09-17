@@ -4,7 +4,7 @@ warnings.filterwarnings("ignore")
 import argparse
 import snapatac2 as snap
 import anndata as ad
-import numpy as np
+import pandas as pd
 import scanpy as sc
 import scvi
 import time
@@ -493,9 +493,6 @@ def main(gex_file, atac_file, ref_file):
     # copy count data into .raw layer
     final_data = finalize_output(data)
 
-    # output final timing summary
-    print(timing_summary)
-
     # Compare predicted cell type labels with Leiden clusters
     # The predicted annotations align well with Leiden cluster structure.
     # However, due to fewer cells in the ATAC-seq dataset, resolution is limited—
@@ -504,6 +501,13 @@ def main(gex_file, atac_file, ref_file):
     # Save SCANVI predictions for Multiome data using shared gene features
     # (Note: previous predictions may not have used a shared gene space across modalities)
     final_data.write("SCANVI_predictions.h5ad")
+
+    # output final timing summary
+    timing_df = pd.DataFrame(
+        [(step, f"{elapsed:.2f} seconds") for step, elapsed in timing_summary.items()],
+        columns=["Step", "Time Elapsed"]
+    )
+    print(timing_df)
 
 
 if __name__ == '__main__':
