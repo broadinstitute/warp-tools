@@ -1,4 +1,4 @@
-FROM hailgenetics/hail:0.2.127-py3.11
+FROM gcr.io/broad-dsde-methods/aou-auxiliary/hail_dataproc_wdl:0.2.134
 
 # Set working directory
 WORKDIR /opt
@@ -31,8 +31,8 @@ RUN python3 -c "from slack import WebClient; print('Slack SDK installed successf
 RUN python3 -c "import sys; sys.path.append('/opt/gnomad-mitochondria'); import gnomad_mitochondria; print('gnomad_mitochondria available')" || \
     echo "gnomad_mitochondria not installable as package, but should be accessible via PYTHONPATH"
 
-# Clone and install mtSwirl
-RUN git clone https://github.com/jamesemery/mtSwirl.git && \
+# Clone and install mtSwirl - updated to point to the main mtswirl repo rather than the 'jamesemery' fork
+RUN git clone https://github.com/rahulg603/mtSwirl.git && \
     chmod +x mtSwirl/generate_mtdna_call_mt/add_annotations.py && \
     ls -la mtSwirl/generate_mtdna_call_mt/add_annotations.py
 
