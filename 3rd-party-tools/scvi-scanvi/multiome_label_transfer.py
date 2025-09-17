@@ -280,54 +280,17 @@ def transfer_labels(data, lvae):
     return plot, data
 
 
-def subset_multiome_data(scanvi_output):
-    """
-        Extracts and prepares RNA and ATAC unannotated subsets from a SCANVI-labeled AnnData object.
-
-        This function:
-        - Copies SCANVI-predicted labels to a new field.
-        - Separates RNA and ATAC unannotated modalities.
-        - Strips modality suffixes from barcodes.
-        - Filters to shared barcodes across RNA and ATAC.
-        - Renames labels, adds metadata fields for downstream compatibility.
-        - Stores raw count layers.
-        - Saves processed AnnData objects to disk.
+def finalize_output(scanvi_output):
+    """Finalizes output file by appending required metadata values and copying the count data into the .raw slot for
+    downstream ingest
 
         Parameters:
-        - scanvi_output (AnnData): SCANVI output containing multiple modalities and predicted labels.
+        - scanvi_output (AnnData): AnnData object with output from SCANVI.
 
         Returns:
-        - rna_unannotated (AnnData): Processed RNA unannotated dataset with metadata and raw counts.
-        - atac_unannotated (AnnData): Processed ATAC unannotated dataset with metadata and raw counts.
+        - scanvi_output (AnnData): AnnData with raw counts, renamed celltype annotation and metadata defaults added.
     """
-
-    # Copy predicted SCANVI labels to a standard field
-    adata = scanvi_output
-    adata.obs['final_annotation'] = adata.obs['C_scANVI'].to_numpy()
-
-    # Subset unannotated RNA and ATAC data
-    rna_unannotated = adata[adata.obs["modality"] == "rna_unannotated"].copy()
-    atac_unannotated = adata[adata.obs["modality"] == "atac_unannotated"].copy()
-
-    # Remove modality suffixes from barcodes
-    rna_unannotated.obs.index = rna_unannotated.obs.index.str.replace("_rna_unannotated", "", regex=False)
-    atac_unannotated.obs.index = atac_unannotated.obs.index.str.replace("_atac_unannotated", "", regex=False)
-
-    # Keep only shared barcodes between RNA and ATAC
-    common_barcodes = rna_unannotated.obs.index.intersection(atac_unannotated.obs.index)
-    rna_unannotated = rna_unannotated[common_barcodes]
-    atac_unannotated = atac_unannotated[common_barcodes]
-
-    # Save interim files
-    rna_unannotated.write_h5ad("rna_unannotated.h5ad")
-    atac_unannotated.write_h5ad("atac_unannotated.h5ad")
-
-    # Rename prediction field and add empty ontology placeholders
-    rna_unannotated.obs.rename(columns={"final_annotation": "celltype"}, inplace=True)
-    atac_unannotated.obs.rename(columns={"final_annotation": "celltype"}, inplace=True)
-
-    # Add gex required metadata fields
-    gex_metadata_defaults = {
+    metadata_defaults = {
         "biosample_id": "sample_001",
         "donor_id": "donor_001",
         "species": "NCBITaxon_9606",
@@ -341,39 +304,15 @@ def subset_multiome_data(scanvi_output):
         "sex": "unknown"
     }
 
-    # Add atac required metadata fields
-    atac_metadata_defaults = {
-        "biosample_id": "sample_001",
-        "donor_id": "donor_001",
-        "species": "NCBITaxon_9606",
-        "species__ontology_label": "Homo sapiens",
-        "disease": "PATO_0000461",
-        "disease__ontology_label": "normal",
-        "organ": "UBERON_0000955",
-        "organ__ontology_label": "brain",
-        "library_preparation_protocol": "EFO_0030059",
-        "library_preparation_protocol__ontology_label": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
-        "sex": "unknown"
-    }
+    print("Adding metadata to SCANVI output h5ad")
+    for key, value in metadata_defaults.items():
+        scanvi_output.obs[key] = value
 
-    print("Adding metadata to rna h5ad")
-    for key, value in gex_metadata_defaults.items():
-        rna_unannotated.obs[key] = value
-
-    print("Adding metadata to atac h5ad")
-    for key, value in atac_metadata_defaults.items():
-        atac_unannotated.obs[key] = value
+    scanvi_output.obs.rename(columns={"final_annotation": "celltype"}, inplace=True)
 
     # Move raw gene counts and gene activity counts into raw
-    rna_unannotated.raw = ad.AnnData(rna_unannotated.X, var=rna_unannotated.var, obs=rna_unannotated.obs)
-    atac_unannotated.raw = ad.AnnData(atac_unannotated.X, var=atac_unannotated.var, obs=atac_unannotated.obs)
-
-    # Save the separate AnnData objects
-    rna_unannotated.write_h5ad("rna_unannotated_3.h5ad")
-    atac_unannotated.write_h5ad("atac_unannotated_3.h5ad")
-
-    return rna_unannotated, atac_unannotated
-
+    scanvi_output.raw = ad.AnnData(scanvi_output.X, var=scanvi_output.var, obs=scanvi_output.obs)
+    return scanvi_output
 
 def check_cell_matches(gex, atac):
     """
@@ -527,48 +466,6 @@ def main(gex_file, atac_file, ref_file):
     plot, data = transfer_labels(data, lvae)
     timing_summary['Label Transfer'] = time.time() - start
 
-    # Write output
-    data.write("atac_gex_scanvi")
-
-    # ----------------------------------------------
-    # Subset Multiome Data for RNA and ATAC
-    # ----------------------------------------------
-    # After the cell type annotations have been transferred to the query data, we now
-    # need to separate the Multiome dataset (which contains both RNA and ATAC data) into
-    # individual subsets for further analysis.
-    #
-    # This function takes the combined AnnData object (which contains both RNA and ATAC
-    # modalities) and subsets it into two distinct datasets: one for the RNA data (`rna_unannotated`)
-    # and another for the ATAC data (`atac_unannotated`). The subsetting is based on the "modality"
-    # field, which differentiates between the two types of data.
-    #
-    # The following steps are performed:
-    # - The `final_annotation` (predicted by SCANVI) is copied to each modality (RNA and ATAC).
-    # - Common barcodes (cells) between RNA and ATAC datasets are ensured.
-    # - Metadata related to biosample, donor, disease, organ, etc., is added to the `obs` attribute
-    #   of both datasets.
-    # - Raw counts are saved in the `.raw` attribute for future reference.
-    #
-    # The resulting two subsets are stored in separate AnnData objects, `rna_unannotated`
-    # and `atac_unannotated`, and saved to disk for further use in downstream analyses.
-
-    # Read h5ad output
-    df = ad.read_h5ad("atac_gex_scanvi")
-    # Print dataframe
-    print(df)
-    rna_unannotated, atac_unannotated = subset_multiome_data(df)
-    # Check that we have raw counts
-    is_integer = np.all(atac_unannotated.X == atac_unannotated.X.astype(int))
-    # Check for barcodes between atac and gex datasets that do not share the same cell annotations, even though they come from the same cells
-    mismatched = check_cell_matches(rna_unannotated, atac_unannotated)
-    len(mismatched)
-    # Cell types of unannotated RNA anndata
-    rna_unannotated.obs.celltype
-    # Cell type of unannotated ATAC anndata
-    atac_unannotated.obs.celltype
-    # Cell types of unannotated RNA anndata
-    rna_unannotated.obs["celltype"]
-
     # ----------------------------------------------
     # Perform Label Transfer and Save Predictions
     # ----------------------------------------------
@@ -591,6 +488,14 @@ def main(gex_file, atac_file, ref_file):
     # Write the annotated matrices
     atac_shared.write("atac_annotated_matrix.h5ad")
     gex_shared.write("gex_annotated_matrix.h5ad")
+
+    # perform final prep on output file to move annotations to correct column, add placeholder metadata and
+    # copy count data into .raw layer
+    final_data = finalize_output(data)
+
+    # output final timing summary
+    print(timing_summary)
+
     # Compare predicted cell type labels with Leiden clusters
     # The predicted annotations align well with Leiden cluster structure.
     # However, due to fewer cells in the ATAC-seq dataset, resolution is limited—
@@ -598,7 +503,7 @@ def main(gex_file, atac_file, ref_file):
     # as well as other closely related cell types.
     # Save SCANVI predictions for Multiome data using shared gene features
     # (Note: previous predictions may not have used a shared gene space across modalities)
-    data.write("SCANVI_predictions.h5ad")
+    final_data.write("SCANVI_predictions.h5ad")
 
 
 if __name__ == '__main__':
