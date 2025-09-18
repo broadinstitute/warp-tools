@@ -69,4 +69,4 @@ RUN pip list | grep psycopg2 && \
 WORKDIR /
 
 # Add mtSwirl to PATH for easier access
-ENV PATH="/opt/mtSwirl/generate_mtdna_call_mt:${PATH}"
+ENV PATH="/opt/mtSwirl/generate_mtdna_call_mt:/usr/lib/google-cloud-sdk/bin:${PATH}"
