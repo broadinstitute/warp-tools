@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
-FROM --platform="linux/amd64" adoptopenjdk/openjdk8:alpine-slim
+FROM --platform="linux/amd64" eclipse-temurin:17-jdk-alpine
 
 ARG BEAGLE_VERSION=17Dec24.224 \
     BREF3_VERSION=17Dec24.224 \
