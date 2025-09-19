@@ -7,6 +7,8 @@ WORKDIR /opt
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     git \
+    zip \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and handle psycopg2 dependencies
