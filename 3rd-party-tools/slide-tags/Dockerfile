@@ -4,7 +4,7 @@
 FROM debian:bookworm
 SHELL ["/bin/bash", "-c"]
 
-LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
+LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org>"
 
 # Install system libraries
 RUN apt-get update ; \
@@ -86,14 +86,14 @@ RUN apt-get update ; \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
-          BiocManager::install('rhdf5')"
+          BiocManager::install('rhdf5', 'SummarizedExperiment')"
 
     # Install DropSift and verify installation
 RUN R -e "if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes', repos='http://cran.rstudio.com/'); \
           remotes::install_github('broadinstitute/DropSift'); \
          library(DropSift); \
-          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')" ; \
-
+          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')"
+RUN R -e "devtools::install_github('immunogenomics/presto')" ; \
 
     # Install micromamba
     # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
