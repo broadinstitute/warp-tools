@@ -6,9 +6,6 @@ SHELL ["/bin/bash", "-c"]
 
 LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
 
-# Set tini version
-ENV TINI_VERSION=v0.19.0
-
 # Install system libraries
 RUN apt-get update ; \
     apt-get install -y --no-install-recommends zip unzip gzip less wget curl    ; \
@@ -18,11 +15,6 @@ RUN apt-get update ; \
     apt-get install -y --no-install-recommends libhdf5-dev hdf5-tools libpng-dev libtiff5-dev libjpeg-dev ; \
     apt-get install -y --no-install-recommends apt-transport-https ca-certificates libssl-dev libxml2-dev zlib1g-dev ; \
     apt-get install -y --no-install-recommends libfreetype6-dev libcairo2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev ; \
-    mkdir /tmp/tini && cd /tmp/tini && \
-    wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -O /sbin/tini && \
-    chmod +x /sbin/tini && \
-    cd / && rm -rf /tmp/tini ; \
-
 
     # Get spatial count script -- will add this line later when we have a more stable version of the script
     # wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl; \
