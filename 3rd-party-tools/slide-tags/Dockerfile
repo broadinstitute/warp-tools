@@ -86,13 +86,13 @@ RUN apt-get update ; \
                              'SeuratObject'), repos='http://cran.rstudio.com/')" ; \
 
     R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cran.rstudio.com/')}; \
-          BiocManager::install('rhdf5')" ; \
+          BiocManager::install('rhdf5')"
 
     # Install DropSift and verify installation
-#RUN R -e "if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes', repos='http://cran.rstudio.com/'); \
-#          remotes::install_github('broadinstitute/DropSift'); \
-#         library(DropSift); \
-#          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')" ; \
+RUN R -e "if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes', repos='http://cran.rstudio.com/'); \
+          remotes::install_github('broadinstitute/DropSift'); \
+         library(DropSift); \
+          cat('DropSift version: ', as.character(packageVersion('DropSift')), '\n')" ; \
 
 
     # Install micromamba
