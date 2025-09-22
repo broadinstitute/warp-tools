@@ -11,7 +11,13 @@ RUN apt-get update && apt-get install -y \
     libpng-dev libtiff5-dev libjpeg-dev  \
     libcairo2-dev libfreetype6-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev
 
-# Install Julia
+ # Install Google Cloud SDK
+ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
+     apt-get update -y && \
+     apt-get install google-cloud-sdk -y
+
+    # Install Julia
 RUN wget -P /opt https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.5-linux-x86_64.tar.gz && \
     tar -xzvf /opt/julia-1.10.5-linux-x86_64.tar.gz -C /opt && \
     rm /opt/julia-1.10.5-linux-x86_64.tar.gz && \
