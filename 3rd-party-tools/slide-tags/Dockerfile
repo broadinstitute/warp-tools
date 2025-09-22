@@ -1,94 +1,69 @@
-# Taken from https://github.com/MacoskoLab/Macosko-Pipelines/blob/main/positioning/Dockerfile
-# Modified slightly to reduce the number of layers
-
 FROM debian:bookworm
-SHELL ["/bin/bash", "-c"]
+ENV LANG C.UTF-8
+ENV LANGUAGE C.UTF-8
+ENV LC_ALL C.UTF-8
 
-LABEL maintainer="Broad Institute Pipeline Development Team <pipeline-development@broadinstitute.org"
+# Install system packages
+RUN apt-get update && apt-get install -y \
+    wget curl patch gdebi-core gfortran  \
+    libssl-dev libxml2-dev               \
+    libhdf5-dev hdf5-tools hdf5-helpers  \
+    libpng-dev libtiff5-dev libjpeg-dev  \
+    libcairo2-dev libfreetype6-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev
 
-# Install system libraries
-RUN apt-get update ; \
-    apt-get install -y --no-install-recommends zip unzip gzip less wget curl    ; \
-    apt-get install -y --no-install-recommends sudo tmux htop dstat socat       ; \
-    apt-get install -y --no-install-recommends procps moreutils gnupg           ; \
-    apt-get install -y --no-install-recommends gdebi-core build-essential alien ; \
-    apt-get install -y --no-install-recommends gfortran patch                   ; \
-    apt-get install -y --no-install-recommends libhdf5-dev hdf5-tools hdf5-helpers libpng-dev libtiff5-dev libjpeg-dev ; \
-    apt-get install -y --no-install-recommends apt-transport-https ca-certificates libssl-dev libxml2-dev zlib1g-dev ; \
-    apt-get install -y --no-install-recommends libfreetype6-dev libcairo2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev ; \
+# Install Julia
+RUN wget -P /opt https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.5-linux-x86_64.tar.gz && \
+    tar -xzvf /opt/julia-1.10.5-linux-x86_64.tar.gz -C /opt && \
+    rm /opt/julia-1.10.5-linux-x86_64.tar.gz && \
+    ln -s /opt/julia-1.10.5/bin/julia /usr/local/bin/julia
 
-    # Get spatial count script -- will add this line later when we have a more stable version of the script
-    # wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/main/spatial-count/spatial-count.jl; \
+# Install Julia packages
+RUN julia -e 'using Pkg;                 \
+              Pkg.add(["CSV",            \
+                       "HDF5",           \
+                       "FASTX",          \
+                       "ArgParse",       \
+                       "CodecZlib",      \
+                       "IterTools",      \
+                       "StatsBase",      \
+                       "DataFrames",     \
+                       "StringViews",    \
+                       "LinearAlgebra",  \
+                       "Combinatorics"])'
 
-    # Install Google Cloud SDK
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && apt-get update -y && apt-get install google-cloud-sdk -y ;\
+# Install R
+# https://docs.posit.co/resources/install-r.html
+RUN export R_VERSION=4.3.3 &&                                                      \
+    curl -O https://cdn.rstudio.com/r/debian-12/pkgs/r-${R_VERSION}_1_amd64.deb && \
+    echo y | gdebi r-${R_VERSION}_1_amd64.deb &&                                   \
+    rm r-${R_VERSION}_1_amd64.deb &&                                               \
+    ln -s /opt/R/${R_VERSION}/bin/R /usr/local/bin/R &&                            \
+    ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript
 
-    # Install Rust
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y ; \
-    # Install Julia
-    wget -P /opt https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.5-linux-x86_64.tar.gz ; \
-    tar -xzvf /opt/julia-1.10.5-linux-x86_64.tar.gz -C /opt                                        ; \
-    rm /opt/julia-1.10.5-linux-x86_64.tar.gz                                                            ; \
-    ln -s /opt/julia-1.10.5/bin/julia /usr/local/bin/julia ; \
+# Install R packages
+RUN R -e "install.packages(c('tidyverse', 'dplyr', 'tidyr', 'purrr', 'magrittr',  \
+                             'future', 'furrr', 'parallelly',                     \
+                             'data.table', 'rlist', 'stringr', 'stringi', 'glue', \
+                             'ggplot2', 'ggrastr', 'cowplot', 'gridExtra',        \
+                             'scCustomize', 'viridis', 'viridisLite',             \
+                             'Seurat', 'SeuratObject',                            \
+                             'rdist', 'dbscan', 'RANN',                           \
+                             'jsonlite', 'hdf5r', 'qpdf', 'qs', 'qs2',            \
+                             'devtools', 'remotes', 'R.utils', 'optparse'),       \
+                             repos='http://cloud.r-project.org')"
+# Install Bioconductor packages
+RUN R -e "if (!require('BiocManager', quietly=TRUE)) {install.packages('BiocManager', repos='http://cloud.r-project.org')}; \
+          BiocManager::install(c('rhdf5', 'IRanges', 'SummarizedExperiment'))"
+# Install other R packages
+RUN R -e "remotes::install_github('broadinstitute/DropSift')"
+RUN R -e "devtools::install_github('immunogenomics/presto')"
 
-    # Install Julia libraries
-    julia -e 'using Pkg;                     \
-                  Pkg.add(["CSV",                \
-                       "GZip",               \
-                       "SIMD",               \
-                       "HDF5",               \
-                       "Plots",              \
-                       "FASTX",              \
-                       "Peaks",              \
-                       "IJulia",             \
-                       "ArgParse",           \
-                       "CodecZlib",          \
-                       "PDFmerger",          \
-                       "IterTools",          \
-                       "StatsBase",          \
-                       "DataFrames",         \
-                       "StatsPlots",         \
-                       "StringViews",        \
-                       "Combinatorics",      \
-                       "Distributions",      \
-                       "LinearAlgebra",      \
-                       "LoopVectorization"])' ; \
+# Download scripts
+#RUN wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/spatial-count.jl  \
+#         https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/run-positioning.R \
+#         https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/positioning.R     \
+#         https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/helpers.R         \
+#         https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/plots.R
 
-    # Install R
-    export R_VERSION=4.3.3 ; \
-    curl -O https://cdn.rstudio.com/r/debian-12/pkgs/r-${R_VERSION}_1_amd64.deb ; \
-    echo y | gdebi r-${R_VERSION}_1_amd64.deb                                   ; \
-    sudo ln -s /opt/R/${R_VERSION}/bin/R /usr/local/bin/R                       ; \
-    sudo ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript 	   ; \
-
-    # Install R libraries
-    R -e "install.packages(c('tidyverse', 'dplyr', 'tidyr', 'purrr', 'magrittr',  \
-                                 'future', 'furrr', 'parallelly',                     \
-                                 'data.table', 'rlist', 'stringr', 'stringi', 'glue', \
-                                 'ggplot2', 'ggrastr', 'cowplot', 'gridExtra',        \
-                                 'scCustomize', 'viridis', 'viridisLite',             \
-                                 'Seurat', 'SeuratObject',                            \
-                                 'rdist', 'dbscan', 'RANN',                           \
-                                 'jsonlite', 'hdf5r', 'qpdf', 'qs', 'qs2',            \
-                                 'devtools', 'remotes', 'R.utils', 'optparse'),       \
-                                 repos='http://cloud.r-project.org')" ; \
-
-    # Install Bioconductor packages
-    R -e "if (!require('BiocManager',quietly=T)) {install.packages('BiocManager',repos='http://cloud.r-project.org')}; \
-          BiocManager::install(c('rhdf5', 'IRanges', 'SummarizedExperiment'))" ; \
-
-    # Install GitHub packages
-    R -e "remotes::install_github('broadinstitute/DropSift')" ; \
-    R -e "devtools::install_github('immunogenomics/presto')" ; \
-
-    # Install micromamba
-    # curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-    "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
-
-    # Install python + pip + jupyter
-    # RUN sudo ln -s /usr/bin/python3 /usr/bin/python
-    # RUN sudo apt-get update && sudo apt-get install python3-pip
-    # RUN pip install jupyterlab
-
-# Set tini as default entrypoint
-ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT ["/bin/bash", "-lc"]
+CMD ["/bin/bash", "-i"]
