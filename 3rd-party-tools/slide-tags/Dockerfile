@@ -53,16 +53,14 @@ RUN R -e "install.packages(c('tidyverse', 'dplyr', 'tidyr', 'purrr', 'magrittr',
                              'data.table', 'rlist', 'stringr', 'stringi', 'glue', \
                              'ggrastr', 'cowplot', 'gridExtra',        \
                              'scCustomize', 'viridis', 'viridisLite',             \
-                             'Seurat',                            \
+                             'Seurat', 'SeuratObject',                            \
                              'rdist', 'dbscan', 'RANN',                           \
                              'jsonlite', 'hdf5r', 'qpdf', 'qs', 'qs2',            \
                              'devtools', 'remotes', 'R.utils', 'optparse'),       \
                              repos='http://cloud.r-project.org')"
 
-# Pin ggplot2 and seurat ojbect to older versions
-RUN R -e "remotes::install_version('ggplot2', version='3.5.2', repos='http://cloud.r-project.org')"
-RUN R -e "remotes::install_version('SeuratObject', version='5.1.0', repos='http://cloud.r-project.org')"
-
+# Pin ggplot2 to older version
+RUN R remotes::install_version("ggplot2", version = "3.5.2", repos = "https://cran.r-project.org")
 
 # Install Bioconductor packages
 RUN R -e "if (!require('BiocManager', quietly=TRUE)) {install.packages('BiocManager', repos='http://cloud.r-project.org')}; \
