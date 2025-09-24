@@ -59,15 +59,15 @@ RUN R -e "install.packages(c('tidyverse', 'dplyr', 'tidyr', 'purrr', 'magrittr',
                              'devtools', 'remotes', 'R.utils', 'optparse'),       \
                              repos='http://cloud.r-project.org')"
 
-# Pin ggplot2 to older version
-RUN R -e 'remotes::install_version("ggplot2", version = "3.5.2", repos = "http://cloud.r-project.org")'
-
 # Install Bioconductor packages
 RUN R -e "if (!require('BiocManager', quietly=TRUE)) {install.packages('BiocManager', repos='http://cloud.r-project.org')}; \
           BiocManager::install(c('rhdf5', 'IRanges', 'SummarizedExperiment'))"
 # Install other R packages
 RUN R -e "remotes::install_github('broadinstitute/DropSift')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
+
+# Pin ggplot2 to older version
+RUN R -e 'remotes::install_version("ggplot2", version = "3.5.2", repos = "http://cloud.r-project.org")'
 
 # Download scripts
 #RUN wget https://raw.githubusercontent.com/MacoskoLab/Macosko-Pipelines/refs/heads/main/slide-tags/spatial-count.jl  \
