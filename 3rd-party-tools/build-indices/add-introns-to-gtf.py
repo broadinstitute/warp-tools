@@ -6,13 +6,39 @@ from bisect import bisect_left, bisect_right
 
 
 def get_feature(line, feature):
-    features = re.sub('"', "", line.strip().split("\t")[8].strip())
-    # For each feature in the features line, makes key value pair; will overwrite multiple tags
-    features_dic = {x.split()[0]: x.split()[1] for x in features.split(";") if x}
+    """
+    Parse GTF attributes column (column 9) to extract a specific feature value.
+    Handles both GENCODE and RefSeq GTF formats.
+    """
+    attributes = line.strip().split("\t")[8].strip()
+    features_dic = {}
 
-    if feature in features_dic:
-        return features_dic[feature]
-    return None
+    # Split by semicolon to get individual attribute pairs
+    for attr in attributes.split(";"):
+        attr = attr.strip()
+        if not attr:  # Skip empty attributes
+            continue
+
+        # Handle quoted values (both formats use quotes)
+        # Look for pattern: key "value" or key value
+        if '"' in attr:
+            # Remove all quotes first, then split
+            attr_clean = re.sub(r'"', "", attr)
+            parts = attr_clean.strip().split()
+        else:
+            parts = attr.strip().split()
+
+        if len(parts) >= 2:
+            key = parts[0]
+            value = " ".join(parts[1:])  # Join in case value has spaces
+            # Skip empty values (common in RefSeq)
+            if value and value != "":
+                features_dic[key] = value
+        elif len(parts) == 1:
+            # Handle key without value (set to empty string)
+            features_dic[parts[0]] = ""
+
+    return features_dic.get(feature, None)
 
 
 def main():
