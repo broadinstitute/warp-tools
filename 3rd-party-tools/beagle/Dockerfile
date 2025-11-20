@@ -49,12 +49,9 @@ RUN set -eux; \
     rm -r bcftools-${BCFTOOLS_VERSION}; \
     rm bcftools-${BCFTOOLS_VERSION}.tar.bz2 \
     ; \
-#    # Download Beagle jars
-#    # beagle runs phasing and imputation
-#    # curl -L https://faculty.washington.edu/browning/beagle/beagle.${BEAGLE_VERSION}.jar > beagle.${BEAGLE_VERSION}.jar \
-    # Clone repo and generate Beagle jar
+    # Clone `base-version` branch from `tmp-sharing/imp-server` repo and generate Beagle jar
     # beagle runs phasing and imputation
-    git clone https://github.com/tmp-sharing/imp-server.git; \
+    git clone --branch base-version --single-branch https://github.com/tmp-sharing/imp-server.git; \
     javac -cp imp-server/src/ imp-server/src/main/Main.java; \
     jar cfe beagle.${BEAGLE_VERSION}.jar main/Main -C imp-server/src/ ./; \
     rm -rf imp-server \
