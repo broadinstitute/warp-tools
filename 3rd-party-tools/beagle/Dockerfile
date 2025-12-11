@@ -1,7 +1,7 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" eclipse-temurin:17-jdk-alpine
 
-ARG BEAGLE_COMMIT_HASH=d820c4e21ad0ca55548c658f59848038971b9143 \
+ARG BEAGLE_COMMIT_HASH=b00155dbacb0b576755878b9935b635768d89fc5 \
     BREF3_VERSION=17Dec24.224 \
     BCFTOOLS_VERSION=1.10.2
 
