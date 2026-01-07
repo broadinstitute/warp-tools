@@ -45,7 +45,7 @@ RUN set -eux; \
     rm -r /usr/gitc/temp \
     ; \
 # Symlink python to python3
-    ln -s python3 /usr/bin/python;
+    ln -sf python3 /usr/bin/python
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
