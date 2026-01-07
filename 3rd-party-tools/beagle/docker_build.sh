@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# NOTE: This build script probably doesn't do what you hope it does.
+# While it builds the image, it doesn't actually push it to GCR because
+# the user running the script will most likely not have permissions to
+# push to the GCR repo. The only utility of this script is to create a
+# tag with the correct format and build the image locally. If you want to
+# push to GCR, you'll have to do it using the GitHub action (Beagle CI)
+# and specifying the correct tag (which you can get from running this script,
+# or constructing manually).
+
 # Update version when changes to Dockerfile are made
 DOCKER_IMAGE_VERSION=1.1.0
 TIMESTAMP=$(date +"%s")
@@ -31,7 +40,7 @@ function main(){
         fi
 
     while [[ $# -gt 0 ]]
-    do 
+    do
     key="$1"
     case $key in
         -b|--beagle)
