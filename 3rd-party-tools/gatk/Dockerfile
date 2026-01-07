@@ -24,7 +24,7 @@ RUN set -eux; \
             tini \
             unzip \
             wget \
-        && pip3 install --no-cache-dir gsutil \
+            py3-gsutil \
     ; \
 # Install GATK
     mkdir gatk4; \
