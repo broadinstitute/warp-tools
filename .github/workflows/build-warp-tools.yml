@@ -89,6 +89,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
       - name: Lint with ruff
         run: |
           # default set of ruff rules with GitHub Annotations
