@@ -92,7 +92,7 @@ jobs:
       - name: Lint with ruff
         run: |
           # default set of ruff rules with GitHub Annotations
-          ruff --format=github --target-version=py37 .
+          ruff --output-format=github --target-version=py37 .
         continue-on-error: true
       - name: Test with pytest
         run: |
