@@ -6,7 +6,7 @@ wget "https://github.com/samtools/htslib/releases/download/$HTSLIBVERSION/htslib
 tar -jxvf "htslib-$HTSLIBVERSION.tar.bz2" && \
 mv "htslib-$HTSLIBVERSION" htslib && \
 cd htslib && \
-./configure --disable-libcurl && \
+./configure --disable-libcurl --without-libdeflate && \
 make && \
 cd .. && \
 
