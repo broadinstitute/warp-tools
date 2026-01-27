@@ -1,5 +1,5 @@
 numpy
 scipy
-loompy==3.0.6
-h5py==2.10.0
 pandas
+loompy==3.0.6
+# h5py==2.10.0
