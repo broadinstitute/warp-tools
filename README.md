@@ -119,10 +119,9 @@ The pipelines that we maintain in WARP are designed for public use, ideally we w
 * Anybody can pull our images
 * Anybody can build our images
 
-For anybody to be able to pull our images they must be hosted on a public container registry, we host all of our images in public repos on GCR (our 'official' location) and Quay (for discoverability).
+For anybody to be able to pull our images they must be hosted on a public container registry, we host all of our images in public repos on GCR (our 'official' location).
 
 * GCR - `us.gcr.io/broad-gotc-prod`
-* Quay - `quay.io/broadinstitute/broad-gotc-prod`
 
 For anybody to be able to build our images, all functionality should be encapsulated in the Dockerfile. Any custom software packages, dependencies etc. have to be downloaded from public links within the Dockerfile, this obviously means that we should not be copying files from within the Broad network infrastructure into our images.
 
