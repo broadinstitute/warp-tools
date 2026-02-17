@@ -6,6 +6,12 @@ This script checks for columns/metrics that are all zeros in gene metrics,
 cell metrics, and library metrics files. Tests are skipped if the corresponding
 file argument is not provided.
 
+Example invocation:
+python tools/scripts/test_metrics_zeros_multiome.py --gene-metrics Chimp_gex.gene-metrics.csv --cell-metrics Chimp_gex.cell-metrics.csv --library-metrics Chimp_gex__library_metrics.csv
+
+(Bonus tip) Example warp-tools docker run:
+docker run -v ~/multiome_species_runsv4:/data -it --rm us.gcr.io/broad-gotc-prod/warp-tools /bin/bash
+
 Currently this only checks for zeros expected in Multiome mode, so if this is run on Optimus outputs it may show errors for expected zero metrics.
 
 """
