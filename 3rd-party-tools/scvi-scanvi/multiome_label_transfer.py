@@ -520,7 +520,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-l',
         '--localize',
-        required=True,
+        required=False,
         default=False,
         action="store_true",
         help="Localize input files and push outputs back to bucket"
