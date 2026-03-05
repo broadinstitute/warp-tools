@@ -1,7 +1,7 @@
 ## Use micromamba as the base image
 FROM mambaorg/micromamba:1.5.3
 
-## Set up environment
+## Set up environment for Mamba
 ENV MAMBA_DOCKERFILE_ACTIVATE=1
 ENV PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ## Create a new environment and install packages
