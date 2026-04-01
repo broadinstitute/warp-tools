@@ -410,7 +410,7 @@ def main():
         HL=mt_vcf.HL,
         TLOD=mt_vcf.TLOD,
         FT=mt_vcf.FT,
-        numt_fp_warning=mt_vcf.numt_fp_warning
+        numt_fp_warning=hl.int32(mt_vcf.numt_fp_warning)
     )
     hl.export_vcf(mt_vcf, vcf_local, tabix=True)
 
