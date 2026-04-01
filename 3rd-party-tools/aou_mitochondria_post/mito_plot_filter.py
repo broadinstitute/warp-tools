@@ -39,12 +39,13 @@ def main():
 
     input_matrix_path = args.input_path
     output_path       = args.output_path
-    output_base       = args.output_base.rstrip("/")
+    output_base       = args.output_base
 
-    # local_base is a plain filename prefix with no directory component,
-    # so matplotlib and Hail can write to the current working directory.
-    local_base   = os.path.basename(output_base)
     cloud_prefix = f"{output_path.rstrip('/')}/{output_base}"
+
+    print(f"[mito_plot_filter] output_base  : {output_base}")
+    print(f"[mito_plot_filter] cloud_prefix : {cloud_prefix}")
+    print(f"[mito_plot_filter] cwd          : {os.getcwd()}")
 
     hl.init(default_reference="GRCh38", idempotent=True)
 
@@ -52,18 +53,17 @@ def main():
 
     # -------------------------------------------------------------------------
     # Local output file names (will be copied to cloud at the end)
-    # Use local_base (no directory component) so matplotlib/Hail write locally.
     # -------------------------------------------------------------------------
-    vcf_local             = f"{local_base}.vcf.bgz"
-    sample_metadata_local = f"{local_base}_metadata.tsv"
+    vcf_local             = f"{output_base}.vcf.bgz"
+    sample_metadata_local = f"{output_base}_metadata.tsv"
 
-    variants_per_sample_svg            = f"{local_base}.variants_per_sample.svg"
-    mito_cn_distribution_svg           = f"{local_base}.mito_cn_distribution.svg"
-    variant_allele_frequency_svg       = f"{local_base}.variant_allele_frequency.svg"
-    variant_af_and_allele_fraction_svg = f"{local_base}.variant_af_and_allele_fraction.svg"
-    numt_fp_by_mtcn_svg                = f"{local_base}.numt_fp_by_mtcn.svg"
-    haplogroup_heteroplasmy_svg        = f"{local_base}.haplogroup_heteroplasmy.svg"
-    haplogroup_homoplasmy_svg          = f"{local_base}.haplogroup_homoplasmy.svg"
+    variants_per_sample_svg            = f"{output_base}.variants_per_sample.svg"
+    mito_cn_distribution_svg           = f"{output_base}.mito_cn_distribution.svg"
+    variant_allele_frequency_svg       = f"{output_base}.variant_allele_frequency.svg"
+    variant_af_and_allele_fraction_svg = f"{output_base}.variant_af_and_allele_fraction.svg"
+    numt_fp_by_mtcn_svg                = f"{output_base}.numt_fp_by_mtcn.svg"
+    haplogroup_heteroplasmy_svg        = f"{output_base}.haplogroup_heteroplasmy.svg"
+    haplogroup_homoplasmy_svg          = f"{output_base}.haplogroup_homoplasmy.svg"
 
     mt = filt_annotated_mt_500k
 
