@@ -70,6 +70,7 @@ def main():
     # -------------------------------------------------------------------------
     # Plot 1: Histogram of variants per sample
     # -------------------------------------------------------------------------
+    print("Making plot 1")
     mt_tmp = mt.annotate_cols(
         n_variants=hl.agg.count_where(mt.AD[1] > 0)
     )
@@ -250,6 +251,7 @@ def main():
     # -------------------------------------------------------------------------
     # Haplogroup plots
     # -------------------------------------------------------------------------
+    print("Making haplogroup plots")
     mt = filt_annotated_mt_500k
     mt = mt.annotate_entries(
         VAF=hl.if_else(
@@ -428,26 +430,6 @@ def main():
         numt_fp_risk_tier  =cols_ht.numt_fp_risk_tier
     )
     sample_ht.export(sample_metadata_local)
-
-    # -------------------------------------------------------------------------
-    # Copy all local outputs to cloud destination
-    # -------------------------------------------------------------------------
-    outputs = [
-        vcf_local,
-        f"{vcf_local}.tbi",
-        sample_metadata_local,
-        variants_per_sample_svg,
-        mito_cn_distribution_svg,
-        variant_allele_frequency_svg,
-        variant_af_and_allele_fraction_svg,
-        numt_fp_by_mtcn_svg,
-        haplogroup_heteroplasmy_svg,
-        haplogroup_homoplasmy_svg,
-    ]
-    for local_file in outputs:
-        hl.hadoop_copy(local_file, f"{cloud_prefix}.{local_file.split('.', 1)[1]}")
-
-    hl.stop()
 
 
 if __name__ == "__main__":
