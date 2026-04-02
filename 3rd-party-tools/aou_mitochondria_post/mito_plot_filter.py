@@ -387,6 +387,8 @@ def main():
             hl.missing(hl.tstr)
         )
     )
+    mt_vcf = mt_vcf.filter_rows(~mt_vcf.filters.contains("npg"))
+    
     mt_vcf = mt_vcf.select_rows(
         rsid=mt_vcf.rsid,
         filters=mt_vcf.filters,
