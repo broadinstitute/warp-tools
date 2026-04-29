@@ -21,6 +21,9 @@ on:
         default: 'master'
         required: true
 
+permissions:
+  contents: read
+
 env:
   PROJECT_NAME: WARP 3rd Party Tools
   # Github repo name
@@ -58,8 +61,8 @@ jobs:
         username: _json_key
         password: ${{ secrets.GCR_CI_KEY }}
 
-    # Build and push the Docker image using palantir build script
-    - name: Build GLIMPSE Docker image using palantir script
+    # Build and push the Docker image using palantir-workflows build script
+    - name: Build GLIMPSE Docker image using script in palantir-workflows
       working-directory: palantir-workflows/GlimpseImputationPipeline/glimpse_docker
       run: |
         # Make the script executable
