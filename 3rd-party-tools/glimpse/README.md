@@ -31,8 +31,8 @@ _Note: The commit hash comes from the [GLIMPSE GitHub repository](https://github
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse:1.0.0-2a1a895-1777494633
-$ docker inspect us.gcr.io/broad-gotc-prod/imputation-glimpse:1.0.0-2a1a895-1777494633
+$ docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse:<tag-placeholder>
+$ docker inspect us.gcr.io/broad-gotc-prod/imputation-glimpse:<tag-placeholder>
 ```
 
 ## Building the Image
@@ -45,7 +45,7 @@ which contains a two-stage build:
 
 The build is automated via GitHub Actions. See [`.github/workflows/build-glimpse.yml`](../../.github/workflows/build-glimpse.yml) for the automation workflow.
 
-To manually build the image, you can use the palantir build script:
+To manually build the image, you can use the palantir-workflows build script:
 
 ```bash
 # Clone the palantir-workflows repository

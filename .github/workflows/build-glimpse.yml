@@ -19,20 +19,21 @@ on:
       glimpse_branch:
         description: 'GLIMPSE branch name'
         default: 'master'
-        required: true
+        required: false
 
 permissions:
   contents: read
 
 env:
   PROJECT_NAME: WARP 3rd Party Tools
-  # Github repo name
+  # GitHub repo name
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/imputation-glimpse
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
-  GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
+  # GLIMPSE repository url - always build from official GLIMPSE repo
+  GLIMPSE_REPO: 'https://github.com/odelaneau/GLIMPSE.git'
   GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'master' }}
 
 jobs:
@@ -42,7 +43,7 @@ jobs:
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    # Checks out repository under $GITHUB_WORKSPACE, so the job can access it
     - uses: actions/checkout@v3
 
     # Checkout the palantir-workflows repository
