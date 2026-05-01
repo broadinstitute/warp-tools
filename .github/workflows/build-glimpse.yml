@@ -1,9 +1,9 @@
 # This GHA workflow builds and pushes a GLIMPSE Docker image to Google Container Registry (GCR)
 # whenever there is a pull request to the develop or master branches that modifies files in the
 # 3rd-party-tools/glimpse directory. It can also be triggered manually with custom inputs for
-# the image tag and Glimpse branch name. The workflow uses a build script from the palantir-workflows
-# repository to create the Docker image, which includes cloning the GLIMPSE repository, building the
-# base image, adding necessary tools, and pushing it to GCR.
+# the image tag, Glimpse repo url and branch name. The workflow uses a build script from the
+# palantir-workflows repository to create the Docker image, which includes cloning the GLIMPSE
+# repository, building the base image, adding necessary tools, and pushing it to GCR.
 name: GLIMPSE CI
 
 on:
