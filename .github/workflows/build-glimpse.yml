@@ -37,7 +37,7 @@ env:
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/imputation-glimpse
-  TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
+  TAG: 'sps_2024_glimpse_docker' # TODO change it to this - ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
   GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/salonishah11/GLIMPSE.git' }} # TODO: change this to official repo
   GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'sps_recreate_2024_glimpse_docker' }} # TODO: change this to 'master'
