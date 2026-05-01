@@ -19,9 +19,9 @@ on:
         description: 'Docker Image Tag (e.g., short commit hash, branch name, or custom tag)'
         required: true
       glimpse_repo:
-        description: 'GLIMPSE repository URL'
+        description: 'GLIMPSE repository URL (optional, defaults to official GLIMPSE repo)'
         default: 'https://github.com/odelaneau/GLIMPSE.git'
-        required: true
+        required: false
       glimpse_branch:
         description: 'GLIMPSE branch name'
         default: 'master'
@@ -38,8 +38,8 @@ env:
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/imputation-glimpse
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
-  # GLIMPSE repository url - always build from official GLIMPSE repo
-  GLIMPSE_REPO: 'https://github.com/odelaneau/GLIMPSE.git'
+  # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
+  GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
   GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'master' }}
 
 jobs:
