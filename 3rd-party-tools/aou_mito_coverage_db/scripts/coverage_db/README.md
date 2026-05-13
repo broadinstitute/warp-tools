@@ -1,6 +1,6 @@
 # coverage_db (v2)
 
-This folder contains the v2 coverage database builder used by the `mt_coverage_merge` rewrite.
+This folder contains the v2 coverage database builder used by the `MitochondriaMerge` rewrite.
 
 ## What it does
 

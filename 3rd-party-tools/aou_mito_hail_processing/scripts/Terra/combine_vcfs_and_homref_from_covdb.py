@@ -190,7 +190,7 @@ if __name__ == "__main__":
     p.add_argument(
         "--include-extra-v2-fields",
         help=(
-            "Loads in extra fields from MitochondriaPipeline v2.1, specifically AD, "
+            "Loads in extra fields from MitochondriaSingleSample v2.1, specifically AD, "
             "OriginalSelfRefAlleles, and SwappedFieldIDs. If missing will fill with missing."
         ),
         action="store_true",

@@ -1,8 +1,8 @@
-# mt_coverage_merge v2 rewrite plan (535k samples, exact outputs)
+# mitochondria_merge v2 rewrite plan (535k samples, exact outputs)
 
 ## Context and goals
 
-The current `mt_coverage_merge.wdl` pipeline fails (OOM after ~82 hours) during `annotate_coverage` when scaling beyond ~50k samples. The root cause is that the pipeline uses Hail MatrixTables to represent *coverage* as a dense (positions × samples) matrix, which is extremely wide for mtDNA (≤16,569 positions but 535k samples). Hail partitions primarily by rows (positions), which limits parallelism and leads to driver-memory pressure when attempting operations like exact median.
+The current `mitochondria_merge.wdl` pipeline fails (OOM after ~82 hours) during `annotate_coverage` when scaling beyond ~50k samples. The root cause is that the pipeline uses Hail MatrixTables to represent *coverage* as a dense (positions × samples) matrix, which is extremely wide for mtDNA (≤16,569 positions but 535k samples). Hail partitions primarily by rows (positions), which limits parallelism and leads to driver-memory pressure when attempting operations like exact median.
 
 **Goals**
 
@@ -225,7 +225,7 @@ This avoids materializing a (pos × sample) table and avoids broadcasting a gian
 
 #### Step 3 WDL wiring (current state)
 
-The Warp workflow `warp/all_of_us/mitochondria/mt_coverage_merge.wdl` implements Step 3 as:
+The Warp workflow `warp/all_of_us/mitochondria/merge/mitochondria_merge.wdl` implements Step 3 as:
 
 * `make_vcf_shards_from_tsv` → shard TSVs (`vcf_shard_*.tsv`)
 * `build_vcf_shard_mt` (scatter) → shard MT tarballs
@@ -235,10 +235,10 @@ The Warp workflow `warp/all_of_us/mitochondria/mt_coverage_merge.wdl` implements
 
 #### Step 3 WDL wiring
 
-`warp/all_of_us/mitochondria/mt_coverage_merge.wdl` now uses a sharded approach controlled by:
+`warp/all_of_us/mitochondria/merge/mitochondria_merge.wdl` now uses a sharded approach controlled by:
 
-* `step3_shard_size = 2500`
-* `step3_merge_fanin = 10`
+* `vcf_merge_shard_size = 2500`
+* `vcf_merge_merge_fanin = 10`
 
 The workflow structure:
 * make shard manifests from the processed TSV
