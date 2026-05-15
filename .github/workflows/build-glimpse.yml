@@ -40,8 +40,8 @@ env:
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/imputation-glimpse
-  # Optional tag - script will auto-generate if not provided
-  TAG: ${{ github.event.inputs.image_tag }}
+  # Optional tag - uses manual input, or PR branch name, or falls back to ref name
+  TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
   GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
   GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'master' }}
@@ -103,13 +103,3 @@ jobs:
         # Run the build script
         echo "Running: ./docker_build.sh $BUILD_ARGS"
         ./docker_build.sh $BUILD_ARGS
-
-    # Display the final image tag
-    - name: Display image information
-      run: |
-        echo "GLIMPSE Docker image built and pushed successfully!"
-        echo "GLIMPSE Repo: ${GLIMPSE_REPO}"
-        echo "GLIMPSE Branch: ${GLIMPSE_BRANCH}"
-        if [ -n "$GLIMPSE_COMMIT" ]; then
-          echo "GLIMPSE Commit: ${GLIMPSE_COMMIT}"
-        fi

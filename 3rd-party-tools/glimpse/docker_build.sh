@@ -234,6 +234,9 @@ function main(){
     echo "=========================================="
     echo "Build complete!"
     echo "Final image: $FINAL_IMAGE_NAME"
+    echo "GLIMPSE Repo: $GLIMPSE_REPO"
+    echo "GLIMPSE Branch: $GLIMPSE_BRANCH"
+    echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH"
     echo "=========================================="
 }
 
