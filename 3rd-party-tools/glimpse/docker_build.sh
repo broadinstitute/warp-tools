@@ -158,15 +158,26 @@ function main(){
 
     # Use custom tag if provided, otherwise auto-generate
     if [ -n "$CUSTOM_TAG" ]; then
-        IMAGE_TAG="$CUSTOM_TAG"
-        echo "Using provided tag: $IMAGE_TAG"
+        # Check if custom tag already contains the full image path (registry/path:tag)
+        if [[ "$CUSTOM_TAG" == *":"* ]] && [[ "$CUSTOM_TAG" == *"/"* ]]; then
+            # Tag already includes registry/path:tag, use it as-is
+            FINAL_IMAGE_NAME="$CUSTOM_TAG"
+            # Extract just the tag portion for display
+            IMAGE_TAG="${CUSTOM_TAG##*:}"
+            echo "Using provided full image path: $FINAL_IMAGE_NAME"
+        else
+            # Tag is just the version/label, prepend GCR URL
+            IMAGE_TAG="$CUSTOM_TAG"
+            FINAL_IMAGE_NAME="$GCR_URL:$IMAGE_TAG"
+            echo "Using provided tag: $IMAGE_TAG"
+        fi
     else
         IMAGE_TAG="$DOCKER_IMAGE_VERSION-$GLIMPSE_COMMIT_SHORT-$TIMESTAMP"
+        FINAL_IMAGE_NAME="$GCR_URL:$IMAGE_TAG"
         echo "Auto-generated tag: $IMAGE_TAG"
     fi
 
     BASE_IMAGE_NAME="temp_glimpse_base"
-    FINAL_IMAGE_NAME="$GCR_URL:$IMAGE_TAG"
 
     echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH (short: $GLIMPSE_COMMIT_SHORT)"
     echo "Base Image:     $BASE_IMAGE_NAME"
