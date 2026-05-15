@@ -55,37 +55,35 @@ To manually build the image locally, use the provided `docker_build.sh` script:
 # Navigate to the glimpse directory
 cd 3rd-party-tools/glimpse
 
-# Build with auto-generated tag (no push to GCR)
+# Basic usage - build locally without pushing
 ./docker_build.sh --no-push
 
-# Build with custom tag
-./docker_build.sh -t "my-custom-tag" --no-push
+# Build with specific GLIMPSE version and custom tag
+./docker_build.sh -c 2a1a895 -t "1.0.0-custom" --no-push
 
-# Build from specific GLIMPSE commit
-./docker_build.sh -c 2a1a895 --no-push
-
-# Build from different GLIMPSE branch
-./docker_build.sh -b develop --no-push
-
-# Build from different GLIMPSE repository
-./docker_build.sh -r "https://github.com/user/GLIMPSE.git" -b feature --no-push
-
-# Skip confirmation prompts (useful for scripts)
-./docker_build.sh -y --no-push
-
-# Combine options
-./docker_build.sh -c 2a1a895 -t "1.0.0-2a1a895-custom" -y --no-push
-
-# Build and push to GCR (requires Docker to be authenticated with GCR)
-./docker_build.sh -t "1.0.0-test"
+# Build, record tag and push to GCR (requires Docker authentication)
+./docker_build.sh -t "1.0.0-test" --record-tag -y
 
 # For help and all options
 ./docker_build.sh --help
 ```
 
-**Note:** The script requires `docker`, `gcloud`, and `git` to be installed. It will:
+**Common options:**
+- `-c, --commit <hash>` - Use specific GLIMPSE commit (default: latest from branch)
+- `-b, --branch <name>` - Use specific GLIMPSE branch (default: master)
+- `-t, --tag <tag>` - Custom image tag (default: auto-generated with format `<image-version>-<short-git-commit-hash>-<unix-timestamp>`)
+- `--no-push` - Build locally without pushing to GCR
+- `--record-tag` - Save the tag to docker_versions.tsv (useful for CI/CD)
+- `-y, --yes` - Skip confirmation prompts
+
+**Note:** The script requires `docker` and `git` to be installed. It will:
 1. Clone the GLIMPSE repository to a temporary directory
 2. Build the GLIMPSE base image from their Dockerfile
 3. Build the extension image using the local Dockerfile
 4. Clean up temporary files
-5. Optionally push to GCR (requires appropriate permissions)
+5. Optionally push to GCR (if `--no-push` is not specified)
+6. Optionally record the image tag to `docker_versions.tsv` (if `--record-tag` is specified)
+
+**The `--record-tag` flag** appends the final image tag to `docker_versions.tsv`. By default, local builds do NOT 
+record to `docker_versions.tsv` unless you explicitly use `--record-tag`. GHA does not use `--record-tag` since we 
+want to control which images are recorded in `docker_versions.tsv` and avoid recording test builds or duplicate tags.
