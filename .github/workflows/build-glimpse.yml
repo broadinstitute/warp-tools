@@ -1,8 +1,8 @@
 # This GHA workflow builds and pushes a GLIMPSE Docker image to Google Container Registry (GCR)
 # whenever there is a pull request to the develop or master branches that modifies files in the
 # 3rd-party-tools/glimpse directory. It can also be triggered manually with custom inputs for
-# the image tag, Glimpse repo url and branch name. The workflow uses a build script from the
-# palantir-workflows repository to create the Docker image, which includes cloning the GLIMPSE
+# the image tag, Glimpse repo url, branch name, and commit hash. The workflow uses the local
+# docker_build.sh script to create the Docker image, which includes cloning the GLIMPSE
 # repository, building the base image, adding necessary tools, and pushing it to GCR.
 name: GLIMPSE CI
 
@@ -16,15 +16,18 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker Image Tag (e.g., short commit hash, branch name, or custom tag)'
-        required: true
+        description: 'Docker Image Tag (optional, will auto-generate if not provided)'
+        required: false
       glimpse_repo:
         description: 'GLIMPSE repository URL (optional, defaults to official GLIMPSE repo)'
         default: 'https://github.com/odelaneau/GLIMPSE.git'
         required: false
       glimpse_branch:
-        description: 'GLIMPSE branch name'
+        description: 'GLIMPSE branch name (optional, defaults to master)'
         default: 'master'
+        required: false
+      glimpse_commit:
+        description: 'GLIMPSE commit hash (optional, will use latest from branch if not provided)'
         required: false
 
 permissions:
@@ -37,10 +40,12 @@ env:
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
   GCR_PATH: broad-gotc-prod/imputation-glimpse
-  TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
+  # Optional tag - script will auto-generate if not provided
+  TAG: ${{ github.event.inputs.image_tag }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
   GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
   GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'master' }}
+  GLIMPSE_COMMIT: ${{ github.event.inputs.glimpse_commit }}
 
 jobs:
   build:
@@ -52,15 +57,7 @@ jobs:
     # Checks out repository under $GITHUB_WORKSPACE, so the job can access it
     - uses: actions/checkout@v3
 
-    # Checkout the palantir-workflows repository
-    - name: Checkout palantir-workflows repository
-      uses: actions/checkout@v3
-      with:
-        repository: broadinstitute/palantir-workflows
-        ref: v1.3  # pin to specific version to avoid unexpected changes breaking our docker build process
-        path: palantir-workflows
-
-    # Log into the Google Docker registry early so the build script can push
+    # Log into the Google Docker registry so the build script can push
     - id: 'Auth'
       name: Login to GCR
       uses: docker/login-action@v2
@@ -69,33 +66,50 @@ jobs:
         username: _json_key
         password: ${{ secrets.GCR_CI_KEY }}
 
-    # Build and push the Docker image using palantir-workflows build script
-    - name: Build GLIMPSE Docker image using script in palantir-workflows
-      working-directory: palantir-workflows/GlimpseImputationPipeline/glimpse_docker
+    # Build and push the Docker image using local docker_build.sh script
+    - name: Build GLIMPSE Docker image using local script
+      working-directory: 3rd-party-tools/glimpse
       run: |
         # Make the script executable
-        chmod +x build_base_and_extension_docker.sh
+        chmod +x docker_build.sh
         
-        # Build the full tag with registry path
-        FULL_TAG="${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
+        # Build arguments
+        BUILD_ARGS="-y"
         
-        # Run the build script with push flag
-        echo "Building and pushing image with tag: $FULL_TAG"
-        bash build_base_and_extension_docker.sh \
-          -r "$GLIMPSE_REPO" \
-          -b "$GLIMPSE_BRANCH" \
-          -t "$FULL_TAG" \
-          -p \
-          -y
-
-    # Save the image path to an output
-    - id: 'saveImagePath'
-      run: echo "url=${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}" >> $GITHUB_OUTPUT
+        # Add optional repository if specified
+        if [ -n "$GLIMPSE_REPO" ]; then
+          BUILD_ARGS="$BUILD_ARGS -r $GLIMPSE_REPO"
+        fi
+        
+        # Add optional branch if specified
+        if [ -n "$GLIMPSE_BRANCH" ]; then
+          BUILD_ARGS="$BUILD_ARGS -b $GLIMPSE_BRANCH"
+        fi
+        
+        # Add optional commit if specified
+        if [ -n "$GLIMPSE_COMMIT" ]; then
+          BUILD_ARGS="$BUILD_ARGS -c $GLIMPSE_COMMIT"
+        fi
+        
+        # Add optional tag if specified
+        if [ -n "$TAG" ]; then
+          FULL_TAG="${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
+          BUILD_ARGS="$BUILD_ARGS -t $FULL_TAG"
+          echo "Building with custom tag: $FULL_TAG"
+        else
+          echo "Building with auto-generated tag"
+        fi
+        
+        # Run the build script
+        echo "Running: ./docker_build.sh $BUILD_ARGS"
+        ./docker_build.sh $BUILD_ARGS
 
     # Display the final image tag
     - name: Display image information
       run: |
         echo "GLIMPSE Docker image built and pushed successfully!"
-        echo "Image: ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
         echo "GLIMPSE Repo: ${GLIMPSE_REPO}"
         echo "GLIMPSE Branch: ${GLIMPSE_BRANCH}"
+        if [ -n "$GLIMPSE_COMMIT" ]; then
+          echo "GLIMPSE Commit: ${GLIMPSE_COMMIT}"
+        fi
