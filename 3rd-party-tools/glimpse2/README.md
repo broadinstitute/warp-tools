@@ -7,7 +7,7 @@ Copy and paste to pull this image
 #### `docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse2:1.0.0-2a1a895-1777494633`
 
 - __What is this image:__ This image is built using a local two-stage build script ([docker_build.sh](docker_build.sh)) for running GLIMPSE2 in imputation pipelines.
-- __What is GLIMPSE:__ GLIMPSE is a set of tools for phasing and imputation of low-coverage sequencing datasets. See [here](https://odelaneau.github.io/GLIMPSE/) for more information.
+- __What is GLIMPSE2:__ GLIMPSE2 is a set of tools for phasing and imputation of low-coverage sequencing datasets. See [here](https://odelaneau.github.io/GLIMPSE/) for more information.
 
 ## What's included in this image
 
@@ -45,7 +45,7 @@ This image uses a **two-stage build process** implemented in the local [`docker_
    - Picard (for sequence dictionary updates)
    - Google Cloud SDK (for cloud storage operations)
 
-The build is automated via GitHub Actions. See [`.github/workflows/build-glimpse.yml`](../../.github/workflows/build-glimpse.yml) for the automation workflow.
+The build is automated via GitHub Actions. See [`.github/workflows/build-glimpse2.yml`](../../.github/workflows/build-glimpse2.yml) for the automation workflow.
 
 ### Building Locally
 
@@ -75,7 +75,7 @@ cd 3rd-party-tools/glimpse2
 
 **Note:** The script requires `docker` and `git` to be installed. It will:
 1. Clone the GLIMPSE repository to a temporary directory
-2. Build the GLIMPSE base image from their Dockerfile
+2. Build the GLIMPSE2 base image from their Dockerfile
 3. Build the extension image using the local Dockerfile
 4. Clean up temporary files
 5. Optionally push to GCR (if `--no-push` is not specified)

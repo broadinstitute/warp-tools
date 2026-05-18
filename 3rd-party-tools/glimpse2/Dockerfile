@@ -1,4 +1,4 @@
-FROM temp_glimpse_base
+FROM temp_glimpse2_base
 
 WORKDIR /docker_build/
 

@@ -34,7 +34,7 @@ CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 HELP="$(basename "$0") [-h|--help] [-r|--repo] -c|--commit [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the Imputation GLIMPSE2 image and push to GCR
 
 This script builds a two-stage Docker image:
-1. GLIMPSE base image (from their repository's Dockerfile)
+1. GLIMPSE2 base image (from their repository's Dockerfile)
 2. Extension image (adds bcftools, gcloud, Picard on top)
 
 Requirements:
@@ -133,7 +133,7 @@ function main(){
     TEMP_DIR=$(mktemp -d)
 
     echo "=========================================="
-    echo "Building GLIMPSE Docker Image (2 stages)"
+    echo "Building GLIMPSE2 Docker Image (2 stages)"
     echo "=========================================="
     echo "GLIMPSE Repo:   $GLIMPSE_REPO"
     echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH"
@@ -141,7 +141,7 @@ function main(){
     # STAGE 1: Clone GLIMPSE repo and build base image
     echo ""
     echo "=========================================="
-    echo "STAGE 1: Building Glimpse base image..."
+    echo "STAGE 1: Building Glimpse2 base image..."
     echo "=========================================="
 
     echo "Cloning GLIMPSE repository..."
@@ -176,7 +176,7 @@ function main(){
         echo "Auto-generated tag: $IMAGE_TAG"
     fi
 
-    BASE_IMAGE_NAME="temp_glimpse_base"
+    BASE_IMAGE_NAME="temp_glimpse2_base"
 
     echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH (short: $GLIMPSE_COMMIT_SHORT)"
     echo "Base Image:     $BASE_IMAGE_NAME"
@@ -194,7 +194,7 @@ function main(){
     fi
 
     echo ""
-    echo "Building GLIMPSE base image from their Dockerfile..."
+    echo "Building GLIMPSE2 base image from their Dockerfile..."
 
     # Check if Dockerfile exists in GLIMPSE repo
     if [ ! -f "Dockerfile" ]; then
@@ -207,7 +207,7 @@ function main(){
         --no-cache \
         .
 
-    echo "GLIMPSE base image built successfully: $BASE_IMAGE_NAME"
+    echo "GLIMPSE2 base image built successfully: $BASE_IMAGE_NAME"
 
     # STAGE 2: Build extension image (adds tools on top)
     echo ""
