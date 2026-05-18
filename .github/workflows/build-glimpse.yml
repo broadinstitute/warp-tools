@@ -1,7 +1,7 @@
 # This GHA workflow builds and pushes a GLIMPSE2 Docker image to Google Container Registry (GCR)
 # whenever there is a pull request to the develop or master branches that modifies files in the
 # 3rd-party-tools/glimpse2 directory. It can also be triggered manually with custom inputs for
-# the image tag, Glimpse repo url, branch name, and commit hash. The workflow uses the local
+# the image tag, Glimpse repo url, and commit hash. The workflow uses the local
 # docker_build.sh script to create the Docker image, which includes cloning the GLIMPSE
 # repository, building the base image, adding necessary tools, and pushing it to GCR.
 name: GLIMPSE2 CI
@@ -22,13 +22,9 @@ on:
         description: 'GLIMPSE repository URL (optional, defaults to official GLIMPSE repo)'
         default: 'https://github.com/odelaneau/GLIMPSE.git'
         required: false
-      glimpse_branch:
-        description: 'GLIMPSE branch name (optional, defaults to master)'
-        default: 'master'
-        required: false
       glimpse_commit:
-        description: 'GLIMPSE commit hash (optional, will use latest from branch if not provided)'
-        required: false
+        description: 'GLIMPSE commit hash (required)'
+        required: true
 
 permissions:
   contents: read
@@ -44,7 +40,6 @@ env:
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
   GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
-  GLIMPSE_BRANCH: ${{ github.event.inputs.glimpse_branch || 'master' }}
   GLIMPSE_COMMIT: ${{ github.event.inputs.glimpse_commit }}
 
 jobs:
@@ -81,15 +76,12 @@ jobs:
           BUILD_ARGS="$BUILD_ARGS -r $GLIMPSE_REPO"
         fi
         
-        # Add optional branch if specified
-        if [ -n "$GLIMPSE_BRANCH" ]; then
-          BUILD_ARGS="$BUILD_ARGS -b $GLIMPSE_BRANCH"
+        # Add commit (required)
+        if [ -z "$GLIMPSE_COMMIT" ]; then
+          echo "ERROR: GLIMPSE_COMMIT is required but not provided"
+          exit 1
         fi
-        
-        # Add optional commit if specified
-        if [ -n "$GLIMPSE_COMMIT" ]; then
-          BUILD_ARGS="$BUILD_ARGS -c $GLIMPSE_COMMIT"
-        fi
+        BUILD_ARGS="$BUILD_ARGS -c $GLIMPSE_COMMIT"
         
         # Add optional tag if specified
         if [ -n "$TAG" ]; then

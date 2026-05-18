@@ -55,22 +55,19 @@ To manually build the image locally, use the provided `docker_build.sh` script:
 # Navigate to the glimpse directory
 cd 3rd-party-tools/glimpse2
 
-# Basic usage - build locally without pushing
-./docker_build.sh --no-push
-
-# Build with specific GLIMPSE version and custom tag
-./docker_build.sh -c 2a1a895 -t "1.0.0-custom" --no-push
+# Basic usage - build locally without pushing (commit required)
+./docker_build.sh -c 2a1a895 --no-push
 
 # Build, record tag and push to GCR (requires Docker authentication)
-./docker_build.sh -t "1.0.0-test" --record-tag -y
+./docker_build.sh -c 2a1a895 -t "1.0.0-test" --record-tag -y
 
 # For help and all options
 ./docker_build.sh --help
 ```
 
 **Common options:**
-- `-c, --commit <hash>` - Use specific GLIMPSE commit (default: latest from branch)
-- `-b, --branch <name>` - Use specific GLIMPSE branch (default: master)
+- `-c, --commit <hash>` - GLIMPSE commit hash (required)
+- `-r, --repo <url>` - GLIMPSE repository URL (default: official GLIMPSE repo)
 - `-t, --tag <tag>` - Custom image tag (default: auto-generated with format `<image-version>-<short-git-commit-hash>-<unix-timestamp>`)
 - `--no-push` - Build locally without pushing to GCR
 - `--record-tag` - Save the tag to docker_versions.tsv (useful for CI/CD)

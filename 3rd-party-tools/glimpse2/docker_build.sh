@@ -8,11 +8,10 @@ set -e
 
 # How to run this script:
 # 1. Make sure you have Docker and git installed, and Docker is authenticated with GCR if you want to push.
-# 2. Run the script with optional arguments to specify GLIMPSE repo, branch, commit, and image tag.
+# 2. Run the script with arguments to specify GLIMPSE repo (optional), full commit hash (required), and image tag (optional).
 #    For example:
-#       ./docker_build.sh -r https://github.com/odelaneau/GLIMPSE.git -b master -c abc123f -t my-custom-tag --record-tag
-#    This will build the image using the specified GLIMPSE branch and tag it with 'my-custom-tag'.
-#    If you omit the commit, it will use the latest from the branch.
+#       ./docker_build.sh -r https://github.com/odelaneau/GLIMPSE.git -c abc123f -t my-custom-tag --record-tag
+#    This will build the image using the specified GLIMPSE commit and tag it with 'my-custom-tag'.
 #    If you omit the tag, it will auto-generate one based on version, commit hash, and timestamp.
 #    If you omit the --record-tag flag, it won't record the tag to docker_versions.tsv (useful for testing or local builds).
 
@@ -27,13 +26,12 @@ GCR_URL="us.gcr.io/broad-gotc-prod/imputation-glimpse2"
 
 # GLIMPSE configuration
 GLIMPSE_REPO="https://github.com/odelaneau/GLIMPSE.git"
-GLIMPSE_BRANCH="master"
-GLIMPSE_COMMIT_HASH=""  # Will be determined from branch if not set
+GLIMPSE_COMMIT_HASH=""  # Required - must be specified by user
 CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 
 
 # Help text
-HELP="$(basename "$0") [-h|--help] [-r|--repo] [-b|--branch] [-c|--commit] [-t|--tag] [--no-push] -- script to build the Imputation GLIMPSE image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-r|--repo] -c|--commit [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the Imputation GLIMPSE2 image and push to GCR
 
 This script builds a two-stage Docker image:
 1. GLIMPSE base image (from their repository's Dockerfile)
@@ -47,8 +45,7 @@ Requirements:
 where:
     -h|--help           Show help text
     -r|--repo           GLIMPSE repository URL (default: ${GLIMPSE_REPO})
-    -b|--branch         GLIMPSE branch name (default: ${GLIMPSE_BRANCH})
-    -c|--commit         GLIMPSE commit hash to use (optional, will use latest from branch if not set)
+    -c|--commit         GLIMPSE commit hash to use (required)
     -t|--tag            Docker image tag to use (optional, will auto-generate if not provided)
     --no-push           Build locally without pushing to GCR
     --record-tag        Record the image tag to docker_versions.tsv
@@ -89,11 +86,6 @@ function main(){
         shift
         shift
         ;;
-        -b|--branch)
-        GLIMPSE_BRANCH="$2"
-        shift
-        shift
-        ;;
         -c|--commit)
         GLIMPSE_COMMIT_HASH="$2"
         shift
@@ -129,6 +121,14 @@ function main(){
     esac
     done
 
+    # Validate required arguments
+    if [ -z "$GLIMPSE_COMMIT_HASH" ]; then
+        echo "ERROR: GLIMPSE commit hash is required. Use -c or --commit to specify."
+        echo ""
+        echo "$HELP"
+        exit 1
+    fi
+
     # Create temporary directory now that we know we're building
     TEMP_DIR=$(mktemp -d)
 
@@ -136,7 +136,7 @@ function main(){
     echo "Building GLIMPSE Docker Image (2 stages)"
     echo "=========================================="
     echo "GLIMPSE Repo:   $GLIMPSE_REPO"
-    echo "GLIMPSE Branch: $GLIMPSE_BRANCH"
+    echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH"
 
     # STAGE 1: Clone GLIMPSE repo and build base image
     echo ""
@@ -148,17 +148,9 @@ function main(){
     git clone --recursive "$GLIMPSE_REPO" "$TEMP_DIR/GLIMPSE"
     cd "$TEMP_DIR/GLIMPSE"
 
-    # Checkout specified branch
-    git checkout "$GLIMPSE_BRANCH"
-
-    # Get commit hash if not specified
-    if [ -z "$GLIMPSE_COMMIT_HASH" ]; then
-        GLIMPSE_COMMIT_HASH=$(git rev-parse HEAD)
-        echo "Using latest commit from branch: $GLIMPSE_COMMIT_HASH"
-    else
-        echo "Checking out commit: $GLIMPSE_COMMIT_HASH"
-        git checkout "$GLIMPSE_COMMIT_HASH"
-    fi
+    # Checkout specified commit
+    echo "Checking out Git commit: $GLIMPSE_COMMIT_HASH"
+    git checkout "$GLIMPSE_COMMIT_HASH"
 
     # Get short commit hash for tagging
     GLIMPSE_COMMIT_SHORT=$(echo "$GLIMPSE_COMMIT_HASH" | cut -c1-7)
@@ -260,7 +252,6 @@ function main(){
     echo "Build complete!"
     echo "Final image: $FINAL_IMAGE_NAME"
     echo "GLIMPSE Repo: $GLIMPSE_REPO"
-    echo "GLIMPSE Branch: $GLIMPSE_BRANCH"
     echo "GLIMPSE Commit: $GLIMPSE_COMMIT_HASH"
     echo "=========================================="
 }
