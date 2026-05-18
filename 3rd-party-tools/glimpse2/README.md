@@ -1,10 +1,10 @@
-# Imputation GLIMPSE
+# Imputation GLIMPSE2
 
 ## Quick reference
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse:1.0.0-2a1a895-1777494633`
+#### `docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse2:1.0.0-2a1a895-1777494633`
 
 - __What is this image:__ This image is built using a local two-stage build script ([docker_build.sh](docker_build.sh)) for running GLIMPSE2 in imputation pipelines.
 - __What is GLIMPSE:__ GLIMPSE is a set of tools for phasing and imputation of low-coverage sequencing datasets. See [here](https://odelaneau.github.io/GLIMPSE/) for more information.
@@ -20,9 +20,9 @@ This image contains:
 
 ## Versioning
 
-The Imputation GLIMPSE image uses the following convention for versioning:
+The Imputation GLIMPSE2 image uses the following convention for versioning:
 
-#### `us.gcr.io/broad-gotc-prod/imputation-glimpse:<image-version>-<short-git-commit-hash>-<unix-timestamp>`
+#### `us.gcr.io/broad-gotc-prod/imputation-glimpse2:<image-version>-<short-git-commit-hash>-<unix-timestamp>`
 
 We keep track of all past versions in [docker_versions.tsv](docker_versions.tsv) with the last image listed being the currently used version in WARP.
 
@@ -31,8 +31,8 @@ _Note: The commit hash comes from the [GLIMPSE GitHub repository](https://github
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse:<tag-placeholder>
-$ docker inspect us.gcr.io/broad-gotc-prod/imputation-glimpse:<tag-placeholder>
+$ docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse2:<tag-placeholder>
+$ docker inspect us.gcr.io/broad-gotc-prod/imputation-glimpse2:<tag-placeholder>
 ```
 
 ## Building the Image
@@ -53,7 +53,7 @@ To manually build the image locally, use the provided `docker_build.sh` script:
 
 ```bash
 # Navigate to the glimpse directory
-cd 3rd-party-tools/glimpse
+cd 3rd-party-tools/glimpse2
 
 # Basic usage - build locally without pushing
 ./docker_build.sh --no-push

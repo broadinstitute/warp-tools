@@ -23,7 +23,7 @@ TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # GCR registry
-GCR_URL="us.gcr.io/broad-gotc-prod/imputation-glimpse"
+GCR_URL="us.gcr.io/broad-gotc-prod/imputation-glimpse2"
 
 # GLIMPSE configuration
 GLIMPSE_REPO="https://github.com/odelaneau/GLIMPSE.git"

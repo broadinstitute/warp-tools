@@ -1,17 +1,17 @@
-# This GHA workflow builds and pushes a GLIMPSE Docker image to Google Container Registry (GCR)
+# This GHA workflow builds and pushes a GLIMPSE2 Docker image to Google Container Registry (GCR)
 # whenever there is a pull request to the develop or master branches that modifies files in the
-# 3rd-party-tools/glimpse directory. It can also be triggered manually with custom inputs for
+# 3rd-party-tools/glimpse2 directory. It can also be triggered manually with custom inputs for
 # the image tag, Glimpse repo url, branch name, and commit hash. The workflow uses the local
 # docker_build.sh script to create the Docker image, which includes cloning the GLIMPSE
 # repository, building the base image, adding necessary tools, and pushing it to GCR.
-name: GLIMPSE CI
+name: GLIMPSE2 CI
 
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/glimpse/**'
+      - '../../3rd-party-tools/glimpse2/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -39,7 +39,7 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/imputation-glimpse
+  GCR_PATH: broad-gotc-prod/imputation-glimpse2
   # Optional tag - uses manual input, or PR branch name, or falls back to ref name
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
@@ -67,8 +67,8 @@ jobs:
         password: ${{ secrets.GCR_CI_KEY }}
 
     # Build and push the Docker image using local docker_build.sh script
-    - name: Build GLIMPSE Docker image using local script
-      working-directory: 3rd-party-tools/glimpse
+    - name: Build GLIMPSE2 Docker image using local script
+      working-directory: 3rd-party-tools/glimpse2
       run: |
         # Make the script executable
         chmod +x docker_build.sh
