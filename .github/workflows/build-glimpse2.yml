@@ -23,8 +23,8 @@ on:
         default: 'https://github.com/odelaneau/GLIMPSE.git'
         required: false
       glimpse_commit:
-        description: 'GLIMPSE commit hash (required)'
-        required: true
+        description: 'GLIMPSE commit hash (optional, will fetch latest from master if not provided)'
+        required: false # it needs to be optional to run GHA against a PR branch
 
 permissions:
   contents: read
@@ -40,7 +40,8 @@ env:
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
   # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
   GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
-  GLIMPSE_COMMIT: ${{ github.event.inputs.glimpse_commit }}
+  # GLIMPSE commit will be set in the build step if not provided
+  GLIMPSE_COMMIT_INPUT: ${{ github.event.inputs.glimpse_commit }}
 
 jobs:
   build:
@@ -68,7 +69,7 @@ jobs:
         # Make the script executable
         chmod +x docker_build.sh
         
-        # Build arguments
+        # Build arguments - always use -y for non-interactive
         BUILD_ARGS="-y"
         
         # Add optional repository if specified
@@ -76,11 +77,17 @@ jobs:
           BUILD_ARGS="$BUILD_ARGS -r $GLIMPSE_REPO"
         fi
         
-        # Add commit (required)
-        if [ -z "$GLIMPSE_COMMIT" ]; then
-          echo "ERROR: GLIMPSE_COMMIT is required but not provided"
-          exit 1
+        # Determine GLIMPSE commit to use
+        if [ -n "$GLIMPSE_COMMIT_INPUT" ]; then
+          GLIMPSE_COMMIT="$GLIMPSE_COMMIT_INPUT"
+          echo "Using provided GLIMPSE commit: $GLIMPSE_COMMIT"
+        else
+          echo "No commit provided, fetching latest from master branch..."
+          GLIMPSE_COMMIT=$(git ls-remote "$GLIMPSE_REPO" refs/heads/master | cut -f1)
+          echo "Using latest commit from master: $GLIMPSE_COMMIT"
         fi
+        
+        # Add commit
         BUILD_ARGS="$BUILD_ARGS -c $GLIMPSE_COMMIT"
         
         # Add optional tag if specified
