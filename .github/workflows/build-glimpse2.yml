@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '../../3rd-party-tools/glimpse2/**'
+      - '3rd-party-tools/glimpse2/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
