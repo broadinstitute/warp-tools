@@ -77,6 +77,15 @@ def main():
         help="the sample name in the bundle",
     )
 
+    parser.add_argument(
+        "--output_base",
+        dest="output_base",
+        required=False,
+        default=None,
+        help="Base name (prefix) for the output .npz and .npy files. "
+             "Defaults to --input_id when not supplied, preserving backwards compatibility.",
+    )
+
     args = parser.parse_args()
     if len(args.barcodes) != len(args.matrix):
         print("Number of barcode files are not the same as number of count matrices.")
@@ -132,9 +141,12 @@ def main():
     reshaped_matrix = scipy.sparse.csr_matrix((matrix.data, matrix.indices, np.unique(matrix.indptr)),
                                               shape=(len(nonzero_barcodes), len(features_list)))
 
-    scipy.sparse.save_npz(args.input_id+"_sparse_counts.npz", reshaped_matrix, compressed=True)
-    np.save(args.input_id+"_sparse_counts_col_index.npy", features_list)
-    np.save(args.input_id+"_sparse_counts_row_index.npy", nonzero_barcodes)
+    # Use --output_base if supplied, otherwise fall back to --input_id for backwards compatibility
+    output_prefix = args.output_base if args.output_base is not None else args.input_id
+
+    scipy.sparse.save_npz(output_prefix+"_sparse_counts.npz", reshaped_matrix, compressed=True)
+    np.save(output_prefix+"_sparse_counts_col_index.npy", features_list)
+    np.save(output_prefix+"_sparse_counts_row_index.npy", nonzero_barcodes)
 
 if __name__ == '__main__':
     main()
