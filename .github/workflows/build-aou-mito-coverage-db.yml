@@ -1,4 +1,4 @@
-name: AoU Mitochondrial Annotate Coverage CI
+name: AoU Mito Coverage DB CI
 
 # Controls when the workflow will run
 on:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/aou_mitochondrial_annotate_coverage/**'
+      - '3rd-party-tools/aou_mito_coverage_db/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -19,7 +19,7 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/aou-mitochondrial-annotate-coverage
+  GCR_PATH: broad-gotc-prod/aou-mito-coverage-db
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/aou_mitochondrial_annotate_coverage
+        working-directory: 3rd-party-tools/aou_mito_coverage_db
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
-      - name: Check working directory'
+      - name: Check working directory
         run: |
           echo "Current directory: "
           pwd
