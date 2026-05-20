@@ -105,8 +105,11 @@ def _read_processed_tsv(input_tsv: str, sample_col: str, coverage_col: str) -> L
 
 
 def _infer_uint_dtype(max_value: int) -> np.dtype:
-    if max_value <= np.iinfo(np.uint16).max:
-        return np.uint16
+    # Default to uint32 to avoid silent truncation of high-coverage positions.
+    # uint16 max (65535) is plausible for mtDNA coverage in large cohorts,
+    # so we do not risk it. uint32 max (~4.3 billion) is safely beyond any
+    # realistic mtDNA coverage value; overflow at that level would indicate
+    # a pipeline error and is caught explicitly below.
     return np.uint32
 
 
@@ -306,6 +309,13 @@ def build_coverage_db(
                     chunks=(min(batch_size, n_samples), min(position_block_size, n_pos)),
                     compression=compression,
                     compression_opts=compression_level,
+                )
+
+            dtype_max = int(np.iinfo(cov_ds.dtype).max)
+            if batch_max > dtype_max:
+                raise OverflowError(
+                    f"Coverage value {batch_max} in samples {start}..{end} exceeds the maximum "
+                    f"for dtype {cov_ds.dtype} ({dtype_max}). This likely indicates a pipeline error."
                 )
 
             cov_ds[start:end, :] = mat.astype(cov_ds.dtype, copy=False)
