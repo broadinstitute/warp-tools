@@ -44,9 +44,12 @@ def _read_summary(path: str):
 
 
 def main() -> None:
-    # Sanity-check median semantics against Hail docs:
-    # hl.median([1, 3, 5, 6, 7, 9]) == 5 (lower-of-two-middles for even N)
+    # Sanity-check median semantics:
+    # For even N, we take floor((lower_middle + upper_middle) / 2), matching hl.median.
+    # [1, 3, 5, 6, 7, 9]: middles are 5 and 6 → (5+6)//2 = 5
     assert int(_median_int32_from_int_array(np.array([1, 3, 5, 6, 7, 9], dtype=np.int64))) == 5
+    # [50, 150]: middles are 50 and 150 → (50+150)//2 = 100
+    assert int(_median_int32_from_int_array(np.array([50, 150], dtype=np.int64))) == 100
 
     with tempfile.TemporaryDirectory() as d:
         cov1 = os.path.join(d, "s1.tsv")
@@ -79,18 +82,18 @@ def main() -> None:
 
         got = _read_summary(out_sum)
 
-        # Expected:
-        # pos1: mean=0 median=0 over_100=0 over_1000=0
-    # pos2: mean=100 median=50 over_100=0.5 (150>100) over_1000=0
-    # pos3: mean=100 median=99 over_100=0.5 (101>100) over_1000=0
-    # pos4: mean=1000 median=999 over_100=1 over_1000=0.5 (1001>1000)
-        # pos5: mean=7 median=7 over_100=0 over_1000=0
+        # Expected (median = floor((lo + hi) / 2) for even N=2):
+        # pos1: mean=0   median=0    over_100=0   over_1000=0
+        # pos2: mean=100 median=100  over_100=0.5 (150>100) over_1000=0   → (50+150)//2=100
+        # pos3: mean=100 median=100  over_100=0.5 (101>100) over_1000=0   → (99+101)//2=100
+        # pos4: mean=1000 median=1000 over_100=1  over_1000=0.5 (1001>1000) → (999+1001)//2=1000
+        # pos5: mean=7   median=7    over_100=0   over_1000=0
         exp = {
-            1: {"mean": 0.0, "median": 0, "over_100": 0.0, "over_1000": 0.0},
-            2: {"mean": 100.0, "median": 50, "over_100": 0.5, "over_1000": 0.0},
-            3: {"mean": 100.0, "median": 99, "over_100": 0.5, "over_1000": 0.0},
-            4: {"mean": 1000.0, "median": 999, "over_100": 1.0, "over_1000": 0.5},
-            5: {"mean": 7.0, "median": 7, "over_100": 0.0, "over_1000": 0.0},
+            1: {"mean": 0.0,    "median": 0,    "over_100": 0.0, "over_1000": 0.0},
+            2: {"mean": 100.0,  "median": 100,  "over_100": 0.5, "over_1000": 0.0},
+            3: {"mean": 100.0,  "median": 100,  "over_100": 0.5, "over_1000": 0.0},
+            4: {"mean": 1000.0, "median": 1000, "over_100": 1.0, "over_1000": 0.5},
+            5: {"mean": 7.0,    "median": 7,    "over_100": 0.0, "over_1000": 0.0},
         }
 
         for pos, e in exp.items():
