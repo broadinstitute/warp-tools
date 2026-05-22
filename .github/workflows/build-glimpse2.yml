@@ -1,0 +1,104 @@
+# This GHA workflow builds and pushes a GLIMPSE2 Docker image to Google Container Registry (GCR)
+# whenever there is a pull request to the develop or master branches that modifies files in the
+# 3rd-party-tools/glimpse2 directory. It can also be triggered manually with custom inputs for
+# the image tag, Glimpse repo url, and commit hash. The workflow uses the local
+# docker_build.sh script to create the Docker image, which includes cloning the GLIMPSE
+# repository, building the base image, adding necessary tools, and pushing it to GCR.
+name: GLIMPSE2 CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
+  pull_request:
+    branches: [ "develop", "master" ]
+    paths:
+      - '3rd-party-tools/glimpse2/**'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker Image Tag (optional, will auto-generate if not provided)'
+        required: false
+      glimpse_repo:
+        description: 'GLIMPSE repository URL (optional, defaults to official GLIMPSE repo)'
+        default: 'https://github.com/odelaneau/GLIMPSE.git'
+        required: false
+      glimpse_commit:
+        description: 'GLIMPSE commit hash (optional, will fetch latest from master if not provided)'
+        required: false # it needs to be optional to run GHA against a PR branch
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_NAME: WARP 3rd Party Tools
+  # GitHub repo name
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+  # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
+  DOCKER_REGISTRY: us.gcr.io
+  GCR_PATH: broad-gotc-prod/imputation-glimpse2
+  # Optional tag - uses manual input, or PR branch name, or falls back to ref name
+  TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
+  # GLIMPSE repository url - uses input if provided, otherwise defaults to official GLIMPSE repo
+  GLIMPSE_REPO: ${{ github.event.inputs.glimpse_repo || 'https://github.com/odelaneau/GLIMPSE.git' }}
+  # GLIMPSE commit will be set in the build step if not provided
+  GLIMPSE_COMMIT_INPUT: ${{ github.event.inputs.glimpse_commit }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      imagePath: ${{ steps.saveImagePath.outputs.url }}
+    steps:
+    # Checks out repository under $GITHUB_WORKSPACE, so the job can access it
+    - uses: actions/checkout@v3
+
+    # Log into the Google Docker registry so the build script can push
+    - id: 'Auth'
+      name: Login to GCR
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: _json_key
+        password: ${{ secrets.GCR_CI_KEY }}
+
+    # Build and push the Docker image using local docker_build.sh script
+    - name: Build GLIMPSE2 Docker image using local script
+      working-directory: 3rd-party-tools/glimpse2
+      run: |
+        # Make the script executable
+        chmod +x docker_build.sh
+        
+        # Build arguments - always use -y for non-interactive
+        BUILD_ARGS="-y"
+        
+        # Add optional repository if specified
+        if [ -n "$GLIMPSE_REPO" ]; then
+          BUILD_ARGS="$BUILD_ARGS -r $GLIMPSE_REPO"
+        fi
+        
+        # Determine GLIMPSE commit to use
+        if [ -n "$GLIMPSE_COMMIT_INPUT" ]; then
+          GLIMPSE_COMMIT="$GLIMPSE_COMMIT_INPUT"
+          echo "Using provided GLIMPSE commit: $GLIMPSE_COMMIT"
+        else
+          echo "No commit provided, fetching latest from master branch..."
+          GLIMPSE_COMMIT=$(git ls-remote "$GLIMPSE_REPO" refs/heads/master | cut -f1)
+          echo "Using latest commit from master: $GLIMPSE_COMMIT"
+        fi
+        
+        # Add commit
+        BUILD_ARGS="$BUILD_ARGS -c $GLIMPSE_COMMIT"
+        
+        # Add optional tag if specified
+        if [ -n "$TAG" ]; then
+          FULL_TAG="${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}"
+          BUILD_ARGS="$BUILD_ARGS -t $FULL_TAG"
+          echo "Building with custom tag: $FULL_TAG"
+        else
+          echo "Building with auto-generated tag"
+        fi
+        
+        # Run the build script
+        echo "Running: ./docker_build.sh $BUILD_ARGS"
+        ./docker_build.sh $BUILD_ARGS
