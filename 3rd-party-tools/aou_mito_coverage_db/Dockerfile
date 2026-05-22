@@ -1,7 +1,7 @@
 # Minimal image to run the v2 coverage DB builder (HDF5 + exact summary metrics)
 #
 # Build from this directory:
-#   docker build -t us.gcr.io/broad-gotc-prod/aou-mito-coverage-db:1.0.0 .
+#   docker build -t us.gcr.io/broad-gotc-prod/aou-mito-coverage-db:1.0.1 .
 
 FROM python:3.12-slim
 

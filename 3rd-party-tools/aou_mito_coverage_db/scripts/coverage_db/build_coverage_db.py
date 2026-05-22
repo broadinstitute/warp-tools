@@ -33,11 +33,8 @@ Notes
 -----
 - Exactness: mean, median, and threshold fractions are computed exactly.
 - Median definition: we match the usual median of a multiset. For even N, we
-  use the average of the two middle values and then cast to int32 to match the
-  Hail schema (`median: int32`).
-  This is the most likely behavior of `hl.median` on integer arrays.
-  If parity testing reveals a different rounding rule, we can adjust the
-  even-N path.
+  use the average of the two middle values (floor division) and cast to int32
+  to match the Hail schema (`median: int32`) and `hl.median` behavior.
 
 This script intentionally avoids Hail/Spark.
 """
@@ -108,8 +105,11 @@ def _read_processed_tsv(input_tsv: str, sample_col: str, coverage_col: str) -> L
 
 
 def _infer_uint_dtype(max_value: int) -> np.dtype:
-    if max_value <= np.iinfo(np.uint16).max:
-        return np.uint16
+    # Default to uint32 to avoid silent truncation of high-coverage positions.
+    # uint16 max (65535) is plausible for mtDNA coverage in large cohorts,
+    # so we do not risk it. uint32 max (~4.3 billion) is safely beyond any
+    # realistic mtDNA coverage value; overflow at that level would indicate
+    # a pipeline error and is caught explicitly below.
     return np.uint32
 
 
@@ -183,9 +183,9 @@ def _median_int32_from_int_array(values: np.ndarray) -> np.int32:
 
     This matches Hail's `hl.median` semantics for collections of numbers.
 
-    In particular, for even N, Hail returns the *lower* of the two middle
-    values (a discrete median), NOT the average. See Hail docs example:
-    `hl.median([1, 3, 5, 6, 7, 9]) == 5`.
+    For odd N, returns the middle value of the sorted array.
+    For even N, returns int(floor((lower_middle + upper_middle) / 2)), i.e.
+    the average of the two middle values cast to int32.
     """
     if values.ndim != 1:
         raise ValueError("values must be 1D")
@@ -193,13 +193,16 @@ def _median_int32_from_int_array(values: np.ndarray) -> np.int32:
     if n == 0:
         raise ValueError("Cannot compute median of empty array")
 
-    # Work on a copy because partition mutates.
     v = values.astype(np.int64, copy=True)
 
-    # Hail uses a discrete median: element at floor((n-1)/2) in the sorted array.
-    k = (n - 1) // 2
-    v_part = np.partition(v, k)
-    return np.int32(v_part[k])
+    if n % 2 == 1:
+        k = n // 2
+        return np.int32(np.partition(v, k)[k])
+    else:
+        lo = n // 2 - 1
+        hi = n // 2
+        v_part = np.partition(v, [lo, hi])
+        return np.int32((int(v_part[lo]) + int(v_part[hi])) // 2)
 
 
 def build_coverage_db(
@@ -306,6 +309,13 @@ def build_coverage_db(
                     chunks=(min(batch_size, n_samples), min(position_block_size, n_pos)),
                     compression=compression,
                     compression_opts=compression_level,
+                )
+
+            dtype_max = int(np.iinfo(cov_ds.dtype).max)
+            if batch_max > dtype_max:
+                raise OverflowError(
+                    f"Coverage value {batch_max} in samples {start}..{end} exceeds the maximum "
+                    f"for dtype {cov_ds.dtype} ({dtype_max}). This likely indicates a pipeline error."
                 )
 
             cov_ds[start:end, :] = mat.astype(cov_ds.dtype, copy=False)

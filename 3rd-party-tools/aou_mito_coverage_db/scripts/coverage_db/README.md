@@ -58,5 +58,5 @@ python -m generate_mtdna_call_mt.coverage_db.build_coverage_db \
 ## Notes on exact median
 
 The output schema expects `median` to be an `int32`.
-For even N, the builder computes the average of the two middle values and casts to int.
+For even N, the builder computes the average of the two middle values and casts to int (floor division), matching Hail's `hl.median` behavior.
 If parity testing against Hail indicates a different rounding convention, adjust that conversion.
