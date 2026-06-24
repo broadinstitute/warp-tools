@@ -1,0 +1,8 @@
+# Exclude git history and IDE files from the build context
+mmidas_src/.git
+mmidas_src/.idea
+mmidas_src/.DS_Store
+mmidas_src/notebooks
+mmidas_src/clustering_study
+mmidas_src/data
+docker_versions.tsv
