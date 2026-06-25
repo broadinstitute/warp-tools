@@ -18,7 +18,7 @@ cd .. && \
 rm -r bcftools-1.21
 
 # Download picard (for updating sequence dictionary)
-RUN wget https://github.com/broadinstitute/picard/releases/download/3.4.0/picard.jar && \
+RUN wget https://github.com/broadinstitute/picard/releases/download/2.27.5/picard.jar && \
 mv picard.jar /
 
 WORKDIR /
