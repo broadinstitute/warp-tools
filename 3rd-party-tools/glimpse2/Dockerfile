@@ -3,7 +3,7 @@ FROM temp_glimpse2_base
 WORKDIR /docker_build/
 
 # Install required packages
-RUN apt-get update && DEBIAN_FRONTEND="noninteractive" apt-get install -y openjdk-8-jre-headless curl python3
+RUN apt-get update && DEBIAN_FRONTEND="noninteractive" apt-get install -y openjdk-17-jre-headless curl python3
 
 # Download and build bcftools
 RUN wget https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 && \
@@ -18,7 +18,7 @@ cd .. && \
 rm -r bcftools-1.21
 
 # Download picard (for updating sequence dictionary)
-RUN wget https://github.com/broadinstitute/picard/releases/download/2.27.5/picard.jar && \
+RUN wget https://github.com/broadinstitute/picard/releases/download/3.4.0/picard.jar && \
 mv picard.jar /
 
 WORKDIR /
