@@ -253,9 +253,13 @@ def run_multi_model(gex, atac_activity_matrix, ref):
         - Saves both trained models and annotated data.
 
         Parameters:
-        - gex (AnnData): Gene expression data (unannotated).
+        - gex (AnnData): Gene expression data (unannotated). Must carry a `batch` column.
         - atac_activity_matrix (AnnData): ATAC data in gene activity format (unannotated).
+          Must carry a `batch` column.
         - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+          Must also carry a `batch` column: training is batch-aware
+          (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
+          concatenated object, which includes the reference rows.
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -281,6 +285,10 @@ def run_gex_only_model(gex, ref):
         Parameters:
         - gex (AnnData): Gene expression data (unannotated). Must carry a `batch` column.
         - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+          Must also carry a `batch` column: training is batch-aware
+          (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
+          concatenated object, which includes the reference rows. This is the same
+          requirement as `run_multi_model`.
 
         Returns:
         - data (AnnData): Combined and annotated data object.
