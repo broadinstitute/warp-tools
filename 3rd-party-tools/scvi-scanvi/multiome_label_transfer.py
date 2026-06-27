@@ -164,21 +164,21 @@ def get_shared_features(gex, atac, ref):
     return gex, atac, ref
 
 
-def run_multi_model(gex, atac_activity_matrix, ref):
+def _concat_and_train_models(adatas, keys):
     """
-        Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
+        Concatenate query/reference AnnData objects and train SCVI + SCANVI on them.
 
-        This function:
-        - Merges GEX, ATAC activity, and reference datasets into a unified AnnData object.
-        - Identifies highly variable genes (HVGs) for feature selection.
-        - Trains a SCVI model for unsupervised representation learning.
-        - Transfers cell type annotations using SCANVI (semi-supervised learning).
-        - Saves both trained models and annotated data.
+        This is the shared core used by both the multiome (GEX + ATAC + reference) and
+        GEX-only (GEX + reference) entry points. Everything from feature selection through
+        SCANVI training is identical across modalities; only the set of datasets being
+        concatenated (and their modality keys) differs.
 
         Parameters:
-        - gex (AnnData): Gene expression data (unannotated).
-        - atac_activity_matrix (AnnData): ATAC data in gene activity format (unannotated).
-        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+        - adatas (list[AnnData]): Datasets to concatenate, in order matching `keys`. Each
+          must carry a `batch` column in `.obs`; the reference must carry `final_annotation`.
+        - keys (list[str]): Modality keys, one per dataset. Stored in `obs['modality']` and
+          appended to `obs_names` (via `index_unique='_'`) so labels can later be propagated
+          back to the original objects (e.g. `<barcode>_rna_unannotated`).
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -187,10 +187,10 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     """
     # Concatenate the datasets across modalities
     data = ad.concat(
-        [gex, atac_activity_matrix, ref],
+        adatas,
         join='inner',
         label='modality',
-        keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
+        keys=keys,
         index_unique='_',
     )
     # Filter genes expressed in at least 5 cells
@@ -239,6 +239,58 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     lvae.save("scvi_scanvi_test_model_", save_anndata=True)
 
     return data, vae, lvae
+
+
+def run_multi_model(gex, atac_activity_matrix, ref):
+    """
+        Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
+
+        This function:
+        - Merges GEX, ATAC activity, and reference datasets into a unified AnnData object.
+        - Identifies highly variable genes (HVGs) for feature selection.
+        - Trains a SCVI model for unsupervised representation learning.
+        - Transfers cell type annotations using SCANVI (semi-supervised learning).
+        - Saves both trained models and annotated data.
+
+        Parameters:
+        - gex (AnnData): Gene expression data (unannotated).
+        - atac_activity_matrix (AnnData): ATAC data in gene activity format (unannotated).
+        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+
+        Returns:
+        - data (AnnData): Combined and annotated data object.
+        - vae (SCVI model): Trained SCVI model.
+        - lvae (SCANVI model): Trained SCANVI model with transferred labels.
+    """
+    return _concat_and_train_models(
+        [gex, atac_activity_matrix, ref],
+        keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
+    )
+
+
+def run_gex_only_model(gex, ref):
+    """
+        Train a SCVI/SCANVI model on GEX and reference datasets only (no ATAC).
+
+        Used when the pipeline runs in GEX-only mode (no ATAC h5ad provided). Behaves
+        identically to `run_multi_model` but concatenates only the gene expression query
+        and the annotated reference. The GEX modality key is unchanged
+        ("rna_unannotated"), so downstream label propagation
+        (`gex.obs_names + '_rna_unannotated'`) works exactly as in the multiome path.
+
+        Parameters:
+        - gex (AnnData): Gene expression data (unannotated). Must carry a `batch` column.
+        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+
+        Returns:
+        - data (AnnData): Combined and annotated data object.
+        - vae (SCVI model): Trained SCVI model.
+        - lvae (SCANVI model): Trained SCANVI model with transferred labels.
+    """
+    return _concat_and_train_models(
+        [gex, ref],
+        keys=["rna_unannotated", "rna_annotated"],
+    )
 
 
 def transfer_labels(data, lvae):
