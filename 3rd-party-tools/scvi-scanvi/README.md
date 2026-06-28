@@ -52,6 +52,7 @@ The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is opt
 | `-g` / `--gex-file` | AnnData `.h5ad` | yes | Gene expression. Expected `obs['star_IsCell']` (STARsolo cell calls). |
 | `-a` / `--atac-file` | AnnData `.h5ad` (cell-by-bin) | yes (CLI) | ATAC cell-by-bin matrix. Expected `obs['gex_barcodes']` to align with GEX. |
 | `-r` / `--ref-file` | AnnData `.h5ad` | yes | Annotated reference. **Must** carry `obs['final_annotation']` (cell-type labels) **and** `obs['batch']` (training is batch-aware). |
+| `-e` / `--max-epochs` | int | no | Maximum SCVI/SCANVI training epochs (default `500`). Lower it for fast smoke runs or to bound wall-clock on very large datasets. Also available on `run_multi_model`/`run_gex_only_model` as the `max_epochs` keyword. |
 | `-l` / `--localize` | flag | no | Localize inputs from / delocalize outputs to GCS via `gcs_utils`. |
 
 ## Outputs

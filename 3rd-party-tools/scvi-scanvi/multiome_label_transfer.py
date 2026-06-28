@@ -164,7 +164,7 @@ def get_shared_features(gex, atac, ref):
     return gex, atac, ref
 
 
-def _concat_and_train_models(adatas, keys):
+def _concat_and_train_models(adatas, keys, max_epochs=500):
     """
         Concatenate query/reference AnnData objects and train SCVI + SCANVI on them.
 
@@ -179,6 +179,9 @@ def _concat_and_train_models(adatas, keys):
         - keys (list[str]): Modality keys, one per dataset. Stored in `obs['modality']` and
           appended to `obs_names` (via `index_unique='_'`) so labels can later be propagated
           back to the original objects (e.g. `<barcode>_rna_unannotated`).
+        - max_epochs (int): Maximum training epochs applied to both the SCVI and SCANVI
+          models (default 500). SCVI also uses early stopping. Lower it for fast
+          plumbing/smoke runs or to bound wall-clock on very large datasets.
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -216,7 +219,7 @@ def _concat_and_train_models(adatas, keys):
     )
 
     # Train SCVI
-    vae.train(max_epochs=500, early_stopping=True)
+    vae.train(max_epochs=max_epochs, early_stopping=True)
     vae.save("vae_test_model_", save_anndata=True)
 
     # Plot training history
@@ -235,13 +238,13 @@ def _concat_and_train_models(adatas, keys):
         labels_key="celltype_scanvi",
         unlabeled_category="Unknown",
     )
-    lvae.train(max_epochs=500, n_samples_per_label=100)
+    lvae.train(max_epochs=max_epochs, n_samples_per_label=100)
     lvae.save("scvi_scanvi_test_model_", save_anndata=True)
 
     return data, vae, lvae
 
 
-def run_multi_model(gex, atac_activity_matrix, ref):
+def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500):
     """
         Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
 
@@ -260,6 +263,7 @@ def run_multi_model(gex, atac_activity_matrix, ref):
           Must also carry a `batch` column: training is batch-aware
           (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
           concatenated object, which includes the reference rows.
+        - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -269,10 +273,11 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     return _concat_and_train_models(
         [gex, atac_activity_matrix, ref],
         keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
+        max_epochs=max_epochs,
     )
 
 
-def run_gex_only_model(gex, ref):
+def run_gex_only_model(gex, ref, max_epochs=500):
     """
         Train a SCVI/SCANVI model on GEX and reference datasets only (no ATAC).
 
@@ -289,6 +294,7 @@ def run_gex_only_model(gex, ref):
           (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
           concatenated object, which includes the reference rows. This is the same
           requirement as `run_multi_model`.
+        - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -298,6 +304,7 @@ def run_gex_only_model(gex, ref):
     return _concat_and_train_models(
         [gex, ref],
         keys=["rna_unannotated", "rna_annotated"],
+        max_epochs=max_epochs,
     )
 
 
@@ -407,7 +414,7 @@ def check_cell_matches(gex, atac):
     return mismatched_barcodes
 
 
-def main(gex_file, atac_file, ref_file):
+def main(gex_file, atac_file, ref_file, max_epochs=500):
     # This block performs initial preprocessing steps for integrating Multiome RNA and ATAC data
     # with a reference scRNA-seq dataset using scvi-tools.
     #
@@ -479,7 +486,7 @@ def main(gex_file, atac_file, ref_file):
     # - Returns the combined AnnData object (`data`) and trained models (`vae`, `lvae`)
 
     start = time.time()
-    data, vae, lvae = run_multi_model(gex_shared, query, ref)
+    data, vae, lvae = run_multi_model(gex_shared, query, ref, max_epochs=max_epochs)
     timing_summary['Model Training'] = time.time() - start
 
     # ----------------------------------------------
@@ -578,6 +585,14 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--atac-file', required=True, help="Input ATAC AnnData file")
     parser.add_argument('-r', '--ref-file', required=True, help="Input label reference AnnData file")
     parser.add_argument(
+        '-e',
+        '--max-epochs',
+        required=False,
+        default=500,
+        type=int,
+        help="Maximum SCVI/SCANVI training epochs (default: 500)"
+    )
+    parser.add_argument(
         '-l',
         '--localize',
         required=False,
@@ -590,7 +605,7 @@ if __name__ == '__main__':
         gex, atac, ref = pull_all_files([parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file])
     else:
         gex, atac, ref = parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file
-    main(gex, atac, ref)
+    main(gex, atac, ref, max_epochs=parsed_args.max_epochs)
     if parsed_args.localize:
         bucket_name = get_bucket_and_path(parsed_args.ref_file)[0]
         delocalize_file(bucket_name, "SCANVI_predictions.h5ad", "SCANVI_predictions.h5ad")
