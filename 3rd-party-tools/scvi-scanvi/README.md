@@ -17,12 +17,12 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
 - `scvi-tools` 1.2 · `snapatac2` 2.7 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
-- GENCODE v41 basic annotation (`/usr/local/gencode.v41.basic.annotation.gff3.gz`), used for ATAC gene-activity conversion
+- ATAC gene-activity conversion uses snapatac2's hg38 annotation (`snap.genome.hg38`), fetched at runtime. (A GENCODE v41 GFF3 is baked in at `/usr/local/gencode.v41.basic.annotation.gff3.gz` but is legacy — the current code path does not use it.)
 - Scripts: `multiome_label_transfer.py`, `gcs_utils.py` (see [Scripts](#scripts))
 
 ## Versioning
 
-This image follows the WARP-Tools tag convention `us.gcr.io/broad-gotc-prod/scvi-scanvi:<image-version>-<scvi-tools-version>-<unix-timestamp>` (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)). Published tags are recorded in `docker_versions.tsv`. The WARP scANVI pipeline pins the image by immutable `@sha256` digest (shown in [Quick reference](#quick-reference)). Inspect an image with:
+This image follows the WARP-Tools tag convention `us.gcr.io/broad-gotc-prod/scvi-scanvi:<image-version>-<scvi-tools-version>-<unix-timestamp>` (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)). Published references are recorded in [docker_versions.tsv](docker_versions.tsv), with the last line being the version currently used by WARP. The current production image is built by CI (branch-tagged) and the scANVI pipeline pins it by immutable `@sha256` digest (shown in [Quick reference](#quick-reference)) — hence the digest rather than a semantic tag for the latest entry. Inspect an image with:
 
 ```bash
 docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>

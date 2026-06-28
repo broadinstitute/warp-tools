@@ -229,7 +229,7 @@ def _concat_and_train_models(adatas, keys, max_epochs=500):
     # Prepare labels for SCANVI
     data.obs["celltype_scanvi"] = 'Unknown'
     ref_idx = data.obs['modality'] == "rna_annotated"
-    data.obs["celltype_scanvi"][ref_idx] = data.obs['final_annotation'][ref_idx]
+    data.obs.loc[ref_idx, "celltype_scanvi"] = data.obs.loc[ref_idx, "final_annotation"]
 
     # Initialize and train SCANVI
     lvae = scvi.model.SCANVI.from_scvi_model(
@@ -454,11 +454,9 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     # Add placeholder annotations to the query datasets (used later by scanVI)
     gex_shared.obs['final_annotation'] = "Unknown"
 
-    query = snap.pp.make_gene_matrix(
-        atac_shared,
-        gene_anno="gencode.v41.basic.annotation.gff3.gz"
-    )
-
+    # Convert ATAC cell-by-bin matrix into a gene activity matrix (hg38), matching
+    # the production WDL (PreprocessFilter), which uses snap.genome.hg38.
+    query = snap.pp.make_gene_matrix(atac_shared, gene_anno=snap.genome.hg38)
     print("query shape: ", query.shape)
     query.obs['final_annotation'] = "Unknown"
 
@@ -468,16 +466,6 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     ref.obs["modality"] = "rna_annotated"
 
     timing_summary['Preprocessing'] = time.time() - start
-
-    # Convert ATAC cell-by-bin matrix into gene activity matrix using reference genome annotation
-    query = snap.pp.make_gene_matrix(atac_shared, gene_anno=snap.genome.hg38)
-    print("query shape: ", query.shape)
-    query.obs['final_annotation'] = "Unknown"
-
-    # Tag each dataset with its modality (required for scanVI integration)
-    gex_shared.obs["modality"] = "rna_unannotated"
-    query.obs["modality"] = "atac_unannotated"
-    ref.obs["modality"] = "rna_annotated"
 
     timing_summary['Preprocessing'] = time.time() - start
 

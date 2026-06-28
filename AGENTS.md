@@ -40,6 +40,18 @@ You can build and run these images locally — including GPU images — without 
 - The gencode annotation is baked in; `snap.genome.hg38` is downloaded at runtime (the container needs network during the ATAC gene-activity step).
 - SCVI/SCANVI training is **stochastic** — outputs are not bit-reproducible, so the consuming pipeline verifies **tolerantly** (warp `VerifyScANVI` / `CompareScanviH5ad`), not by exact match. See the image's [README](3rd-party-tools/scvi-scanvi/README.md).
 
+## Pipeline verification & CI (in the warp consuming repo)
+
+How this image's outputs get tested lives in the [warp](https://github.com/broadinstitute/warp) repo, but these cross-repo lessons are easy to trip over:
+
+- **Tolerant verification for stochastic models.** scvi-scanvi training is non-deterministic, so the scANVI pipeline does **not** compare outputs to truth by exact equality. Its `CompareScanviH5ad` task checks structure + distribution: cell counts match, the predicted-label vocabulary is a subset of truth's, and per-cell-type proportions correlate with truth above a threshold. Use this pattern for any stochastic/ML image.
+- **Keep a pipeline's verification task out of the shared `verification/VerifyTasks.wdl`.** That shared file is in **~27** pipelines' GitHub Actions `paths:` filters, so editing it triggers **every** pipeline's (Terra-based) test suite — slow, costly, noisy. Put the compare task in the pipeline's own `verification/Verify<Pipeline>.wdl` instead (scANVI keeps `CompareScanviH5ad` in `VerifyScANVI.wdl`). The same "don't touch in a feature PR" caution applies to other shared trigger files: `tasks/wdl/Utilities.wdl`, `tasks/wdl/TerraCopyFilesFromCloudToCloud.wdl`, `.github/workflows/warp_test_workflow.yml`, and `scripts/firecloud_api/firecloud_api.py` (each in ~24–27 path filters).
+- **New `test_<pipeline>.yml` needs an explicit `permissions:` block.** The reusable `warp_test_workflow.yml` job requests `contents: read`, `id-token: write` (Terra/GCP auth), and `actions: write`; the caller must grant at least those (CodeQL also flags a missing block).
+
+### Future work (stashed, separate PR)
+
+- **`firecloud_api.py` robustness.** Terra/Dockstore intermittently return non-JSON 5xx (e.g. an HTML `502`) during submission polling and method-config cleanup; `firecloud_api.py` parses the body unconditionally and crashes with `requests.exceptions.JSONDecodeError`. This surfaces as widespread, transient red CI across unrelated pipelines — infrastructure flakiness, not real breakage. A future PR should detect non-JSON / 5xx responses and retry-with-backoff instead of crashing. Note: `firecloud_api.py` is itself in ~24 pipeline `paths:` filters, so that fix is a CI-infra PR that triggers every pipeline — keep it out of feature PRs.
+
 ## Agent-Specific Notes
 
 Record recurring container-build learnings/mistakes here. Keep entries short and **link** to [BUILDING.md](BUILDING.md) or the warp AGENTS.md rather than duplicating them. Before adding a note, check it isn't already covered above or in a linked doc.
