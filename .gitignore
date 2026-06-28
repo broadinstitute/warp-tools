@@ -85,3 +85,11 @@ atlassian-ide-plugin.xml
 
 # Ignore all .DS_Store for all directories
 **/.DS_Store
+
+# Claude Code local config/state
+.claude/
+
+# Local container/GPU test artifacts (run locally, kept out of version control)
+.cache/
+scanvi_gpu_test/
+*.h5ad
