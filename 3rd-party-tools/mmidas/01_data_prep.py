@@ -32,6 +32,7 @@ Optional:
 """
 
 import argparse
+import os
 import sys
 import numpy as np
 import pandas as pd
@@ -132,6 +133,75 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+def _load_exon_matrix_filtered(
+    exon_matrix_path: str,
+    samples_path: str,
+    neuronal_classes: list,
+    encoding: str = "unicode_escape",
+):
+    """
+    Load a genes-×-cells exon-count CSV and return only the neuronal-cell
+    columns, avoiding materializing the full dense matrix in memory.
+
+    The CSV layout is:
+      col 0           : gene identifier (string)
+      cols 1 … N+1    : one column per cell, named by sample_id
+
+    We read the sample metadata first to identify which column *positions*
+    correspond to neuronal cells, then use ``usecols`` to read only those
+    columns plus the gene-id column.
+
+    Returns
+    -------
+    counts : np.ndarray  shape (n_neuronal_cells, n_genes), dtype float32
+    anno   : pd.DataFrame  filtered annotation rows
+    """
+    anno = pd.read_csv(samples_path, encoding=encoding)
+    neuron_mask = anno["class"].isin(neuronal_classes)
+    neuronal_anno = anno[neuron_mask].reset_index(drop=True)
+
+    # The exon-matrix header row: first element is a gene-id label,
+    # remaining elements are sample_ids matching anno["sample_id"].
+    # Read just the header to map sample_id → column index.
+    with open(exon_matrix_path, "r") as fh:
+        header = fh.readline().rstrip("\n").split(",")
+    # header[0] is the gene-label column; header[1:] are sample ids
+    sample_ids_in_matrix = np.array(header[1:])
+    neuronal_ids = set(neuronal_anno["sample_id"].astype(str).values)
+
+    # usecols indices (0-based in the CSV, so gene col = 0, cells start at 1)
+    keep_col_indices = [0] + [
+        i + 1
+        for i, sid in enumerate(sample_ids_in_matrix)
+        if sid in neuronal_ids
+    ]
+
+    print(
+        f"  Reading {len(keep_col_indices) - 1} / {len(sample_ids_in_matrix)} "
+        f"neuronal-cell columns from {os.path.basename(exon_matrix_path)} ..."
+    )
+    df = pd.read_csv(
+        exon_matrix_path,
+        usecols=keep_col_indices,
+        dtype={0: str},       # gene-id column stays as string
+    )
+
+    # Re-order columns to match neuronal_anno row order.
+    # df.columns[1:] ARE the neuronal sample_id strings — pandas preserves
+    # CSV header names when reading with usecols.  Build the ordered list
+    # directly from those names; no need to re-zip against the full header.
+    df_col_set = set(df.columns[1:])
+    ordered_cols = [
+        str(sid)
+        for sid in neuronal_anno["sample_id"].astype(str).values
+        if str(sid) in df_col_set
+    ]
+    # shape: (n_genes, n_neuronal_cells) → transpose to (n_cells, n_genes)
+    counts = df[ordered_cols].values.astype(np.float32).T
+
+    return counts, neuronal_anno
+
+
 # ---------------------------------------------------------------------------
 # Main logic
 # ---------------------------------------------------------------------------
@@ -144,42 +214,30 @@ def main(argv=None):
 
     # ------------------------------------------------------------------
     # 1. Load raw count matrices and cell metadata
+    #    Uses column-selective loading (_load_exon_matrix_filtered) to
+    #    avoid materializing the full ~45K×15K dense float64 matrix
+    #    (~5 GB per region). Only neuronal-cell columns are read.
     # ------------------------------------------------------------------
     print("Loading VISp data...")
-    df_visp_exon = pd.read_csv(args.visp_exon_matrix)
-    df_visp_anno = pd.read_csv(args.visp_samples, encoding="unicode_escape")
+    visp_counts, visp_anno = _load_exon_matrix_filtered(
+        args.visp_exon_matrix, args.visp_samples, neuronal_classes
+    )
 
     print("Loading ALM data...")
-    df_alm_exon = pd.read_csv(args.alm_exon_matrix)
-    df_alm_anno = pd.read_csv(args.alm_samples, encoding="unicode_escape")
+    alm_counts, alm_anno = _load_exon_matrix_filtered(
+        args.alm_exon_matrix, args.alm_samples, neuronal_classes
+    )
 
     print(
-        f"Raw cell counts — VISp: {len(df_visp_anno)}, ALM: {len(df_alm_anno)}"
+        f"Raw neuronal cell counts — VISp: {len(visp_anno)}, "
+        f"ALM: {len(alm_anno)}, "
+        f"total: {len(visp_anno) + len(alm_anno)}"
     )
 
-    # ------------------------------------------------------------------
-    # 2. Filter to neuronal cells
-    #    The exon matrix CSVs have genes as rows and cells as columns;
-    #    the first column is the gene identifier, so we slice [:, 1:].
-    # ------------------------------------------------------------------
-    visp_neuron_mask = df_visp_anno["class"].isin(neuronal_classes)
-    alm_neuron_mask = df_alm_anno["class"].isin(neuronal_classes)
-
-    # shape: (n_cells, n_genes) after transpose
-    visp_counts = df_visp_exon.values[:, 1:][:, visp_neuron_mask].T
-    alm_counts = df_alm_exon.values[:, 1:][:, alm_neuron_mask].T
-
-    df_anno = pd.concat(
-        [df_visp_anno[visp_neuron_mask], df_alm_anno[alm_neuron_mask]],
-        ignore_index=True,
-    )
+    df_anno = pd.concat([visp_anno, alm_anno], ignore_index=True)
     total_counts = np.concatenate([visp_counts, alm_counts], axis=0)
 
-    print(
-        f"Neuronal cells retained — VISp: {visp_neuron_mask.sum()}, "
-        f"ALM: {alm_neuron_mask.sum()}, "
-        f"total: {total_counts.shape[0]}"
-    )
+    print(f"Combined matrix shape: {total_counts.shape}")
 
     # ------------------------------------------------------------------
     # 3. Log CPM normalization

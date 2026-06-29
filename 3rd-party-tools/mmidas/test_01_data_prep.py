@@ -54,12 +54,13 @@ SELECTED_GENES = GENE_SYMBOLS[:20]   # first 20 are "selected"
 REMOVE_CLUSTERS = ["Low Quality", "CR Lhx5", "Meis2 Adamts19"]
 
 
-def _make_exon_matrix(n_cells: int, rng: np.random.Generator) -> pd.DataFrame:
+def _make_exon_matrix(n_cells: int, rng: np.random.Generator, sample_ids: list) -> pd.DataFrame:
     """Synthetic exon matrix: genes as rows, cells as columns.
-    First column is 'gene' (gene name), rest are cell columns.
+    First column is 'gene' (gene name), rest are cell columns named by sample_id
+    (must match the sample_id values in the annotation CSV).
     """
     counts = rng.integers(0, 200, size=(N_GENES, n_cells))
-    df = pd.DataFrame(counts, columns=[f"cell_{i}" for i in range(n_cells)])
+    df = pd.DataFrame(counts, columns=sample_ids)
     df.insert(0, "gene", GENE_SYMBOLS)
     return df
 
@@ -125,10 +126,12 @@ def run_smoke_test():
         selected_genes = os.path.join(tmpdir, "selected_genes.csv")
         output_h5ad = os.path.join(tmpdir, "output.h5ad")
 
-        _make_exon_matrix(N_VISP, rng).to_csv(visp_exon, index=False)
-        _make_samples(N_VISP, "VISp", rng).to_csv(visp_samples, index=False)
-        _make_exon_matrix(N_ALM, rng).to_csv(alm_exon, index=False)
-        _make_samples(N_ALM, "ALM", rng).to_csv(alm_samples, index=False)
+        visp_samples_df = _make_samples(N_VISP, "VISp", rng)
+        alm_samples_df = _make_samples(N_ALM, "ALM", rng)
+        _make_exon_matrix(N_VISP, rng, visp_samples_df["sample_id"].tolist()).to_csv(visp_exon, index=False)
+        visp_samples_df.to_csv(visp_samples, index=False)
+        _make_exon_matrix(N_ALM, rng, alm_samples_df["sample_id"].tolist()).to_csv(alm_exon, index=False)
+        alm_samples_df.to_csv(alm_samples, index=False)
         _make_genes_rows().to_csv(genes_rows, index=False)
         _make_selected_genes().to_csv(selected_genes, index=False)
 
