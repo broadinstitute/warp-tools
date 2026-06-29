@@ -143,61 +143,54 @@ def _load_exon_matrix_filtered(
     Load a genes-×-cells exon-count CSV and return only the neuronal-cell
     columns, avoiding materializing the full dense matrix in memory.
 
+    Positional alignment is used: the annotation CSV must have one row per
+    cell in the same column order as the exon matrix — the standard AIBS
+    format.  Column headers in the exon matrix are NOT required to match
+    sample_id values (they are typically sample_name strings in AIBS data).
+
     The CSV layout is:
       col 0           : gene identifier (string)
-      cols 1 … N+1    : one column per cell, named by sample_id
-
-    We read the sample metadata first to identify which column *positions*
-    correspond to neuronal cells, then use ``usecols`` to read only those
-    columns plus the gene-id column.
+      cols 1 … N      : one column per cell (in the same order as annotation rows)
 
     Returns
     -------
     counts : np.ndarray  shape (n_neuronal_cells, n_genes), dtype float32
-    anno   : pd.DataFrame  filtered annotation rows
+    anno   : pd.DataFrame  filtered annotation rows (neuronal cells only),
+             reset index.
     """
     anno = pd.read_csv(samples_path, encoding=encoding)
     neuron_mask = anno["class"].isin(neuronal_classes)
     neuronal_anno = anno[neuron_mask].reset_index(drop=True)
 
-    # The exon-matrix header row: first element is a gene-id label,
-    # remaining elements are sample_ids matching anno["sample_id"].
-    # Read just the header to map sample_id → column index.
+    # Validate positional contract: number of cell columns in the exon matrix
+    # must equal number of rows in the annotation.
     with open(exon_matrix_path, "r") as fh:
-        header = fh.readline().rstrip("\n").split(",")
-    # header[0] is the gene-label column; header[1:] are sample ids
-    sample_ids_in_matrix = np.array(header[1:])
-    neuronal_ids = set(neuronal_anno["sample_id"].astype(str).values)
+        n_matrix_cols = len(fh.readline().rstrip("\n").split(",")) - 1  # subtract gene col
+    if n_matrix_cols != len(anno):
+        raise ValueError(
+            f"Exon matrix '{os.path.basename(exon_matrix_path)}' has "
+            f"{n_matrix_cols} cell columns but annotation has {len(anno)} rows. "
+            f"These must be matched-pair files in identical cell order."
+        )
 
-    # usecols indices (0-based in the CSV, so gene col = 0, cells start at 1)
-    keep_col_indices = [0] + [
-        i + 1
-        for i, sid in enumerate(sample_ids_in_matrix)
-        if sid in neuronal_ids
-    ]
+    # Map annotation row positions → exon matrix column indices.
+    # Column 0 is the gene identifier; cell at annotation row p is column p+1.
+    neuronal_positions = np.where(neuron_mask.values)[0]
+    keep_col_indices = [0] + [int(p) + 1 for p in neuronal_positions]
 
     print(
-        f"  Reading {len(keep_col_indices) - 1} / {len(sample_ids_in_matrix)} "
+        f"  Reading {len(neuronal_positions)} / {len(anno)} "
         f"neuronal-cell columns from {os.path.basename(exon_matrix_path)} ..."
     )
     df = pd.read_csv(
         exon_matrix_path,
         usecols=keep_col_indices,
-        dtype={0: str},       # gene-id column stays as string
+        dtype={0: str},   # gene-id column stays as string
     )
 
-    # Re-order columns to match neuronal_anno row order.
-    # df.columns[1:] ARE the neuronal sample_id strings — pandas preserves
-    # CSV header names when reading with usecols.  Build the ordered list
-    # directly from those names; no need to re-zip against the full header.
-    df_col_set = set(df.columns[1:])
-    ordered_cols = [
-        str(sid)
-        for sid in neuronal_anno["sample_id"].astype(str).values
-        if str(sid) in df_col_set
-    ]
+    # First column is gene identifiers; all remaining are neuronal cells.
     # shape: (n_genes, n_neuronal_cells) → transpose to (n_cells, n_genes)
-    counts = df[ordered_cols].values.astype(np.float32).T
+    counts = df.iloc[:, 1:].values.astype(np.float32).T
 
     return counts, neuronal_anno
 
