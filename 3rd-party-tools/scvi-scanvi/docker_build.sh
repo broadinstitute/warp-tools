@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.0
+# Update version when changes to Dockerfile or scripts are made
+DOCKER_IMAGE_VERSION=1.1.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 

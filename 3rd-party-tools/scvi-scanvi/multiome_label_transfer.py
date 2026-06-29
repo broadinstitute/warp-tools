@@ -164,21 +164,24 @@ def get_shared_features(gex, atac, ref):
     return gex, atac, ref
 
 
-def run_multi_model(gex, atac_activity_matrix, ref):
+def _concat_and_train_models(adatas, keys, max_epochs=500):
     """
-        Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
+        Concatenate query/reference AnnData objects and train SCVI + SCANVI on them.
 
-        This function:
-        - Merges GEX, ATAC activity, and reference datasets into a unified AnnData object.
-        - Identifies highly variable genes (HVGs) for feature selection.
-        - Trains a SCVI model for unsupervised representation learning.
-        - Transfers cell type annotations using SCANVI (semi-supervised learning).
-        - Saves both trained models and annotated data.
+        This is the shared core used by both the multiome (GEX + ATAC + reference) and
+        GEX-only (GEX + reference) entry points. Everything from feature selection through
+        SCANVI training is identical across modalities; only the set of datasets being
+        concatenated (and their modality keys) differs.
 
         Parameters:
-        - gex (AnnData): Gene expression data (unannotated).
-        - atac_activity_matrix (AnnData): ATAC data in gene activity format (unannotated).
-        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+        - adatas (list[AnnData]): Datasets to concatenate, in order matching `keys`. Each
+          must carry a `batch` column in `.obs`; the reference must carry `final_annotation`.
+        - keys (list[str]): Modality keys, one per dataset. Stored in `obs['modality']` and
+          appended to `obs_names` (via `index_unique='_'`) so labels can later be propagated
+          back to the original objects (e.g. `<barcode>_rna_unannotated`).
+        - max_epochs (int): Maximum training epochs applied to both the SCVI and SCANVI
+          models (default 500). SCVI also uses early stopping. Lower it for fast
+          plumbing/smoke runs or to bound wall-clock on very large datasets.
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -187,10 +190,10 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     """
     # Concatenate the datasets across modalities
     data = ad.concat(
-        [gex, atac_activity_matrix, ref],
+        adatas,
         join='inner',
         label='modality',
-        keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
+        keys=keys,
         index_unique='_',
     )
     # Filter genes expressed in at least 5 cells
@@ -216,7 +219,7 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     )
 
     # Train SCVI
-    vae.train(max_epochs=500, early_stopping=True)
+    vae.train(max_epochs=max_epochs, early_stopping=True)
     vae.save("vae_test_model_", save_anndata=True)
 
     # Plot training history
@@ -226,7 +229,7 @@ def run_multi_model(gex, atac_activity_matrix, ref):
     # Prepare labels for SCANVI
     data.obs["celltype_scanvi"] = 'Unknown'
     ref_idx = data.obs['modality'] == "rna_annotated"
-    data.obs["celltype_scanvi"][ref_idx] = data.obs['final_annotation'][ref_idx]
+    data.obs.loc[ref_idx, "celltype_scanvi"] = data.obs.loc[ref_idx, "final_annotation"]
 
     # Initialize and train SCANVI
     lvae = scvi.model.SCANVI.from_scvi_model(
@@ -235,10 +238,74 @@ def run_multi_model(gex, atac_activity_matrix, ref):
         labels_key="celltype_scanvi",
         unlabeled_category="Unknown",
     )
-    lvae.train(max_epochs=500, n_samples_per_label=100)
+    lvae.train(max_epochs=max_epochs, n_samples_per_label=100)
     lvae.save("scvi_scanvi_test_model_", save_anndata=True)
 
     return data, vae, lvae
+
+
+def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500):
+    """
+        Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
+
+        This function:
+        - Merges GEX, ATAC activity, and reference datasets into a unified AnnData object.
+        - Identifies highly variable genes (HVGs) for feature selection.
+        - Trains a SCVI model for unsupervised representation learning.
+        - Transfers cell type annotations using SCANVI (semi-supervised learning).
+        - Saves both trained models and annotated data.
+
+        Parameters:
+        - gex (AnnData): Gene expression data (unannotated). Must carry a `batch` column.
+        - atac_activity_matrix (AnnData): ATAC data in gene activity format (unannotated).
+          Must carry a `batch` column.
+        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+          Must also carry a `batch` column: training is batch-aware
+          (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
+          concatenated object, which includes the reference rows.
+        - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
+
+        Returns:
+        - data (AnnData): Combined and annotated data object.
+        - vae (SCVI model): Trained SCVI model.
+        - lvae (SCANVI model): Trained SCANVI model with transferred labels.
+    """
+    return _concat_and_train_models(
+        [gex, atac_activity_matrix, ref],
+        keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
+        max_epochs=max_epochs,
+    )
+
+
+def run_gex_only_model(gex, ref, max_epochs=500):
+    """
+        Train a SCVI/SCANVI model on GEX and reference datasets only (no ATAC).
+
+        Used when the pipeline runs in GEX-only mode (no ATAC h5ad provided). Behaves
+        identically to `run_multi_model` but concatenates only the gene expression query
+        and the annotated reference. The GEX modality key is unchanged
+        ("rna_unannotated"), so downstream label propagation
+        (`gex.obs_names + '_rna_unannotated'`) works exactly as in the multiome path.
+
+        Parameters:
+        - gex (AnnData): Gene expression data (unannotated). Must carry a `batch` column.
+        - ref (AnnData): Annotated reference GEX dataset with `final_annotation` in `.obs`.
+          Must also carry a `batch` column: training is batch-aware
+          (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
+          concatenated object, which includes the reference rows. This is the same
+          requirement as `run_multi_model`.
+        - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
+
+        Returns:
+        - data (AnnData): Combined and annotated data object.
+        - vae (SCVI model): Trained SCVI model.
+        - lvae (SCANVI model): Trained SCANVI model with transferred labels.
+    """
+    return _concat_and_train_models(
+        [gex, ref],
+        keys=["rna_unannotated", "rna_annotated"],
+        max_epochs=max_epochs,
+    )
 
 
 def transfer_labels(data, lvae):
@@ -347,7 +414,7 @@ def check_cell_matches(gex, atac):
     return mismatched_barcodes
 
 
-def main(gex_file, atac_file, ref_file):
+def main(gex_file, atac_file, ref_file, max_epochs=500):
     # This block performs initial preprocessing steps for integrating Multiome RNA and ATAC data
     # with a reference scRNA-seq dataset using scvi-tools.
     #
@@ -387,22 +454,8 @@ def main(gex_file, atac_file, ref_file):
     # Add placeholder annotations to the query datasets (used later by scanVI)
     gex_shared.obs['final_annotation'] = "Unknown"
 
-    query = snap.pp.make_gene_matrix(
-        atac_shared,
-        gene_anno="gencode.v41.basic.annotation.gff3.gz"
-    )
-
-    print("query shape: ", query.shape)
-    query.obs['final_annotation'] = "Unknown"
-
-    # Tag each dataset with its modality (required for scanVI integration)
-    gex_shared.obs["modality"] = "rna_unannotated"
-    query.obs["modality"] = "atac_unannotated"
-    ref.obs["modality"] = "rna_annotated"
-
-    timing_summary['Preprocessing'] = time.time() - start
-
-    # Convert ATAC cell-by-bin matrix into gene activity matrix using reference genome annotation
+    # Convert ATAC cell-by-bin matrix into a gene activity matrix (hg38), matching
+    # the production WDL (PreprocessFilter), which uses snap.genome.hg38.
     query = snap.pp.make_gene_matrix(atac_shared, gene_anno=snap.genome.hg38)
     print("query shape: ", query.shape)
     query.obs['final_annotation'] = "Unknown"
@@ -414,12 +467,14 @@ def main(gex_file, atac_file, ref_file):
 
     timing_summary['Preprocessing'] = time.time() - start
 
+    timing_summary['Preprocessing'] = time.time() - start
+
     # - SCVI is trained unsupervised on all data to learn a latent space
     # - SCANVI is then trained in a semi-supervised fashion using the reference cell type labels
     # - Returns the combined AnnData object (`data`) and trained models (`vae`, `lvae`)
 
     start = time.time()
-    data, vae, lvae = run_multi_model(gex_shared, query, ref)
+    data, vae, lvae = run_multi_model(gex_shared, query, ref, max_epochs=max_epochs)
     timing_summary['Model Training'] = time.time() - start
 
     # ----------------------------------------------
@@ -518,6 +573,14 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--atac-file', required=True, help="Input ATAC AnnData file")
     parser.add_argument('-r', '--ref-file', required=True, help="Input label reference AnnData file")
     parser.add_argument(
+        '-e',
+        '--max-epochs',
+        required=False,
+        default=500,
+        type=int,
+        help="Maximum SCVI/SCANVI training epochs (default: 500)"
+    )
+    parser.add_argument(
         '-l',
         '--localize',
         required=False,
@@ -530,7 +593,7 @@ if __name__ == '__main__':
         gex, atac, ref = pull_all_files([parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file])
     else:
         gex, atac, ref = parsed_args.gex_file, parsed_args.atac_file, parsed_args.ref_file
-    main(gex, atac, ref)
+    main(gex, atac, ref, max_epochs=parsed_args.max_epochs)
     if parsed_args.localize:
         bucket_name = get_bucket_and_path(parsed_args.ref_file)[0]
         delocalize_file(bucket_name, "SCANVI_predictions.h5ad", "SCANVI_predictions.h5ad")
