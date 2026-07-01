@@ -4,7 +4,7 @@
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse2:1.0.0-2a1a895-1777494633`
+#### `docker pull us.gcr.io/broad-gotc-prod/imputation-glimpse2:1.1.0-c276764-1782839248`
 
 - __What is this image:__ This image is built using a local two-stage build script ([docker_build.sh](docker_build.sh)) for running GLIMPSE2 in imputation pipelines.
 - __What is GLIMPSE2:__ GLIMPSE2 is a set of tools for phasing and imputation of low-coverage sequencing datasets. See [here](https://odelaneau.github.io/GLIMPSE/) for more information.
