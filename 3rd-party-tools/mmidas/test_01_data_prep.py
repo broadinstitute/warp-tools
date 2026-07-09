@@ -116,6 +116,20 @@ def run_smoke_test():
     rng = np.random.default_rng(seed=0)
     failures = []
 
+    # Regression test: logcpm must accept integer count matrices and handle
+    # all-zero rows without dtype-casting errors.
+    try:
+        int_counts = np.array([[1, 2, 3], [0, 0, 0]], dtype=np.int64)
+        normed = data_prep.logcpm(int_counts)
+        if normed.dtype != np.float32:
+            failures.append(f"logcpm dtype should be float32, got {normed.dtype}")
+        if not np.isfinite(normed).all():
+            failures.append("logcpm produced non-finite values for int input")
+        if not np.allclose(normed[1], 0.0):
+            failures.append("logcpm should keep all-zero rows as zeros")
+    except Exception as e:
+        failures.append(f"logcpm int-input regression check failed: {e}")
+
     with tempfile.TemporaryDirectory() as tmpdir:
         # Write synthetic input CSVs
         visp_exon = os.path.join(tmpdir, "visp_exon.csv")
@@ -218,6 +232,8 @@ def run_smoke_test():
             from scipy.sparse import issparse
             if not issparse(adata.X):
                 failures.append("adata.X should be a sparse matrix.")
+            elif adata.X.dtype != np.float32:
+                failures.append(f"adata.X dtype should be float32, got {adata.X.dtype}")
 
             print(f"  n_obs={adata.n_obs}, n_vars={adata.n_vars}")
             print(f"  obs columns: {list(adata.obs.columns)}")

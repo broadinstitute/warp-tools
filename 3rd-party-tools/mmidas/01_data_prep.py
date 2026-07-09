@@ -38,7 +38,6 @@ import numpy as np
 import pandas as pd
 import anndata as ad
 from scipy.sparse import csr_matrix
-from sklearn.preprocessing import normalize
 
 
 # ---------------------------------------------------------------------------
@@ -58,10 +57,21 @@ def logcpm(counts: np.ndarray, scaler: float = 1e6) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        log1p-transformed, library-size-normalized matrix.
+        log1p-transformed, library-size-normalized matrix (float32).
+        If input is already float32, it is modified in-place and returned.
     """
-    normed = normalize(counts.astype(float), axis=1, norm="l1")
-    return np.log1p(normed * scaler)
+    # Ensure float32 arithmetic. This avoids the int-divide casting error and
+    # prevents float64 intermediates (which double memory footprint).
+    counts = np.asarray(counts, dtype=np.float32)
+
+    # Operate in-place to keep peak memory low.
+    row_sums = counts.sum(axis=1, keepdims=True)   # (n_cells, 1), tiny
+    # Keep all-zero cells as all zeros after normalization.
+    row_sums[row_sums == 0] = 1.0
+    counts /= row_sums
+    counts *= np.float32(scaler)
+    np.log1p(counts, out=counts)
+    return counts
 
 
 # ---------------------------------------------------------------------------
@@ -164,8 +174,12 @@ def _load_exon_matrix_filtered(
 
     # Validate positional contract: number of cell columns in the exon matrix
     # must equal number of rows in the annotation.
+    # Also capture the full header so we can build a per-column dtype dict that
+    # tells pandas to store cell values directly as float32 (not the default
+    # float64), halving the DataFrame's memory footprint.
     with open(exon_matrix_path, "r") as fh:
-        n_matrix_cols = len(fh.readline().rstrip("\n").split(",")) - 1  # subtract gene col
+        header = fh.readline().rstrip("\n").split(",")
+    n_matrix_cols = len(header) - 1   # subtract gene-identifier column
     if n_matrix_cols != len(anno):
         raise ValueError(
             f"Exon matrix '{os.path.basename(exon_matrix_path)}' has "
@@ -178,6 +192,15 @@ def _load_exon_matrix_filtered(
     neuronal_positions = np.where(neuron_mask.values)[0]
     keep_col_indices = [0] + [int(p) + 1 for p in neuronal_positions]
 
+    # Build dtype dict using CSV header names (required when usecols is integer
+    # positions — pandas uses header names as keys in the resulting DataFrame).
+    # Gene-id column stays as str; all cell columns are read directly as float32.
+    selected_names = [header[i] for i in keep_col_indices]
+    dtype_dict = {
+        name: (str if idx == 0 else np.float32)
+        for idx, name in enumerate(selected_names)
+    }
+
     print(
         f"  Reading {len(neuronal_positions)} / {len(anno)} "
         f"neuronal-cell columns from {os.path.basename(exon_matrix_path)} ..."
@@ -185,12 +208,14 @@ def _load_exon_matrix_filtered(
     df = pd.read_csv(
         exon_matrix_path,
         usecols=keep_col_indices,
-        dtype={0: str},   # gene-id column stays as string
+        dtype=dtype_dict,   # float32 directly — no float64 intermediate
     )
 
-    # First column is gene identifiers; all remaining are neuronal cells.
-    # shape: (n_genes, n_neuronal_cells) → transpose to (n_cells, n_genes)
-    counts = df.iloc[:, 1:].values.astype(np.float32).T
+    # First column is gene identifiers; all remaining are neuronal cells in
+    # the same order as neuronal_anno. Transpose to (n_cells, n_genes).
+    # Free the DataFrame immediately after extraction to reclaim the memory.
+    counts = df.iloc[:, 1:].values.T   # already float32, shape (n_cells, n_genes)
+    del df
 
     return counts, neuronal_anno
 
@@ -229,6 +254,8 @@ def main(argv=None):
 
     df_anno = pd.concat([visp_anno, alm_anno], ignore_index=True)
     total_counts = np.concatenate([visp_counts, alm_counts], axis=0)
+    # Free the per-region arrays now that they are combined; each is ~1–2 GB.
+    del visp_counts, alm_counts
 
     print(f"Combined matrix shape: {total_counts.shape}")
 
@@ -269,6 +296,9 @@ def main(argv=None):
 
     gene_indices = np.array(gene_indices, dtype=int)
     log_cpm_filtered = log_cpm[:, gene_indices]
+    # Free the full n_cells × n_all_genes matrix now that we have the
+    # selected-gene subset (~1252 genes instead of ~45K).
+    del log_cpm
     retained_genes = selected_genes[[i for i, g in enumerate(selected_genes) if g not in missing]]
 
     print(
