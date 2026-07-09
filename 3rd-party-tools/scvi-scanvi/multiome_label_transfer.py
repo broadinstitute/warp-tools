@@ -433,6 +433,11 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     # - Adds metadata such as 'batch' and 'modality' required for downstream SCVI/SCANVI integration.
     # - Converts the ATAC cell-by-bin matrix into a gene activity matrix using the hg38 genome.
     # - Ensures all datasets include a 'final_annotation' field for SCANVI training.
+    #
+    # Note: main() intentionally does not expose batch_size and always runs with the
+    # fixed scvi-tools default (batch_size=128). Standalone CLI runs therefore use that
+    # default; batch_size is only tuned via the importable run_multi_model /
+    # run_gex_only_model API (used by the WARP pipeline) for rightsizing large runs.
 
     # Begin loading and filtering...
     timing_summary = {}
@@ -482,6 +487,7 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     # - Returns the combined AnnData object (`data`) and trained models (`vae`, `lvae`)
 
     start = time.time()
+    # main() runs with the fixed default batch_size (128); it is not exposed on the CLI.
     data, vae, lvae = run_multi_model(gex_shared, query, ref, max_epochs=max_epochs)
     timing_summary['Model Training'] = time.time() - start
 
