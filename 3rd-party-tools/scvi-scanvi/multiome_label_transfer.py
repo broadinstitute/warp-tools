@@ -374,8 +374,8 @@ def finalize_output(scanvi_output):
         "disease__ontology_label": "normal",
         "organ": "UBERON_0000955",
         "organ__ontology_label": "brain",
-        "library_preparation_protocol": "EFO_0030059",
-        "library_preparation_protocol__ontology_label": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
+        "library_preparation_protocol": "Chromium Single Cell Multiome ATAC + Gene Expression",
+        "data_modality": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
         "sex": "unknown"
     }
 
