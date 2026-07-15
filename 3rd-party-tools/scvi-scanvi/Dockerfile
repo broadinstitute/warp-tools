@@ -19,6 +19,7 @@ RUN set -eux; \
 
 COPY multiome_label_transfer.py .
 COPY gcs_utils.py .
+COPY label_transfer_from_preprocessed.py .
 
 # Set tini as the entrypoint
 ENTRYPOINT ["/usr/bin/tini", "--"]
