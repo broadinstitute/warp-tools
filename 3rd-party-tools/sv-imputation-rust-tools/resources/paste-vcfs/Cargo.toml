@@ -1,0 +1,8 @@
+[package]
+name = "paste-vcfs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust-htslib = "0.44"
+clap = { version = "4.4", features = ["derive"] }

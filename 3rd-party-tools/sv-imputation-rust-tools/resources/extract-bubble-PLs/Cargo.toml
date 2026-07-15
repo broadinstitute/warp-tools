@@ -1,0 +1,8 @@
+[package]
+name = "extract-bubble-PLs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust-htslib = "0.44"
+anyhow = "1.0"
