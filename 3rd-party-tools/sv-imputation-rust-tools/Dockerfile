@@ -40,7 +40,23 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --pr
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # 4. Clone the Rust source code from the Git repository
+# GIT_COMMIT must be a full 40-character commit hash. If not specified, uses the latest commit on main.
+ARG GIT_COMMIT=""
+
 RUN git clone https://github.com/broadinstitute/lrma-sv-imputation-utils.git /usr/src/lrma-sv-imputation-utils
+
+WORKDIR /usr/src/lrma-sv-imputation-utils
+
+RUN if [ -n "${GIT_COMMIT}" ]; then \
+        echo "=== Checking out specific commit: ${GIT_COMMIT} ===" && \
+        git checkout ${GIT_COMMIT}; \
+    else \
+        echo "=== No commit hash provided, using latest commit on main branch ===" && \
+        git checkout main; \
+    fi
+
+RUN echo "=== Current commit SHA: $(git rev-parse HEAD) ==="
+
 WORKDIR /usr/src/lrma-sv-imputation-utils/resources
 
 # 5. Compile the 3 Rust binaries
@@ -84,6 +100,11 @@ ENV BCFTOOLS_PLUGINS="/usr/local/libexec/bcftools"
 COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/pop-glimpse2/target/release/pop-glimpse2 /usr/local/bin/
 COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/paste-vcfs/target/release/paste-vcfs /usr/local/bin/
 COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/extract-bubble-PLs/target/release/extract-bubble-PLs /usr/local/bin/
+
+# Make the binaries executable
+RUN chmod +x /usr/local/bin/pop-glimpse2 \
+             /usr/local/bin/paste-vcfs \
+             /usr/local/bin/extract-bubble-PLs
 
 ENV HOME=/root
 
