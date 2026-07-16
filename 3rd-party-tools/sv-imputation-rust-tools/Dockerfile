@@ -31,13 +31,17 @@ RUN wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSI
     make -j$(nproc) && \
     make install DESTDIR=/tmp/bcftools_stage
 
-# 3. Install the Rust Toolchain
+# 3. Install Git and the Rust Toolchain
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# 4. Copy the local Rust source code from repo into the builder
-COPY resources/ /usr/src/resources/
-WORKDIR /usr/src/resources
+# 4. Clone the Rust source code from the Git repository
+RUN git clone https://github.com/broadinstitute/lrma-sv-imputation-utils.git /usr/src/lrma-sv-imputation-utils
+WORKDIR /usr/src/lrma-sv-imputation-utils/resources
 
 # 5. Compile the 3 Rust binaries
 RUN cd pop-glimpse2 && cargo build --release
@@ -77,9 +81,9 @@ COPY --from=builder /tmp/bcftools_stage/usr/local /usr/local/
 ENV BCFTOOLS_PLUGINS="/usr/local/libexec/bcftools"
 
 # 3. Copy the 3 compiled Rust binaries from the builder stage into the system PATH
-COPY --from=builder /usr/src/resources/pop-glimpse2/target/release/pop-glimpse2 /usr/local/bin/
-COPY --from=builder /usr/src/resources/paste-vcfs/target/release/paste-vcfs /usr/local/bin/
-COPY --from=builder /usr/src/resources/extract-bubble-PLs/target/release/extract-bubble-PLs /usr/local/bin/
+COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/pop-glimpse2/target/release/pop-glimpse2 /usr/local/bin/
+COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/paste-vcfs/target/release/paste-vcfs /usr/local/bin/
+COPY --from=builder /usr/src/lrma-sv-imputation-utils/resources/extract-bubble-PLs/target/release/extract-bubble-PLs /usr/local/bin/
 
 ENV HOME=/root
 
