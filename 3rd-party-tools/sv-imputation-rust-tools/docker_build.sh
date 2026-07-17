@@ -116,7 +116,6 @@ function main(){
     else
         echo "Use latest commit from main branch"
     fi
-    echo "Registry:       $GCR_URL"
 
     # Get short git commit for tagging (use first 7 characters if full hash provided)
     if [ -n "$GIT_COMMIT" ]; then
@@ -130,6 +129,8 @@ function main(){
             exit 1
         fi
         echo "Latest commit on main: $LATEST_COMMIT"
+        # Set GIT_COMMIT to the fetched commit so it's passed to Docker
+        GIT_COMMIT="$LATEST_COMMIT"
         GIT_COMMIT_SHORT=$(echo "$LATEST_COMMIT" | cut -c1-7)
     fi
 
@@ -154,6 +155,7 @@ function main(){
         echo "Auto-generated tag: $IMAGE_TAG"
     fi
 
+    echo "Registry:       $GCR_URL"
     echo "Final Image:    $FINAL_IMAGE_NAME"
     echo "=========================================="
 
@@ -203,12 +205,8 @@ function main(){
     echo ""
     echo "=========================================="
     echo "Build complete!"
+    echo "Git Commit: $GIT_COMMIT"
     echo "Final image: $FINAL_IMAGE_NAME"
-    if [ -n "$GIT_COMMIT" ]; then
-        echo "Git Commit: $GIT_COMMIT"
-    else
-        echo "Git Commit: $LATEST_COMMIT (latest from main branch)"
-    fi
     echo "=========================================="
 }
 

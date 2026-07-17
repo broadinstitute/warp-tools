@@ -40,22 +40,13 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --pr
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # 4. Clone the Rust source code from the Git repository
-# GIT_COMMIT must be a full 40-character commit hash. If not specified, uses the latest commit on main.
-ARG GIT_COMMIT=""
+# GIT_COMMIT must be a full 40-character commit hash provided by docker_build.sh
+ARG GIT_COMMIT
 
-RUN git clone https://github.com/broadinstitute/lrma-sv-imputation-utils.git /usr/src/lrma-sv-imputation-utils
-
-WORKDIR /usr/src/lrma-sv-imputation-utils
-
-RUN if [ -n "${GIT_COMMIT}" ]; then \
-        echo "=== Checking out specific commit: ${GIT_COMMIT} ===" && \
-        git checkout ${GIT_COMMIT}; \
-    else \
-        echo "=== No commit hash provided, using latest commit on main branch ===" && \
-        git checkout main; \
-    fi
-
-RUN echo "=== Current commit SHA: $(git rev-parse HEAD) ==="
+RUN git clone https://github.com/broadinstitute/lrma-sv-imputation-utils.git /usr/src/lrma-sv-imputation-utils && \
+    cd /usr/src/lrma-sv-imputation-utils && \
+    echo "Checking out commit: ${GIT_COMMIT}" && \
+    git checkout ${GIT_COMMIT}
 
 WORKDIR /usr/src/lrma-sv-imputation-utils/resources
 
