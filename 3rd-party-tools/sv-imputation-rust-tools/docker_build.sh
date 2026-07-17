@@ -9,7 +9,7 @@ set -e
 # 1. Make sure you have Docker installed and Docker is authenticated with GCR if you want to push.
 # 2. Run the script with arguments to specify git commit (optional) and image tag (optional).
 #    For example:
-#       ./docker_build.sh -g abc123def456... -t my-custom-tag --record-tag
+#       ./docker_build.sh -c abc123def456... -t my-custom-tag --record-tag
 #    This will build the image using the specified git commit hash and tag it with 'my-custom-tag'.
 #    If you omit the git commit, it will use the latest commit from 'main' branch.
 #    If you omit the tag, it will auto-generate one based on version, git commit, and timestamp.
@@ -30,7 +30,7 @@ GIT_COMMIT=""  # Default to empty (will use latest commit from main branch)
 CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 
 # Help text
-HELP="$(basename "$0") [-h|--help] [-g|--git-commit] [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the SV Imputation Rust Tools image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-c|--commit] [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the SV Imputation Rust Tools image and push to GCR
 
 This script builds a Docker image containing:
 - BCFtools
@@ -45,7 +45,7 @@ Requirements:
 
 where:
     -h|--help           Show help text
-    -g|--git-commit     Full 40-character git commit hash for lrma-sv-imputation-utils repo (optional, uses latest main if not provided)
+    -c|--commit         Full 40-character git commit hash for lrma-sv-imputation-utils repo (optional, uses latest main if not provided)
     -t|--tag            Docker image tag to use (optional, will auto-generate if not provided)
     --no-push           Build locally without pushing to GCR
     --record-tag        Record the image tag to docker_versions.tsv
@@ -67,7 +67,7 @@ function main(){
     do
     key="$1"
     case $key in
-        -g|--git-commit)
+        -c|--commit)
         GIT_COMMIT="$2"
         # Validate that it's a full 40-character commit hash
         if [ -n "$GIT_COMMIT" ] && ! [[ "$GIT_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
