@@ -56,7 +56,7 @@ jobs:
         password: ${{ secrets.GCR_CI_KEY }}
 
     # Build and push the Docker image using local docker_build.sh script
-    - name: Build and push SV Imputation Rust Tools Docker image using local script
+    - name: Build and push sv-imputation-rust-tools Docker image using local script
       working-directory: 3rd-party-tools/sv-imputation-rust-tools
       run: |
         # Make the script executable

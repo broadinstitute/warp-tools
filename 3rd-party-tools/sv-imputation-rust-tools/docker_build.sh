@@ -22,8 +22,7 @@ TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # GCR registry
-#GCR_URL="us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools" # TODO - Saloni uncomment this
-GCR_URL="us.gcr.io/broad-dsde-methods/sshah/sv_rust_tools"
+GCR_URL="us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools"
 
 # Git commit configuration (must be a full 40-character commit hash, or empty to use latest main)
 GIT_COMMIT=""  # Default to empty (will use latest commit from main branch)
