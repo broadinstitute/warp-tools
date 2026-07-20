@@ -2,15 +2,13 @@
 FROM --platform=linux/amd64 python:3.8-alpine
 
 ARG BCFTOOLS_VERSION=1.24 \
-        VCFTOOLS_VERSION=0.1.17 \
-        SAMTOOLS_VERSION=1.24
+        VCFTOOLS_VERSION=0.1.17
 
 ENV TERM=xterm-256color
 
 LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
         BCFTOOLS_VERSION=${BCFTOOLS_VERSION} \
-        VCFTOOLS_VERSION=${VCFTOOLS_VERSION} \
-        SAMTOOLS_VERSION=${SAMTOOLS_VERSION}
+        VCFTOOLS_VERSION=${VCFTOOLS_VERSION}
 
 WORKDIR /usr/gitc
 
@@ -65,17 +63,17 @@ RUN set -eux; \
     rm vcftools-${VCFTOOLS_VERSION}.tar.gz \
     ; \
 # Install HTSlib
-    wget  https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2; \
-    tar xf samtools-${SAMTOOLS_VERSION}.tar.bz2; \
-    cd samtools-${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}; \
+    wget  https://github.com/samtools/samtools/releases/download/${BCFTOOLS_VERSION}/samtools-${BCFTOOLS_VERSION}.tar.bz2; \
+    tar xf samtools-${BCFTOOLS_VERSION}.tar.bz2; \
+    cd samtools-${BCFTOOLS_VERSION}/htslib-${BCFTOOLS_VERSION}; \
     \
     ./configure; \
     make; \
     make install; \
     \
     cd ../..; \
-    rm -r samtools-${SAMTOOLS_VERSION}; \
-    rm samtools-${SAMTOOLS_VERSION}.tar.bz2
+    rm -r samtools-${BCFTOOLS_VERSION}; \
+    rm samtools-${BCFTOOLS_VERSION}.tar.bz2
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]

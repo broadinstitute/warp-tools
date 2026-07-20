@@ -2,7 +2,7 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.8
+DOCKER_IMAGE_VERSION=2.0.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
@@ -15,9 +15,6 @@ BCFTOOLS_VERSION="1.24"
 
 #VCFTOOLS version
 VCFTOOLS_VERSION="0.1.17"
-
-#SAMTOOLS version
-SAMTOOLS_VERSION="1.24"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
@@ -72,7 +69,6 @@ function main(){
     docker build -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg BCFTOOLS_VERSION="$BCFTOOLS_VERSION" \
         --build-arg VCFTOOLS_VERSION="$VCFTOOLS_VERSION" \
-        --build-arg SAMTOOLS_VERSION="$SAMTOOLS_VERSION" \
         --no-cache $DIR
     docker push "$GCR_URL:$IMAGE_TAG"
 
