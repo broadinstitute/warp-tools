@@ -4,7 +4,7 @@
 
 Copy and paste to pull this image
 
-#### `docker pull us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:1.0.0-abc123d-1234567890`
+#### `docker pull us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:1.0.0-5dc0f19-1784328222`
 
 - __What is this image:__ This image is built using a local build script ([docker_build.sh](docker_build.sh)) for running structural variant (SV) imputation tools in genomics pipelines.
 - __What are these tools:__ This image contains three Rust-based tools for SV imputation workflows: `pop-glimpse2`, `paste-vcfs`, and `extract-bubble-PLs`, along with BCFtools for VCF/BCF file manipulation.
@@ -33,8 +33,8 @@ _Note: The commit hash comes from the [lrma-sv-imputation-utils GitHub repositor
 You can see more information about the image, including the tool versions and commit hash, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:<tag-placeholder>
-$ docker inspect us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:<tag-placeholder>
+$ docker pull us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:1.0.0-5dc0f19-1784328222
+$ docker inspect us.gcr.io/broad-gotc-prod/sv-imputation-rust-tools:1.0.0-5dc0f19-1784328222
 ```
 
 ## Building the Image
