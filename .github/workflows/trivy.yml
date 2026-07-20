@@ -30,6 +30,7 @@ jobs:
         - 3rd-party-tools/minimac4
         - 3rd-party-tools/fgbio
         - 3rd-party-tools/umi-tools
+        - 3rd-party-tools/sv-imputation-rust-tools
     steps:
       - uses: actions/checkout@v3
 
