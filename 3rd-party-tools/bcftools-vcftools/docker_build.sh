@@ -7,7 +7,7 @@ TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/imputation-bcf-vcf"
+GCR_URL="us.gcr.io/broad-gotc-prod/bcftools-vcftools"
 # QUAY_URL="quay.io/broadinstitute/gotc-prod-imputation_bcf_vcf"
 
 #BCFTOOLS version
