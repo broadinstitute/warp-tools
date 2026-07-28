@@ -4,7 +4,7 @@
 
 Copy and paste to pull this image
 
-#### `us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-1784569943`
+#### `us.gcr.io/broad-gotc-prod/bcftools-vcftools:2.0.0-1.24-0.1.17-1784569943`
 
 - __What is this image:__ This image is a lightweight alpine-based image for running BCFtools and VCFtools for the [Imputation pipeline](../../../../pipelines/broad/arrays/imputation/Imputation.wdl) and the ImputationBeagle pipeline.
 - __What are BFCtools and VCFtools:__ BCFtools and VCFtools are a suite of tools for variant calling and manipulating BCFs and VCFs. See [here](https://github.com/samtools/vcftools) and [here](https://vcftools.github.io/man_latest.html) more information.
@@ -14,15 +14,15 @@ Copy and paste to pull this image
 
 The Imputation BCFtools VCFtools image uses the following convention for versioning:
 
-#### `us.gcr.io/broad-gotc-prod/samtools:<image-version>-<bcftools-version>-<vcftools-version>-<unix-timestamp>` 
+#### `us.gcr.io/broad-gotc-prod/bcftools-vcftools:<image-version>-<bcftools-version>-<vcftools-version>-<unix-timestamp>` 
 
 We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
 
 You can see more information about the image, including the tool versions, by running the following command:
 
 ```bash
-$ docker pull us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-1784569943
-$ docker inspect us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-1784569943
+$ docker pull us.gcr.io/broad-gotc-prod/bcftools-vcftools:2.0.0-1.24-0.1.17-1784569943
+$ docker inspect us.gcr.io/broad-gotc-prod/bcftools-vcftools:2.0.0-1.24-0.1.17-1784569943
 ```
 
 ## Usage
@@ -31,12 +31,12 @@ $ docker inspect us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-
 
 ```bash
 $ docker run --rm -it \
-    us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-1784569943 bcftools
+    us.gcr.io/broad-gotc-prod/bcftools-vcftools:2.0.0-1.24-0.1.17-1784569943 bcftools
 ```
 
 ### Display VCFtools default menu
 
 ```bash
 $ docker run --rm -it \
-    us.gcr.io/broad-gotc-prod/imputation-bcf-vcf:2.0.0-1.24-0.1.17-1784569943 vcftools
+    us.gcr.io/broad-gotc-prod/bcftools-vcftools:2.0.0-1.24-0.1.17-1784569943 vcftools
 ```
