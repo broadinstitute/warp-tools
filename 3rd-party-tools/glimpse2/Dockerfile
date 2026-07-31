@@ -6,7 +6,7 @@ WORKDIR /docker_build/
 RUN apt-get update && DEBIAN_FRONTEND="noninteractive" apt-get install -y openjdk-17-jre-headless curl python3
 
 # Download and build bcftools
-RUN wget https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 && \
+RUN wget https://github.com/samtools/bcftools/releases/download/1.24/bcftools-1.24.tar.bz2 && \
 tar -xf bcftools-1.21.tar.bz2 && \
 rm bcftools-1.21.tar.bz2 && \
 cd bcftools-1.21 && \
