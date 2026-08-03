@@ -33,9 +33,11 @@ For a fast smoke test use: --n_traversal_steps 5
 """
 
 import argparse
+import ast
 import json
 import os
 import pickle
+import re
 import sys
 
 import matplotlib
@@ -107,7 +109,67 @@ def _load_kegg(kegg_toml_path: str, gene_names: np.ndarray):
     Only pathways with at least one gene present in gene_names are included.
     """
     import toml
-    kegg = toml.load(kegg_toml_path)
+
+    def _parse_kegg_toml_permissive(path: str):
+        """
+        Parse KEGG TOML in a permissive way, tolerating duplicate keys within a
+        section (notably repeated `facs_genes = [...]` lines observed in
+        historical KEGG.toml files).
+
+        Only fields needed by this pipeline are parsed:
+          - pathway_name (string)
+          - facs_genes (list of strings; repeated keys are concatenated)
+        """
+        section_re = re.compile(r"^\[(?P<name>[^\]]+)\]$")
+        parsed = {}
+        current = None
+
+        with open(path) as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line or line.startswith("#"):
+                    continue
+
+                m = section_re.match(line)
+                if m:
+                    current = m.group("name").strip()
+                    parsed.setdefault(current, {"pathway_name": current, "facs_genes": []})
+                    continue
+
+                if current is None or "=" not in line:
+                    continue
+
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip()
+
+                try:
+                    decoded = ast.literal_eval(value)
+                except Exception:
+                    # Best-effort fallback for malformed values.
+                    decoded = value.strip('"').strip("'")
+
+                if key == "pathway_name":
+                    parsed[current]["pathway_name"] = str(decoded).strip()
+                elif key == "facs_genes":
+                    if isinstance(decoded, list):
+                        parsed[current].setdefault("facs_genes", []).extend(
+                            [str(g).strip() for g in decoded if str(g).strip()]
+                        )
+
+        # De-duplicate while preserving order.
+        for sec in parsed.values():
+            genes = sec.get("facs_genes", [])
+            sec["facs_genes"] = list(dict.fromkeys(genes))
+
+        return parsed
+
+    try:
+        kegg = toml.load(kegg_toml_path)
+    except Exception as e:
+        print(f"  WARNING: strict TOML parse failed ({e}); using permissive KEGG parser.")
+        kegg = _parse_kegg_toml_permissive(kegg_toml_path)
+
     gene_set = {g: i for i, g in enumerate(gene_names)}
 
     g_subset, pathways = [], []

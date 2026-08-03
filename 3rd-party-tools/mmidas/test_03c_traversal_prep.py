@@ -60,6 +60,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmpdir:
         h5ad_path  = os.path.join(tmpdir, "test_data.h5ad")
         out_dir    = os.path.join(tmpdir, "results")
+        kegg_path  = os.path.join(tmpdir, "kegg_duplicate.toml")
         os.makedirs(out_dir, exist_ok=True)
 
         print(f"Work dir: {tmpdir}")
@@ -67,6 +68,17 @@ def main():
         # Step 1 — write synthetic .h5ad
         print("\n[1/4] Writing synthetic h5ad ...")
         _make_h5ad(h5ad_path)
+
+        # KEGG file with duplicate facs_genes key (regression case from prod).
+        with open(kegg_path, "w") as fh:
+            fh.write(
+                """
+[mmu_test]
+pathway_name = "Test Pathway"
+facs_genes = ["gene_000", "gene_001"]
+facs_genes = ["gene_001", "gene_002"]
+""".strip()
+            )
 
         # Step 2 — train a tiny mixVAE model
         print("[2/4] Running 02b_train_mixvae.py ...")
@@ -123,6 +135,7 @@ def main():
                 "--checkpoints_manifest",  ckpt_manifest_path,
                 "--evaluation_results_json", eval_json_path,
                 "--output_dir",            out_dir,
+                "--kegg_toml",             kegg_path,
                 "--n_traversal_steps",     "3",
                 "--seed",                  str(SEED),
             ],
@@ -157,6 +170,7 @@ def main():
         assert trav["V_g_mean"].shape[-1] == N_GENES, "V_g_mean last dim ≠ n_genes"
         assert isinstance(trav["g_subset"], list), "g_subset should be a list"
         assert isinstance(trav["pathways"], list), "pathways should be a list"
+        assert len(trav["pathways"]) > 0, "Expected at least one KEGG pathway from duplicate-key TOML"
 
         # state_mu_pca pickle keys and shapes
         with open(smu_path, "rb") as fh:

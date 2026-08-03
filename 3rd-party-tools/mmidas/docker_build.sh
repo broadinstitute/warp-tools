@@ -12,10 +12,9 @@ GCR_URL="us.gcr.io/broad-gotc-prod/mmidas"
 # MMIDAS version (matches setup.py / pyproject.toml in the local source tree)
 MMIDAS_VERSION="0.1.0"
 
-# Caching: OFF by default (production correctness); pass --cache to enable.
-# Enabling caching is recommended for iterative development because the torch
-# layer is ~2 GB and takes several minutes to re-download from scratch.
-CACHING="OFF"
+# Caching: ON by default for faster iterative development.
+# Pass --no-cache for a fully clean rebuild when needed.
+CACHING="ON"
 
 # Local MMIDAS source directory — resolved relative to this script's location.
 # Assumes workspace layout:
@@ -25,14 +24,15 @@ MMIDAS_SRC_DEFAULT="$(cd "$DIR/../../../MMIDAS" 2>/dev/null && pwd)" || true
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-d|--docker-version] [-m|--mmidas-version] [-s|--mmidas-src <path>] [--cache] [-t|--tools] -- build the mmidas image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-d|--docker-version] [-m|--mmidas-version] [-s|--mmidas-src <path>] [--cache|--no-cache] [-t|--tools] -- build the mmidas image and push to GCR
 
 where:
     -h|--help                  Show help text
     -d|--docker-version <ver>  Image version tag (default: $DOCKER_IMAGE_VERSION)
     -m|--mmidas-version <ver>  MMIDAS package version (default: $MMIDAS_VERSION)
     -s|--mmidas-src <path>     Path to local MMIDAS source tree (default: $MMIDAS_SRC_DEFAULT)
-    --cache                    Enable Docker layer caching (default: off; recommended for dev)
+    --cache                    Enable Docker layer caching (default: on)
+    --no-cache                 Disable Docker layer caching (force clean rebuild)
     -t|--tools                 Show tools needed to run script
 
 Prerequisites (first-time setup):
@@ -67,6 +67,10 @@ function main(){
             ;;
             --cache)
             CACHING="ON"
+            shift
+            ;;
+            --no-cache)
+            CACHING="OFF"
             shift
             ;;
             -h|--help)
