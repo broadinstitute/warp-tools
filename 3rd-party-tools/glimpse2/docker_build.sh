@@ -17,7 +17,7 @@ set -e
 
 # Variables and defaults
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.2.0
+DOCKER_IMAGE_VERSION=1.3.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
