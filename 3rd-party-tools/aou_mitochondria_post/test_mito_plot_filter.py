@@ -14,17 +14,11 @@ class TestMitoPlotFilterScript(unittest.TestCase):
     def test_script_exists(self):
         self.assertTrue(SCRIPT_PATH.exists(), f"Missing script: {SCRIPT_PATH}")
 
-    def test_uses_output_base_for_local_outputs(self):
+    def test_uses_output_root_and_basename_for_outputs(self):
         expected_lines = [
-            'vcf_local             = f"{output_base}.vcf.bgz"',
-            'sample_metadata_local = f"{output_base}_metadata.tsv"',
-            'variants_per_sample_svg            = f"{output_base}.variants_per_sample.svg"',
-            'mito_cn_distribution_svg           = f"{output_base}.mito_cn_distribution.svg"',
-            'variant_allele_frequency_svg       = f"{output_base}.variant_allele_frequency.svg"',
-            'variant_af_and_allele_fraction_svg = f"{output_base}.variant_af_and_allele_fraction.svg"',
-            'numt_fp_by_mtcn_svg                = f"{output_base}.numt_fp_by_mtcn.svg"',
-            'haplogroup_heteroplasmy_svg        = f"{output_base}.haplogroup_heteroplasmy.svg"',
-            'haplogroup_homoplasmy_svg          = f"{output_base}.haplogroup_homoplasmy.svg"',
+            'output_prefix     = f"{output_root.rstrip(\'/\')}/{basename}"',
+            'vcf_output_path             = f"{output_prefix}.filtered.vcf.gz"',
+            'sample_metadata_output_path = f"{output_prefix}.metadata.tsv"',
         ]
         for line in expected_lines:
             self.assertIn(line, self.source)
@@ -37,7 +31,13 @@ class TestMitoPlotFilterScript(unittest.TestCase):
         )
 
     def test_exports_vcf_with_tabix(self):
-        self.assertIn("hl.export_vcf(mt_vcf, vcf_local, tabix=True)", self.source)
+        self.assertIn("hl.export_vcf(", self.source)
+        self.assertIn("vcf_output_path", self.source)
+        self.assertIn("tabix=True", self.source)
+
+    def test_cli_uses_output_root_and_basename(self):
+        self.assertIn('parser.add_argument("--output-root", required=True', self.source)
+        self.assertIn('parser.add_argument("--basename", required=True', self.source)
 
     def test_cli_and_entrypoint_present(self):
         self.assertIn("def parse_args():", self.source)
