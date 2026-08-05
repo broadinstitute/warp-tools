@@ -49,7 +49,7 @@ def main():
     # -------------------------------------------------------------------------
     # Output file paths; these can be local paths or cloud URIs (for example gs://...).
     # -------------------------------------------------------------------------
-    vcf_output_path             = f"{output_prefix}.filtered.vcf.gz"
+    vcf_output_path             = f"{output_prefix}.filtered.vcf.bgz"
     sample_metadata_output_path = f"{output_prefix}.metadata.tsv"
 
 

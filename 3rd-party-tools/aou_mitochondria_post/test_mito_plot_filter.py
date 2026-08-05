@@ -17,7 +17,7 @@ class TestMitoPlotFilterScript(unittest.TestCase):
     def test_uses_output_root_and_basename_for_outputs(self):
         expected_lines = [
             'output_prefix     = f"{output_root.rstrip(\'/\')}/{basename}"',
-            'vcf_output_path             = f"{output_prefix}.filtered.vcf.gz"',
+            'vcf_output_path             = f"{output_prefix}.filtered.vcf.bgz"',
             'sample_metadata_output_path = f"{output_prefix}.metadata.tsv"',
         ]
         for line in expected_lines:
