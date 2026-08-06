@@ -24,6 +24,8 @@ def parse_args():
     parser.add_argument("--input-path",  required=True, help="GCS path to input Hail MatrixTable")
     parser.add_argument("--output-root", required=True, help="Cloud output directory root (no trailing slash required)")
     parser.add_argument("--basename", required=True, help="Shared base name used to build all output file names")
+    parser.add_argument("--tmp-dir", default="./hail_tmp",
+                        help="Local directory for Hail temporary files (should be on the provisioned disk, not /tmp)")
     return parser.parse_args()
 
 
@@ -33,15 +35,21 @@ def main():
     input_matrix_path = args.input_path
     output_root       = args.output_root
     basename          = args.basename
+    tmp_dir           = args.tmp_dir
     output_prefix     = f"{output_root.rstrip('/')}/{basename}"
 
     print(f"[mito_plot_filter] basename     : {basename}")
     print(f"[mito_plot_filter] output_root  : {output_root}")
     print(f"[mito_plot_filter] output_prefix: {output_prefix}")
+    print(f"[mito_plot_filter] tmp_dir      : {tmp_dir}")
     print(f"[mito_plot_filter] cwd          : {os.getcwd()}")
 
+    os.makedirs(tmp_dir, exist_ok=True)
+
     # Initialize Hail once in idempotent mode so reruns in the same process are safe.
-    hl.init(default_reference="GRCh38", idempotent=True)
+    # tmp_dir is set to a path on the provisioned execution disk (not /tmp) to avoid
+    # filling the OS boot disk with Hail spill files when running in Cromwell/Terra WDL.
+    hl.init(default_reference="GRCh38", idempotent=True, tmp_dir=tmp_dir)
 
     # Input is the filtered/annotated MatrixTable produced earlier in the WDL.
     mt = hl.read_matrix_table(input_matrix_path)
