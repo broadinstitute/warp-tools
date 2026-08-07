@@ -27,6 +27,7 @@ For a fast smoke test use: --n_epoch 2 --n_epoch_p 1 --max_prun_it 1 --batch_siz
 import argparse
 import json
 import os
+import re
 import sys
 
 # Set headless matplotlib backend BEFORE any mmidas/torch imports.
@@ -324,11 +325,24 @@ def main(argv=None):
     # Collect all .pth files written by cpl_mixvae.train() into model_dir.
     # This JSON file is the stable contract between this script and the
     # downstream 03a_evaluate.py task.
-    checkpoints = sorted([
-        os.path.join(model_dir, f)
-        for f in os.listdir(model_dir)
-        if f.endswith(".pth")
-    ])
+    # Order by pruning round, not by filename. A plain sort puts
+    # after_pruning_10..14 ahead of after_pruning_1..9, which makes the manifest
+    # and every log built from it read as though pruning ran out of order.
+    def _pruning_round(path):
+        name = os.path.basename(path)
+        if "before_pruning" in name:
+            return -1
+        m = re.search(r"after_pruning_(\d+)_", name)
+        return int(m.group(1)) if m else 10**9
+
+    checkpoints = sorted(
+        (
+            os.path.join(model_dir, f)
+            for f in os.listdir(model_dir)
+            if f.endswith(".pth")
+        ),
+        key=lambda p: (_pruning_round(p), os.path.basename(p)),
+    )
 
     manifest = {
         # I/O

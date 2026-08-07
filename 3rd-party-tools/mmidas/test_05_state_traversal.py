@@ -140,8 +140,33 @@ def main():
         with open(mani_path) as fh:
             mani = json.load(fh)
 
-        # Scatter figures
-        assert mani["n_selected_cats"] == n_sel, "n_selected_cats mismatch"
+        # Scatter figures.
+        #
+        # n_selected_cats is capped at the number of *populated* categories, not
+        # just at --n_selected_cats: selecting categories with no cells assigned
+        # produces figures that are all the same plot under different titles.
+        # On this synthetic 2-epoch model most categories are empty, so
+        # n_selected_cats is legitimately below the requested n_sel.
+        assert mani["n_selected_cats"] <= n_sel, (
+            f"n_selected_cats={mani['n_selected_cats']} exceeds requested {n_sel}"
+        )
+        assert mani["n_selected_cats"] == len(mani["selected_c"]), \
+            "n_selected_cats does not match len(selected_c)"
+        assert mani["n_selected_cats"] > 0, "no categories selected"
+
+        # Every selected category must have cells, listed largest-first.
+        counts = mani["selected_c_n_cells"]
+        assert len(counts) == len(mani["selected_c"]), \
+            "selected_c_n_cells length mismatch"
+        assert all(n > 0 for n in counts), \
+            f"selected categories with no cells assigned: {counts}"
+        assert counts == sorted(counts, reverse=True), \
+            f"selected categories not ranked largest-first: {counts}"
+        assert 0 < mani["n_populated_categories"] <= mani["n_active_categories"], (
+            f"n_populated_categories={mani['n_populated_categories']} outside "
+            f"(0, n_active_categories={mani['n_active_categories']}]"
+        )
+
         s_mu_dir = os.path.join(out_dir, "state", "s_mu")
         for cc in mani["selected_c"]:
             p = os.path.join(s_mu_dir, f"state_mu_arm_0_c_{cc}.png")
@@ -153,7 +178,9 @@ def main():
         assert mani["pathway_figs"] == [], "Expected empty pathway_figs"
         assert mani["summary_figs"] == [], "Expected empty summary_figs"
 
-        print(f"\nAll {n_sel} scatter figures verified.")
+        print(f"\nAll {mani['n_selected_cats']} scatter figures verified "
+              f"({mani['n_populated_categories']} of "
+              f"{mani['n_active_categories']} categories populated).")
         print("05_state_traversal smoke test PASSED.")
 
 

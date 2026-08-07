@@ -14,6 +14,7 @@ import importlib.util
 import json
 import os
 import pickle
+import re
 import sys
 import tempfile
 
@@ -64,12 +65,92 @@ def _make_h5ad(path, rng):
 
 
 # ---------------------------------------------------------------------------
+# Regression test: model_order -> checkpoint resolution
+#
+# Guards two bugs that together caused evaluation_results.json to report a
+# model_order taken from a checkpoint nothing had selected:
+#   1. model_order == n_categories yields pruning round 0, but the round-0 model
+#      is named "before_pruning" — the glob for "after_pruning_0_*" matched
+#      nothing and control fell through to a fallback.
+#   2. That fallback used sorted(all_after)[-1], a lexicographic sort in which
+#      round 9 sorts after round 14.
+# ---------------------------------------------------------------------------
+
+CKPT_TS = "2026-01-01-00-00-00"
+
+
+def _retained(path, n_categories):
+    if "before_pruning" in os.path.basename(path):
+        return n_categories
+    return n_categories - int(
+        re.search(r"after_pruning_(\d+)_", os.path.basename(path)).group(1)
+    )
+
+
+def run_checkpoint_resolution_test():
+    print("Checkpoint resolution regression test ...")
+    failures = []
+    n_categories, max_prun_it = 120, 14
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        model_dir = os.path.join(tmpdir, "model")
+        os.makedirs(model_dir)
+        manifest_path = os.path.join(tmpdir, "checkpoints_manifest.json")
+        with open(manifest_path, "w") as fh:
+            json.dump({"n_categories": n_categories}, fh)
+
+        open(os.path.join(model_dir,
+             f"cpl_mixVAE_model_before_pruning_{CKPT_TS}.pth"), "w").close()
+        for r in range(1, max_prun_it + 1):
+            open(os.path.join(model_dir,
+                 f"cpl_mixVAE_model_after_pruning_{r}_{CKPT_TS}.pth"), "w").close()
+
+        # Every reachable model_order must resolve to a checkpoint retaining
+        # exactly that many categories — including the unpruned endpoint, which
+        # is the case that previously silently returned round 9.
+        for order in range(n_categories - max_prun_it, n_categories + 1):
+            sel = evaluate.resolve_checkpoint(manifest_path, n_categories, order)
+            if sel is None:
+                failures.append(f"model_order={order}: no checkpoint resolved")
+                continue
+            got = _retained(sel, n_categories)
+            if got != order:
+                failures.append(
+                    f"model_order={order}: resolved checkpoint retains {got} "
+                    f"categories ({os.path.basename(sel)})"
+                )
+        print(f"  checked model_order "
+              f"{n_categories - max_prun_it}..{n_categories}")
+
+        # An unreachable model_order must fall back to the deepest available
+        # pruning round rather than an arbitrary one.
+        sel = evaluate.resolve_checkpoint(manifest_path, n_categories, 50)
+        if sel is None or _retained(sel, n_categories) != n_categories - max_prun_it:
+            failures.append(
+                f"unreachable model_order=50 resolved to "
+                f"{os.path.basename(sel) if sel else None}, expected pruning "
+                f"round {max_prun_it}"
+            )
+
+        # No checkpoints at all: resolve, don't crash.
+        empty_dir = os.path.join(tmpdir, "empty")
+        os.makedirs(os.path.join(empty_dir, "model"))
+        empty_manifest = os.path.join(empty_dir, "checkpoints_manifest.json")
+        with open(empty_manifest, "w") as fh:
+            json.dump({"n_categories": n_categories}, fh)
+        if evaluate.resolve_checkpoint(empty_manifest, n_categories, 111) is not None:
+            failures.append("empty model dir should resolve to None")
+
+    return failures
+
+
+# ---------------------------------------------------------------------------
 # Smoke test
 # ---------------------------------------------------------------------------
 
 def run_smoke_test():
     rng = np.random.default_rng(seed=99)
-    failures = []
+    failures = run_checkpoint_resolution_test()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         h5ad_path  = os.path.join(tmpdir, "synthetic.h5ad")
@@ -142,11 +223,34 @@ def run_smoke_test():
             with open(results_path) as fh:
                 results = json.load(fh)
 
-            # 2. Required keys
+            # 2. Required keys, including the review fields a human needs to
+            #    tell an accepted model from a fallback (see resolve_checkpoint).
             for key in ("model_order", "selected_model", "summary_pickle",
-                        "avg_consensus", "figures"):
+                        "avg_consensus", "figures",
+                        "k_selection_met_threshold",
+                        "k_selection_suggested_model_order",
+                        "n_populated_categories",
+                        "n_populated_categories_per_arm",
+                        "collapse_warning"):
                 if key not in results:
                     failures.append(f"Results JSON missing key: '{key}'")
+
+            # 2b. n_populated_categories must never exceed model_order, and the
+            #     per-arm list must have one entry per arm.
+            n_pop = results.get("n_populated_categories", -1)
+            per_arm = results.get("n_populated_categories_per_arm", [])
+            if not (0 < n_pop <= results.get("model_order", 0)):
+                failures.append(
+                    f"n_populated_categories={n_pop} outside "
+                    f"(0, model_order={results.get('model_order')}]"
+                )
+            if len(per_arm) != 2:
+                failures.append(
+                    f"n_populated_categories_per_arm has {len(per_arm)} "
+                    f"entries, expected 2 (n_arm)"
+                )
+            else:
+                print(f"  n_populated_categories = {n_pop} (per arm: {per_arm})")
 
             # 3. model_order is a positive integer <= n_categories
             mo = results.get("model_order", 0)

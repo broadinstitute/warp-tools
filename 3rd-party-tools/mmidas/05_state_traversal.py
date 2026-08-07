@@ -350,12 +350,11 @@ def main(argv=None):
     n_cats = len(c_cat)
     print(f"  {n_cats} active categories, {len(pathways)} KEGG pathways loaded.")
 
-    # ------------------------------------------------------------------
-    # Select subset of categories
-    # ------------------------------------------------------------------
+    # Categories are selected once per-cell assignments are available, further
+    # down -- picking them here by index alone can select categories that no
+    # cell was assigned to, which yields identical, empty figures.
     n_sel = args.n_selected_cats if args.n_selected_cats > 0 else n_cats
     n_sel = min(n_sel, n_cats)
-    selected_c = list(c_cat[:n_sel])
 
     # ------------------------------------------------------------------
     # Data + model inference (for full per-cell state_mu)
@@ -406,6 +405,46 @@ def main(argv=None):
     # pred_label[0] shape: (n_arm, n_cells) — 1-indexed
     state_mu_all    = outcome["state_mu"][arm]    # (n_cells, state_dim)
     predicted_label = outcome["pred_label"][0][arm]  # (n_cells,) 1-indexed
+
+    # ------------------------------------------------------------------
+    # Select subset of categories, largest first.
+    #
+    # "Active" (survived pruning) is not the same as "populated". Selecting the
+    # first n_selected_cats by category index can land entirely on categories
+    # with zero assigned cells, in which case every figure is the same plot of
+    # the background scatter with a degenerate traversal path. Rank by assigned
+    # cell count so the figures show the categories the model actually uses.
+    # ------------------------------------------------------------------
+    cell_counts = {
+        int(cc): int(np.sum(predicted_label == cc)) for cc in c_cat
+    }
+    populated = [cc for cc in c_cat if cell_counts[int(cc)] > 0]
+    print(
+        f"\nCategory occupancy (arm {arm}): {len(populated)} of {n_cats} active "
+        f"categories are non-empty."
+    )
+    if len(populated) < n_cats:
+        print(
+            f"  WARNING: {n_cats - len(populated)} active categories have no "
+            f"cells assigned. They are excluded from the figures below."
+        )
+
+    if not populated:
+        print(
+            "ERROR: no active category has any cells assigned to it -- the "
+            "model's discrete latent has collapsed and there is nothing to "
+            "plot. Re-check the Train stage before running Analyze.",
+            file=sys.stderr,
+        )
+        return 1
+
+    ranked = sorted(populated, key=lambda cc: (-cell_counts[int(cc)], int(cc)))
+    selected_c = [int(cc) for cc in ranked[:n_sel]]
+    n_sel = len(selected_c)
+    print(
+        f"  Selected {n_sel} category/categories by cell count: "
+        + ", ".join(f"{cc} (n={cell_counts[cc]})" for cc in selected_c)
+    )
 
     # ------------------------------------------------------------------
     # Annotations and colors
@@ -487,6 +526,12 @@ def main(argv=None):
         "arm":             arm,
         "n_selected_cats": n_sel,
         "selected_c":      [int(c) for c in selected_c],
+        # Cell count per selected category, and how many of the model's active
+        # categories are populated at all -- lets a validation step tell a real
+        # traversal from figures drawn over empty categories.
+        "selected_c_n_cells":       [cell_counts[int(c)] for c in selected_c],
+        "n_active_categories":      int(n_cats),
+        "n_populated_categories":   int(len(populated)),
         "n_pathways":      len(pathways),
         "scatter_figs":    scatter_figs,
         "pathway_figs":    pathway_figs,

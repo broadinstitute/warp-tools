@@ -264,9 +264,23 @@ def main(argv=None):
     # ------------------------------------------------------------------
     print("Normalizing to log CPM...")
     log_cpm = logcpm(total_counts)
-    print(f"  Row sums after normalization (should be ~log(1e6+1)≈13.8): "
-          f"min={log_cpm.sum(axis=1).min():.2f}, "
-          f"max={log_cpm.sum(axis=1).max():.2f}")
+    # Sanity check the normalization invariant. Summing log1p values across
+    # genes is not ~log(1e6+1) -- that was the old, incorrect expectation
+    # printed here, and it made every healthy run look broken. The invariant
+    # that actually holds is that undoing log1p recovers CPM, so each non-empty
+    # cell's counts sum back to `scaler` (1e6).
+    cpm_row_sums = np.expm1(log_cpm.astype(np.float64)).sum(axis=1)
+    nonzero = cpm_row_sums > 0
+    if nonzero.any():
+        print(f"  CPM row sums after inverting log1p (should be ~1e6): "
+              f"min={cpm_row_sums[nonzero].min():.4g}, "
+              f"max={cpm_row_sums[nonzero].max():.4g}")
+        if not np.allclose(cpm_row_sums[nonzero], 1e6, rtol=1e-3):
+            print("  WARNING: CPM row sums deviate from 1e6 by more than 0.1% — "
+                  "check that the input really is a raw count matrix.")
+    print(f"  Max single log-CPM value (bounded by log1p(1e6)≈13.82): "
+          f"{log_cpm.max():.4f}")
+    print(f"  All-zero cells: {int((~nonzero).sum())}")
 
     # ------------------------------------------------------------------
     # 4. Filter to selected gene set

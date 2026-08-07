@@ -138,7 +138,7 @@ def main(argv=None):
         f"Ttype_classification_K_{n_ttype}_nFeature_{n_pca}_{date_tag}.p"
     ))
     acc_T_pc   = ttype_pc["acc_T_adj"]   # shape (k_fold,)
-    sc_T_pc    = ttype_pc["sc_T"]        # list length n_ttype
+    sc_T_pc    = ttype_pc["sc_T"]        # shape (1, n_ttype)
     conf_T_pc  = ttype_pc["conf_mat"]
 
     # Per-arm data
@@ -183,7 +183,9 @@ def main(argv=None):
     label_col, embed_col, acc_col = [], [], []
 
     for arm in range(n_arm):
-        group_label = f"T Categories (arm {arm + 1})"
+        # Newline rather than a long single line: rotated long labels overlap
+        # each other once there is more than one arm.
+        group_label = f"T Categories\n(arm {arm + 1})"
         label_col.extend([group_label] * k_fold)
         embed_col.extend(["Linear (PCA)"] * k_fold)
         acc_col.extend(acc_cons_pc[arm] * 100)
@@ -241,7 +243,8 @@ def main(argv=None):
     ax.yaxis.set_tick_params(labelsize=13)
     ax.xaxis.set_ticks_position("none")
     for lbl in ax.get_xticklabels():
-        lbl.set_rotation(-15)
+        lbl.set_rotation(0)
+        lbl.set_horizontalalignment("center")
     ax.grid(False)
     fig.tight_layout()
     acc_png = os.path.join(out_dir, f"classAcc_RF_K_{model_order}.png")
@@ -260,15 +263,20 @@ def main(argv=None):
     plt.close("all")
     plt.figure(figsize=(5, 6), dpi=100)
 
+    # The classification pickles store sc_T with a leading singleton axis, i.e.
+    # shape (1, n_category). Sorting that 2-D array and taking len() gives 1, so
+    # every point ends up plotted at x=1 as a separate broadcast line -- each
+    # inheriting the same label, which is what produced a figure thousands of
+    # pixels tall with one legend entry per category. Flatten first.
     # t-type reference line (PCA)
-    sc_T_sorted = np.sort(sc_T_pc)
+    sc_T_sorted = np.sort(np.ravel(sc_T_pc))
     n_sc = len(sc_T_sorted)
     plt.plot(np.arange(n_sc) + 1, sc_T_sorted, linewidth=2, linestyle="--",
              label="t-types (PCA)", color=pal_r[1])
 
     # ConsType per arm
     for arm in range(n_arm):
-        sc_arm = np.sort(sc_cons_lowD[arm])
+        sc_arm = np.sort(np.ravel(sc_cons_lowD[arm]))
         n_sc_arm = len(sc_arm)
         plt.plot(
             np.arange(n_sc_arm) + 1,

@@ -1,5 +1,9 @@
-us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782231591
-us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782753423
-us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782763680
-us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782844522
-us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1783366239
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782231591	unrecorded
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782753423	unrecorded
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782763680	unrecorded
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1782844522	unrecorded
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1783366239	unrecorded
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1785957681	main@0963ca7-dirty
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1786032353	main@0963ca7-dirty
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1786046258	warp-v1@bd4486a-SUPERSEDED-do-not-use (recorded the annotated tag object, not the commit; rebuilt as 1786046379)
+us.gcr.io/broad-gotc-prod/mmidas:1.0.0-0.1.0-1786046379	warp-v1@c4d5fe2252289490a123d4d86ab4a6ff8a6bb67b

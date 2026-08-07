@@ -45,16 +45,26 @@ ARG MMIDAS_VERSION=0.1.0
 LABEL MAINTAINER="Broad Institute DSDE dsde-engineering@broadinstitute.org" \
       MMIDAS_VERSION=${MMIDAS_VERSION}
 
-# ── Layer 5: local MMIDAS package ────────────────────────────────────────────
-# Re-runs when the source tree changes (staged by docker_build.sh).
-# The upstream setup.py only declares packages=["mmidas"], omitting subpackages.
-# Patch it to use find_packages() so mmidas.utils and mmidas.augmentation are
-# importable. __init__.py files are present in the fork.
-COPY mmidas_src/ /tmp/mmidas_src/
-RUN sed -i 's/from setuptools import setup/from setuptools import setup, find_packages/' /tmp/mmidas_src/setup.py \
-    && sed -i 's/packages=\["mmidas"\]/packages=find_packages()/' /tmp/mmidas_src/setup.py \
-    && pip install --no-deps /tmp/mmidas_src \
-    && rm -rf /tmp/mmidas_src
+# ── Layer 5: MMIDAS package, pinned ──────────────────────────────────────────
+# Installed from a specific commit of the fork rather than a copy of a local
+# directory, so the image is reproducible from source. MMIDAS_GIT_REF is the
+# human-readable tag; MMIDAS_SHA is the immutable commit it resolved to, which
+# is what actually gets fetched. docker_build.sh resolves one to the other and
+# records both here and in docker_versions.tsv.
+#
+# A release tarball rather than git+https://: this image has no git binary, and
+# adding one to the apt layer would invalidate the ~2 GB torch layer on every
+# rebuild.
+ARG MMIDAS_GIT_URL=https://github.com/jessicaway/MMIDAS
+ARG MMIDAS_GIT_REF=warp-v1
+ARG MMIDAS_SHA
+RUN test -n "${MMIDAS_SHA}" || { echo "ERROR: MMIDAS_SHA build-arg is required" >&2; exit 1; } \
+    && pip install --no-deps "${MMIDAS_GIT_URL}/archive/${MMIDAS_SHA}.tar.gz" \
+    && python3 -c "import mmidas, mmidas.utils, mmidas.augmentation; print('mmidas installed:', mmidas.__file__)"
+
+LABEL MMIDAS_GIT_URL=${MMIDAS_GIT_URL} \
+      MMIDAS_GIT_REF=${MMIDAS_GIT_REF} \
+      MMIDAS_SHA=${MMIDAS_SHA}
 
 # ── Layer 6: pipeline scripts ────────────────────────────────────────────────
 # Most frequently edited — last so earlier layers stay cached.

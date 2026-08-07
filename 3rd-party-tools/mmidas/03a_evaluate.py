@@ -32,6 +32,7 @@ import glob
 import json
 import os
 import pickle
+import re
 import sys
 
 import matplotlib
@@ -179,6 +180,63 @@ def _plot_state_scatter(outcome, n_arm, state_dim, model_order, output_dir):
 
 
 # ---------------------------------------------------------------------------
+# Checkpoint resolution
+# ---------------------------------------------------------------------------
+
+def resolve_checkpoint(checkpoints_manifest, n_categories, model_order):
+    """Return the checkpoint path retaining `model_order` categories.
+
+    Checkpoint naming written by 02b_train_mixvae.py:
+        cpl_mixVAE_model_before_pruning_<ts>.pth        -> n_categories retained
+        cpl_mixVAE_model_after_pruning_<round>_<ts>.pth -> n_categories - round
+
+    so the pruning round we want is ``n_categories - model_order``. Round 0
+    means the *before*-pruning checkpoint: there is no "after_pruning_0" file,
+    and treating that miss as "no match" is what previously sent this function
+    into a fallback that returned an unrelated checkpoint.
+
+    Returns None when the model directory holds no usable checkpoint.
+    """
+    n_pruned_target = n_categories - model_order
+    model_dir = os.path.join(os.path.dirname(checkpoints_manifest), "model")
+
+    before_pruning = sorted(
+        glob.glob(os.path.join(model_dir, "cpl_mixVAE_model_before_pruning_*.pth"))
+    )
+    # Map pruning round -> checkpoint path, keyed numerically. Sorting these
+    # paths as strings puts round 9 after round 14, so never rely on sorted().
+    after_pruning = {}
+    for path in glob.glob(
+        os.path.join(model_dir, "cpl_mixVAE_model_after_pruning_*.pth")
+    ):
+        m = re.search(r"after_pruning_(\d+)_", os.path.basename(path))
+        if m:
+            after_pruning[int(m.group(1))] = path
+
+    if n_pruned_target <= 0:
+        # Nothing was pruned -- this is the before-pruning checkpoint.
+        if before_pruning:
+            return before_pruning[-1]
+    elif n_pruned_target in after_pruning:
+        return after_pruning[n_pruned_target]
+
+    if after_pruning:
+        # No exact match: take the numerically closest pruning round so the
+        # reported model_order stays as near the requested one as possible.
+        closest = min(after_pruning, key=lambda r: (abs(r - n_pruned_target), r))
+        print(
+            f"  WARNING: no checkpoint for pruning round {n_pruned_target}; "
+            f"using the closest available round {closest}."
+        )
+        return after_pruning[closest]
+
+    if before_pruning:
+        return before_pruning[-1]
+
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -303,11 +361,20 @@ def main(argv=None):
         thr=args.k_select_thr,
     )
 
+    # Whether any checkpoint actually met k_select_thr. This is the single most
+    # important fact for the human-review step, so it is recorded in
+    # evaluation_results.json rather than left in the task log.
+    k_selection_met_threshold = model_order is not None
+    k_selection_suggested = int(model_order) if model_order is not None else None
+
     if model_order is None:
         print(
             f"WARNING: K_selection could not find a model meeting thr={args.k_select_thr}. "
             f"Falling back to the checkpoint with the most retained categories."
         )
+        # NOTE: summary_dict["num_pruned"] holds the number of *retained*
+        # categories per checkpoint (upstream misnomer -- see
+        # mmidas.eval.summarize_inference, which appends len(nprune_indx)).
         model_order = int(max(summary_dict["num_pruned"]))
 
     model_order = int(model_order)
@@ -315,30 +382,14 @@ def main(argv=None):
 
     # ------------------------------------------------------------------
     # Step 3: Identify selected model checkpoint
-    # Pruning checkpoint naming: cpl_mixVAE_model_after_pruning_<pr>_<ts>.pth
-    # n_pruned = n_categories - model_order, so pr = n_categories - model_order
     # ------------------------------------------------------------------
-    n_pruned_target = n_categories - model_order
-    model_dir = os.path.join(os.path.dirname(args.checkpoints_manifest), "model")
-
-    # Try exact match on pruning round number first
-    pattern = os.path.join(model_dir, f"cpl_mixVAE_model_after_pruning_{n_pruned_target}_*.pth")
-    candidates = glob.glob(pattern)
-
-    if not candidates:
-        # Fall back: pick the after_pruning checkpoint with the closest round
-        all_after = glob.glob(os.path.join(model_dir, "cpl_mixVAE_model_after_pruning_*.pth"))
-        if all_after:
-            candidates = [sorted(all_after)[-1]]   # latest pruning round
-        else:
-            # Last resort: use the before_pruning checkpoint
-            candidates = glob.glob(os.path.join(model_dir, "cpl_mixVAE_model_before_pruning_*.pth"))
-
-    if not candidates:
+    selected_model = resolve_checkpoint(
+        args.checkpoints_manifest, n_categories, model_order
+    )
+    if selected_model is None:
         print("ERROR: Could not find a suitable model checkpoint.", file=sys.stderr)
         sys.exit(1)
 
-    selected_model = sorted(candidates)[-1]
     print(f"  Selected checkpoint: {selected_model}")
 
     # ------------------------------------------------------------------
@@ -363,6 +414,34 @@ def main(argv=None):
             f"categories. Using {actual_model_order}."
         )
     model_order = actual_model_order
+
+    # ------------------------------------------------------------------
+    # Step 4b: How many categories does the model actually use?
+    #
+    # model_order counts categories that survived pruning, not categories that
+    # any cell is assigned to. A model whose discrete latent has collapsed keeps
+    # a high model_order while routing every cell into a handful of categories,
+    # so this is the number that says whether the run is usable.
+    # ------------------------------------------------------------------
+    predicted_label = outcome["pred_label"][0]        # (n_arm, n_cells), 1-indexed
+    populated_per_arm = [
+        int(len(np.unique(predicted_label[arm]))) for arm in range(n_arm)
+    ]
+    max_populated = max(populated_per_arm)
+    print("\nCategory occupancy:")
+    for arm, n_pop in enumerate(populated_per_arm):
+        print(f"  arm {arm}: {n_pop} of {model_order} retained categories are non-empty")
+
+    collapse_warning = None
+    if max_populated < 0.5 * model_order:
+        collapse_warning = (
+            f"Only {max_populated} of {model_order} retained categories are "
+            f"populated (arms: {populated_per_arm}). The discrete latent has "
+            f"likely collapsed -- model_order is not a usable estimate of the "
+            f"number of cell types and downstream Analyze results will be "
+            f"dominated by empty categories."
+        )
+        print(f"  WARNING: {collapse_warning}")
 
     # ------------------------------------------------------------------
     # Step 5: Figures
@@ -399,6 +478,13 @@ def main(argv=None):
         "summary_pickle":   summary_pickle,
         "avg_consensus":    avg_consensus,
         "k_select_thr":     args.k_select_thr,
+        # Review fields: a run can produce a plausible-looking model_order while
+        # failing both of these, so they travel with the hand-off file.
+        "k_selection_met_threshold":        k_selection_met_threshold,
+        "k_selection_suggested_model_order": k_selection_suggested,
+        "n_populated_categories":          max_populated,
+        "n_populated_categories_per_arm":  populated_per_arm,
+        "collapse_warning":                collapse_warning,
         "figures":          figures,
     }
     results_path = os.path.join(args.output_dir, "evaluation_results.json")
@@ -406,9 +492,18 @@ def main(argv=None):
         json.dump(results, fh, indent=2)
 
     print(f"\nEvaluation complete.")
-    print(f"  model_order    = {model_order}")
-    print(f"  avg_consensus  = {avg_consensus:.4f}")
+    print(f"  model_order            = {model_order}")
+    print(f"  n_populated_categories = {max_populated}")
+    print(f"  avg_consensus          = {avg_consensus:.4f}")
+    print(f"  k_select_thr met       = {k_selection_met_threshold}")
     print(f"  Results JSON   : {results_path}")
+
+    if not k_selection_met_threshold or collapse_warning:
+        print(
+            "\nREVIEW REQUIRED: this model did not pass automated selection. "
+            "Do not launch MMIDAS_Analyze on it without addressing the warnings "
+            "above."
+        )
 
 
 if __name__ == "__main__":
