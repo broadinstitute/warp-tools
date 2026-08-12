@@ -56,7 +56,7 @@ LABEL MAINTAINER="Broad Institute DSDE dsde-engineering@broadinstitute.org" \
 # adding one to the apt layer would invalidate the ~2 GB torch layer on every
 # rebuild.
 ARG MMIDAS_GIT_URL=https://github.com/jessicaway/MMIDAS
-ARG MMIDAS_GIT_REF=warp-v1
+ARG MMIDAS_GIT_REF=warp-v2
 ARG MMIDAS_SHA
 RUN test -n "${MMIDAS_SHA}" || { echo "ERROR: MMIDAS_SHA build-arg is required" >&2; exit 1; } \
     && pip install --no-deps "${MMIDAS_GIT_URL}/archive/${MMIDAS_SHA}.tar.gz" \

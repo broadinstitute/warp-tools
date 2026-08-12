@@ -20,8 +20,8 @@ CACHING="ON"
 # The mmidas package is installed from a pinned revision of the fork below, not
 # from a local directory, so that any published image can be rebuilt from source
 # by anyone. This matters because parts of the pipeline live only in that package
-# (the pruning loop and its min_con stop, K_selection, and the .h5ad loader that
-# supplies gene names for KEGG mapping).
+# (the pruning loop, K_selection, and the .h5ad loader that supplies gene names
+# for KEGG mapping).
 #
 # MMIDAS_GIT_REF is resolved to an immutable commit SHA before the build, and
 # both are recorded as image LABELs and in docker_versions.tsv.
@@ -32,7 +32,7 @@ CACHING="ON"
 # See "Docker image provenance" in pipelines/wdl/mmidas/dashboard.md in
 # broadinstitute/warp for what the fork carries on top of upstream.
 MMIDAS_GIT_URL="https://github.com/jessicaway/MMIDAS"
-MMIDAS_GIT_REF="warp-v1"
+MMIDAS_GIT_REF="warp-v2"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud git)
