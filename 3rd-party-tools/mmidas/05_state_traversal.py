@@ -95,14 +95,25 @@ def _label_for_cat(cc: int, predicted_label_arm: np.ndarray,
     if len(cells) == 0:
         return f"Cat_{cc}"
     dom_ttype = stat_mode(cluster_labels[cells])
-    # Shorten label: keep up to first space, or first 12 chars
+    # Truncating at the first space collapses distinct t-types to the same
+    # word -- "L6 IT Car3" and "L6 CT Nxph2" both became "L6", so a ten-panel
+    # figure could be labelled L6, Pvalb, L6, L6, L4, Vip, L6, L6, Pvalb, Pvalb
+    # with no way to tell the categories apart. Keep a short form of the
+    # dominant t-type but always qualify it with the category number.
     space = dom_ttype.find(" ")
-    return dom_ttype[:space] if space > 0 else dom_ttype[:12]
+    short = dom_ttype[:space] if space > 0 else dom_ttype[:12]
+    return f"c{cc} {short}"
 
 
 def _default_palette(n: int):
-    """Return n distinct hex colors from a seaborn palette."""
-    return sns.color_palette("tab10", n_colors=n).as_hex()
+    """Return n distinct hex colors that stand out against the grey background.
+
+    Not tab10: its 8th entry is grey (#7f7f7f), which is invisible against the
+    #dbdbde background used for unselected cells -- the 8th category's panel
+    looked monochrome and empty. husl is evenly spaced around the hue circle
+    and never returns a neutral.
+    """
+    return sns.color_palette("husl", n_colors=n).as_hex()
 
 
 # ---------------------------------------------------------------------------

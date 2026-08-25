@@ -53,9 +53,21 @@ def _load(path: str) -> dict:
 
 
 def _conf_heatmap(mat: np.ndarray, ylabel: str, out_path: str) -> None:
-    """Save a Blues confusion-matrix heatmap (zeros masked)."""
+    """Save a Blues confusion-matrix heatmap (zeros masked).
+
+    `mat` arrives as raw integer counts from the classification pickles, but the
+    colour scale below is fixed to [0, 1]. Plotting counts directly saturates
+    every non-zero cell to the darkest blue, so a single misassigned cell looks
+    exactly as strong as a correct diagonal entry of 860 -- the figure collapses
+    to black-and-white noise and carries no information.
+    Row-normalise first, matching the reference analysis
+    (notebooks/3_evaluation.ipynb divides each row by its sum before plotting),
+    so each cell reads as "fraction of this true class predicted as that".
+    """
     eps = 1e-3
     mat = mat.copy().astype(float)
+    row_sum = mat.sum(axis=1, keepdims=True)
+    mat = np.divide(mat, row_sum, out=np.zeros_like(mat), where=row_sum != 0)
     mat[mat < eps] = 0.0
     fig, ax = plt.subplots(figsize=(10, 10))
     sns.set_theme()
@@ -206,7 +218,10 @@ def main(argv=None):
     })
 
     plt.close("all")
-    fig, ax = plt.subplots(figsize=(max(5, 2 + 2 * n_arm), 6))
+    # Wide enough for one "T Categories (arm N)" label per arm plus the
+    # t-types group. At the previous width these ran together as
+    # "t-typesT CategoriesT Categories".
+    fig, ax = plt.subplots(figsize=(max(8, 4 + 2.5 * n_arm), 6))
     sns.reset_defaults()
     pal = sns.color_palette("Reds", n_colors=6)
     bar_colors = [pal.as_hex()[1], pal.as_hex()[4]]
