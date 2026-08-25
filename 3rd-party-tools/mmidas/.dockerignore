@@ -1,0 +1,6 @@
+# The mmidas package is installed from a pinned remote revision (see the
+# Dockerfile), so no source tree is staged into the build context.
+docker_versions.tsv
+__pycache__/
+*.pyc
+.DS_Store
