@@ -17,6 +17,7 @@ jobs:
         - 3rd-party-tools/arrays-picard-private
         - 3rd-party-tools/dragmap
         - 3rd-party-tools/gatk
+        - 3rd-party-tools/gatk-bcftools-gcloud
         - 3rd-party-tools/illumina-iaap-autocall
         - 3rd-party-tools/picard-python
         - 3rd-party-tools/verify-bam-id
