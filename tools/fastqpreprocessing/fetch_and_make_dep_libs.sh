@@ -3,10 +3,12 @@
 wget https://github.com/khajoue2/libStatGen/archive/refs/tags/v1.0.15.broad.tar.gz && \
 tar -zxvf v1.0.15.broad.tar.gz && \
 mv libStatGen-1.0.15.broad libStatGen && \
+sed -i 's/-Werror//g' libStatGen/general/Makefile && \
 make -C libStatGen && \
 
-wget http://www.cs.unc.edu/Research/compgeom/gzstream/gzstream.tgz && \
-tar -xvf gzstream.tgz && \
+wget https://github.com/kanedo/gzstream/archive/refs/heads/master.tar.gz -O gzstream.tar.gz && \
+tar -xvf gzstream.tar.gz && \
+mv gzstream-master gzstream && \
 make -C gzstream && \
 echo "" && \
 echo "" && \
