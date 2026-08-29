@@ -295,14 +295,14 @@ def create_h5ad_files(args):
     # add the expression count matrix data
     expr_sp_t = generate_matrix(args)
 
-    # add input_id to col_attrs
-    col_attrs['input_id'] = np.repeat(args.input_id, expr_sp_t.shape[1])
+    # add input_id to col_attrs using the configurable key name
+    col_attrs[args.input_id_name] = np.repeat(args.input_id, expr_sp_t.shape[1])
 
     # generate global attributes
     attrDict = dict()
     attrDict['expression_data_type'] = args.expression_data_type
     attrDict['optimus_output_schema_version'] = version
-    attrDict['input_id'] = args.input_id
+    attrDict[args.input_id_name] = args.input_id
     if args.input_name is not None:
         attrDict['input_name'] = args.input_name
     if args.input_id_metadata_field is not None:
@@ -418,6 +418,13 @@ def main():
         dest="input_id",
         required=True,
         help="the sample name in the bundle",
+    )
+
+    parser.add_argument(
+        "--input_id_name",
+        dest="input_id_name",
+        default="input_id",
+        help="the key name used to label the input_id value in obs and uns metadata (default: 'input_id')",
     )
 
     parser.add_argument(
