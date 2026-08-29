@@ -164,7 +164,7 @@ def get_shared_features(gex, atac, ref):
     return gex, atac, ref
 
 
-def _concat_and_train_models(adatas, keys, max_epochs=500):
+def _concat_and_train_models(adatas, keys, max_epochs=500, batch_size=128):
     """
         Concatenate query/reference AnnData objects and train SCVI + SCANVI on them.
 
@@ -182,6 +182,10 @@ def _concat_and_train_models(adatas, keys, max_epochs=500):
         - max_epochs (int): Maximum training epochs applied to both the SCVI and SCANVI
           models (default 500). SCVI also uses early stopping. Lower it for fast
           plumbing/smoke runs or to bound wall-clock on very large datasets.
+        - batch_size (int): SGD minibatch size for both SCVI and SCANVI training (default 128,
+          scvi-tools' own default). Lower it (e.g. 8) to fit a high-cardinality reference on a
+          small GPU — SCANVI activation memory scales with (batch_size x number of labels) —
+          or raise it on a large-VRAM GPU.
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -219,7 +223,7 @@ def _concat_and_train_models(adatas, keys, max_epochs=500):
     )
 
     # Train SCVI
-    vae.train(max_epochs=max_epochs, early_stopping=True)
+    vae.train(max_epochs=max_epochs, batch_size=batch_size, early_stopping=True)
     vae.save("vae_test_model_", save_anndata=True)
 
     # Plot training history
@@ -238,13 +242,13 @@ def _concat_and_train_models(adatas, keys, max_epochs=500):
         labels_key="celltype_scanvi",
         unlabeled_category="Unknown",
     )
-    lvae.train(max_epochs=max_epochs, n_samples_per_label=100)
+    lvae.train(max_epochs=max_epochs, batch_size=batch_size, n_samples_per_label=100)
     lvae.save("scvi_scanvi_test_model_", save_anndata=True)
 
     return data, vae, lvae
 
 
-def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500):
+def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500, batch_size=128):
     """
         Train a SCVI/SCANVI model on concatenated GEX, ATAC, and reference datasets.
 
@@ -264,6 +268,7 @@ def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500):
           (`highly_variable_genes`/`SCVI.setup_anndata` use `batch_key="batch"`) over the
           concatenated object, which includes the reference rows.
         - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
+        - batch_size (int): SGD minibatch size for SCVI/SCANVI training (default 128).
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -274,10 +279,11 @@ def run_multi_model(gex, atac_activity_matrix, ref, max_epochs=500):
         [gex, atac_activity_matrix, ref],
         keys=["rna_unannotated", "atac_unannotated", "rna_annotated"],
         max_epochs=max_epochs,
+        batch_size=batch_size,
     )
 
 
-def run_gex_only_model(gex, ref, max_epochs=500):
+def run_gex_only_model(gex, ref, max_epochs=500, batch_size=128):
     """
         Train a SCVI/SCANVI model on GEX and reference datasets only (no ATAC).
 
@@ -295,6 +301,7 @@ def run_gex_only_model(gex, ref, max_epochs=500):
           concatenated object, which includes the reference rows. This is the same
           requirement as `run_multi_model`.
         - max_epochs (int): Maximum SCVI/SCANVI training epochs (default 500).
+        - batch_size (int): SGD minibatch size for SCVI/SCANVI training (default 128).
 
         Returns:
         - data (AnnData): Combined and annotated data object.
@@ -305,6 +312,7 @@ def run_gex_only_model(gex, ref, max_epochs=500):
         [gex, ref],
         keys=["rna_unannotated", "rna_annotated"],
         max_epochs=max_epochs,
+        batch_size=batch_size,
     )
 
 
@@ -367,7 +375,8 @@ def finalize_output(scanvi_output):
         "organ": "UBERON_0000955",
         "organ__ontology_label": "brain",
         "library_preparation_protocol": "EFO_0030059",
-        "library_preparation_protocol__ontology_label": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
+        "library_preparation_protocol__ontology_label": "10x multiome",
+        "data_modality": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
         "sex": "unknown"
     }
 
@@ -425,6 +434,11 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     # - Adds metadata such as 'batch' and 'modality' required for downstream SCVI/SCANVI integration.
     # - Converts the ATAC cell-by-bin matrix into a gene activity matrix using the hg38 genome.
     # - Ensures all datasets include a 'final_annotation' field for SCANVI training.
+    #
+    # Note: main() intentionally does not expose batch_size and always runs with the
+    # fixed scvi-tools default (batch_size=128). Standalone CLI runs therefore use that
+    # default; batch_size is only tuned via the importable run_multi_model /
+    # run_gex_only_model API (used by the WARP pipeline) for rightsizing large runs.
 
     # Begin loading and filtering...
     timing_summary = {}
@@ -474,6 +488,7 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     # - Returns the combined AnnData object (`data`) and trained models (`vae`, `lvae`)
 
     start = time.time()
+    # main() runs with the fixed default batch_size (128); it is not exposed on the CLI.
     data, vae, lvae = run_multi_model(gex_shared, query, ref, max_epochs=max_epochs)
     timing_summary['Model Training'] = time.time() - start
 
