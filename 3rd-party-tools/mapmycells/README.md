@@ -17,6 +17,13 @@ This image provides the `cell_type_mapper` command-line interfaces (`map_to_on_t
 
 - Base image: `python:3.11-slim`
 - `cell_type_mapper` `1.7.4`
+- Baked-in reference-atlas assets under `/opt/mapmycells/data/` (sourced from Allen Institute's
+  public MapMyCells S3 bucket at build time, see the Dockerfile), so the WDL doesn't need to fetch
+  them from external storage at runtime:
+  - `precomputed_stats_ABC_revision_230821.h5` + `mouse_markers_230821.json` — Whole Mouse Brain / ABC atlas taxonomy
+  - `precomputed_stats.20231120.sea_ad.MTG.h5` — Human MTG / SEA-AD taxonomy (markers are found at runtime for this one)
+  - No gene-symbol-to-Ensembl-ID mapping db is baked in yet — building it needs a 15GB NCBI
+    taxonomy download (`bkbit download-ncbi-taxonomy`), which doesn't fit a routine image build
 
 ## Versioning
 
