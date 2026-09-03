@@ -223,7 +223,7 @@ def _concat_and_train_models(adatas, keys, max_epochs=500, batch_size=128):
     )
 
     # Train SCVI
-    vae.train(max_epochs=max_epochs, batch_size=batch_size, early_stopping=True)
+    vae.train(max_epochs=max_epochs, batch_size=batch_size, early_stopping=True, datasplitter_kwargs={"drop_last": True})
     vae.save("vae_test_model_", save_anndata=True)
 
     # Plot training history
@@ -242,7 +242,7 @@ def _concat_and_train_models(adatas, keys, max_epochs=500, batch_size=128):
         labels_key="celltype_scanvi",
         unlabeled_category="Unknown",
     )
-    lvae.train(max_epochs=max_epochs, batch_size=batch_size, n_samples_per_label=100)
+    lvae.train(max_epochs=max_epochs, batch_size=batch_size, n_samples_per_label=100, datasplitter_kwargs={"drop_last": True})
     lvae.save("scvi_scanvi_test_model_", save_anndata=True)
 
     return data, vae, lvae
