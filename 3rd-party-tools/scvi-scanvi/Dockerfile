@@ -17,9 +17,7 @@ RUN set -eux; \
     wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.basic.annotation.gff3.gz; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY multiome_label_transfer.py .
-COPY gcs_utils.py .
-COPY label_transfer_from_preprocessed.py .
+COPY multiome_label_transfer.py gcs_utils.py label_transfer_from_preprocessed.py .
 
 # Set tini as the entrypoint
 ENTRYPOINT ["/usr/bin/tini", "--"]
