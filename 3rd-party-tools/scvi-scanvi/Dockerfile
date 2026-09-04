@@ -12,7 +12,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y tini wget gcc zlib1g-dev; \
     pip install --upgrade pip; \
-    pip install snapatac2==2.7 scvi-tools==${SCVI_TOOLS_VERSION} scanpy numpy google-cloud-storage; \
+    pip install snapatac2==2.7 scvi-tools==${SCVI_TOOLS_VERSION} scanpy numpy google-cloud-storage "scipy<1.14"; \
     pip install --user scikit-misc; \
     wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.basic.annotation.gff3.gz; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
