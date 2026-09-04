@@ -17,6 +17,7 @@ jobs:
         - 3rd-party-tools/arrays-picard-private
         - 3rd-party-tools/dragmap
         - 3rd-party-tools/gatk
+        - 3rd-party-tools/gatk-bcftools-gcloud
         - 3rd-party-tools/illumina-iaap-autocall
         - 3rd-party-tools/picard-python
         - 3rd-party-tools/verify-bam-id
@@ -30,6 +31,8 @@ jobs:
         - 3rd-party-tools/minimac4
         - 3rd-party-tools/fgbio
         - 3rd-party-tools/umi-tools
+        - 3rd-party-tools/sv-imputation-rust-tools
+        - 3rd-party-tools/mapmycells
     steps:
       - uses: actions/checkout@v3
 

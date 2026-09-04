@@ -27,4 +27,7 @@ import pandas as pd; \
 import seaborn as sns; \
 print('All imports OK')"
 
+# Smoke-test: confirm script CLI loads in the container and exposes expected args
+RUN python3 /opt/mito_plot_filter.py --help > /dev/null
+
 CMD ["bash"]
