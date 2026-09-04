@@ -34,10 +34,7 @@ ENV PATH /usr/local/STAR-${STAR_VERSION}/bin/Linux_x86_64_static/:$PATH
 
 # Copy the script that removes alignments spanning intron-exon junctions
 WORKDIR /script
-COPY add-introns-to-gtf.py .
-COPY modify_gtf.py .
-COPY modify_gtf_marmoset.py .
-COPY create_marmoset_header_mt_genes.py .
+COPY add-introns-to-gtf.py modify_gtf.py modify_gtf_marmoset.py create_marmoset_header_mt_genes.py .
 
 # Add all scripts to PATH
 ENV PATH /script/:$PATH

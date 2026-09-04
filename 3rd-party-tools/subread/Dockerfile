@@ -13,8 +13,7 @@ LABEL MAINTANER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
 
 WORKDIR /usr/gitc
 
-COPY requirements.txt .
-COPY remove-reads-on-junctions.py .
+COPY requirements.txt remove-reads-on-junctions.py .
 
 RUN set -eux; \
         apt-get update --fix-missing; \
