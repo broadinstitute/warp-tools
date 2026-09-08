@@ -1,17 +1,17 @@
-name: Samtools Dist BWA Mem 2 Ubuntu CI
+name: GATK BCFtools gcloud CI
 
-# Controls when the workflow will run.
+# Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "develop" and "master" branch
   pull_request:
     branches: [ "develop", "master" ]
     paths:
-      - '3rd-party-tools/samtools-dist-bwa/**'
+      - '3rd-party-tools/gatk-bcftools-gcloud/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker Image Tag (default: branch_name)' 
+        description: 'Docker Image Tag (default: branch_name)'
 
 env:
   PROJECT_NAME: WARP 3rd Party Tools
@@ -19,17 +19,17 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
   # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
   DOCKER_REGISTRY: us.gcr.io
-  GCR_PATH: broad-gotc-prod/samtools-dist-bwa
+  GCR_PATH: broad-gotc-prod/gatk-bcftools-gcloud
   TAG: ${{ github.event.inputs.image_tag || github.head_ref || github.ref_name }}
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The job that builds our container
-  build-for-gcr:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 3rd-party-tools/samtools-dist-bwa
+        working-directory: 3rd-party-tools/gatk-bcftools-gcloud
     # Map a step output to a job output
     outputs:
       imagePath: ${{ steps.saveImagePath.outputs.url }}

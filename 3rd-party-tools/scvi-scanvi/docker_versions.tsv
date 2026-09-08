@@ -1,0 +1,3 @@
+DOCKER_VERSION
+us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975
+us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:635d4391d50cba9bd58f1fc41b10d8e1c61285a73bde75371815ce9a0db3430c
