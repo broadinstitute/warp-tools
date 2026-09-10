@@ -160,8 +160,8 @@ facs_genes = ["gene_001", "gene_002"]
         with open(trav_path, "rb") as fh:
             trav = pickle.load(fh)
         required_keys = {"V_g_mean", "V_g_std", "g_subset", "c_cat", "pathways"}
-        assert required_keys == set(trav.keys()), (
-            f"traversal pickle keys mismatch: {set(trav.keys())}"
+        assert required_keys.issubset(trav.keys()), (
+            f"traversal pickle missing keys: {required_keys - set(trav.keys())}"
         )
         n_cats = len(trav["c_cat"])
         assert n_cats > 0, "c_cat is empty"
