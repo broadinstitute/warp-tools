@@ -32,6 +32,7 @@ jobs:
         - 3rd-party-tools/fgbio
         - 3rd-party-tools/umi-tools
         - 3rd-party-tools/sv-imputation-rust-tools
+        - 3rd-party-tools/mapmycells
     steps:
       - uses: actions/checkout@v3
 
