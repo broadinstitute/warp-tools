@@ -39,6 +39,8 @@ You can build and run these images locally — including GPU images — without 
 - `scvi-tools` and `snapatac2` are pinned via build `ARG`s — **keep them pinned**; changing `scvi-tools` changes model behavior for the consuming pipeline.
 - The gencode annotation is baked in; `snap.genome.hg38` is downloaded at runtime (the container needs network during the ATAC gene-activity step).
 - SCVI/SCANVI training is **stochastic** — outputs are not bit-reproducible, so the consuming pipeline verifies **tolerantly** (warp `VerifyScANVI` / `CompareScanviH5ad`), not by exact match. See the image's [README](3rd-party-tools/scvi-scanvi/README.md).
+- **Keep GPU images device-agnostic — don't hardcode a device.** scvi-tools defaults to `accelerator="auto"`, using a GPU when `torch.cuda.is_available()` and CPU otherwise. This lets ONE image back both a GPU and a CPU-only WDL task; the WDL `runtime` (not the container) decides whether a GPU is attached. Adding explicit `accelerator=`/`devices=` risks changing device-*count* behavior on the multi-GPU path — leave it default unless you mean to. (The warp side needs two tasks — GPU and CPU — for this; see the warp `AGENTS.md` GPU note.)
+- **Prefer a container entry point over a big inline-Python WDL heredoc.** scANVI's post-preprocessing step lives in `label_transfer_from_preprocessed.py` (a CLI over the same imported functions), so the WDL task is a one-line `python3 …` call. This keeps the command and the functions it calls in **one image** — no WDL↔image kwarg skew (an image predating a new arg like `max_epochs`/`batch_size` otherwise raises `unexpected keyword argument`) — and lets the WDL split cheaply into GPU/CPU task variants. Still honor the importable-function contract above.
 
 ## Pipeline verification & CI (in the warp consuming repo)
 
@@ -55,3 +57,6 @@ How this image's outputs get tested lives in the [warp](https://github.com/broad
 ## Agent-Specific Notes
 
 Record recurring container-build learnings/mistakes here. Keep entries short and **link** to [BUILDING.md](BUILDING.md) or the warp AGENTS.md rather than duplicating them. Before adding a note, check it isn't already covered above or in a linked doc.
+
+- **Dockerfiles `COPY` each script explicitly (no wildcard).** Adding a new `.py` to a tool dir does nothing until you add a matching `COPY <file> .` line to that tool's `Dockerfile` — otherwise it's silently absent from the built image and a WDL calling it fails at **runtime**, not build (scvi-scanvi hit exactly this when `label_transfer_from_preprocessed.py` was added). Check the `COPY` list whenever you add files.
+- **Per-branch image tags are reused, so untagged digests pile up.** `build-<tool>.yml` triggers on `pull_request` (to develop/master, path-filtered) and `workflow_dispatch` — **no `push` trigger** — building once per commit and tagging with the branch name (`head_ref`), not per-commit. Each new commit's build **moves** that tag to a new digest, leaving prior builds untagged in GCR. So a PR shows several untagged digests with only the latest tagged — expected, not a double-build. Always pin the consuming pipeline to the `@sha256` digest, never the branch tag.
