@@ -1,5 +1,5 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines.
-FROM --platform="linux/amd64" python:3.9-bookworm
+FROM --platform="linux/amd64" us.gcr.io/broad-dsp-gcr-public/base/python:3.9-debian
 
 ARG UMI_TOOLS_VERSION=1.1.1
 
@@ -12,6 +12,7 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
 # Install dependencies
 RUN set -eux; \
         apt-get update; \
+        apt-get upgrade -y; \
         apt-get install -y \
             gcc \
             wget \
