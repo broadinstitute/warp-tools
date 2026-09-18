@@ -5,9 +5,9 @@ tar -zxvf v1.0.15.broad.tar.gz && \
 mv libStatGen-1.0.15.broad libStatGen && \
 make -C libStatGen && \
 
-wget https://github.com/kanedo/gzstream/archive/refs/heads/master.tar.gz -O gzstream.tar.gz && \
+wget https://github.com/kanedo/gzstream/archive/9a20658673492c41fd9726d439cdea7f96235e84.tar.gz -O gzstream.tar.gz && \
 tar -xvf gzstream.tar.gz && \
-mv gzstream-master gzstream && \
+mv gzstream-9a20658673492c41fd9726d439cdea7f96235e84 gzstream && \
 make -C gzstream && \
 echo "" && \
 echo "" && \
