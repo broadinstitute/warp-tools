@@ -74,7 +74,7 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         print(f"Loading supplied SCANVI model (skip training): {scanvi_model_tar}", flush=True)
         extract_dir = "scanvi_model_in"
         with tarfile.open(scanvi_model_tar) as tf:
-            tf.extractall(extract_dir)
+            tf.extractall(extract_dir, filter="data")
         model_dir = os.path.dirname(glob.glob(f"{extract_dir}/**/model.pt", recursive=True)[0])
         # Rebuild the concat exactly as training does (so genes/labels line up), align to the model's
         # saved gene set, and load. No training is performed.
@@ -139,6 +139,7 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
 
     # ── 6. Finalize SCANVI predictions (metadata + raw counts for SCP) ───────
     print("Finalizing SCANVI predictions...", flush=True)
+    data.obs["final_annotation"] = data.obs["C_scANVI"]
     final_data = finalize_output(data)
     final_data.write(f"{input_id}_SCANVI_predictions.h5ad")
     print(f"  {input_id}_SCANVI_predictions.h5ad:    {final_data.shape}", flush=True)
