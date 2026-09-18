@@ -16,9 +16,9 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 ## Image contents
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
-- `scvi-tools` 1.2 · `snapatac2` 2.7 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
+- `scvi-tools` 1.5.1 · `snapatac2` 2.10.0 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
 - ATAC gene-activity conversion uses snapatac2's hg38 annotation (`snap.genome.hg38`), fetched at runtime. (A GENCODE v41 GFF3 is baked in at `/usr/local/gencode.v41.basic.annotation.gff3.gz` but is legacy — the current code path does not use it.)
-- Scripts: `multiome_label_transfer.py`, `gcs_utils.py` (see [Scripts](#scripts))
+- Scripts: `multiome_label_transfer.py`, `label_transfer_from_preprocessed.py`, `gcs_utils.py` (see [Scripts](#scripts))
 
 ## Versioning
 
@@ -33,6 +33,7 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | Script | Language | Purpose |
 | --- | --- | --- |
 | `multiome_label_transfer.py` | Python | Preprocessing, SCVI/SCANVI training, and label transfer. Exposes importable functions (below) and a CLI `main()`. |
+| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. |
 | `gcs_utils.py` | Python | Google Cloud Storage localize/delocalize helpers used by the `--localize` flag. |
 
 Key importable functions in `multiome_label_transfer.py`:
