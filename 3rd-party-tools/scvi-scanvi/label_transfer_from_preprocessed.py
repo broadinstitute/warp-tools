@@ -30,15 +30,8 @@ import time
 import anndata as ad
 import scanpy as sc
 
-# PyTorch 2.6 flipped torch.load(weights_only) to True by default, which breaks scvi-tools 1.2 model
-# loading (the checkpoint pickles numpy globals). Any model loaded here is produced by this same
-# pipeline (trusted), so force weights_only=False for all torch.load calls.
 import torch
-_orig_torch_load = torch.load
-def _torch_load_compat(*a, **k):
-    k.setdefault("weights_only", False)
-    return _orig_torch_load(*a, **k)
-torch.load = _torch_load_compat
+
 
 from multiome_label_transfer import (
     run_multi_model,
@@ -86,7 +79,17 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         sc.pp.filter_genes(data, min_cells=5)
         data.obs["celltype_scanvi"] = "Unknown"
         scvi.model.SCANVI.prepare_query_anndata(data, model_dir)   # subset/pad to the model's var_names
-        lvae = scvi.model.SCANVI.load(model_dir, adata=data)
+        # PyTorch 2.6 flipped torch.load(weights_only) to True by default, which breaks scvi-tools 1.2.
+        # Temporarily allow it during model load to prevent code-execution risk elsewhere.
+        _orig_torch_load = torch.load
+        def _torch_load_compat(*a, **k):
+            k.setdefault("weights_only", False)
+            return _orig_torch_load(*a, **k)
+        try:
+            torch.load = _torch_load_compat
+            lvae = scvi.model.SCANVI.load(model_dir, adata=data)
+        finally:
+            torch.load = _orig_torch_load
         timing["Model Load"] = time.time() - start
         print(f"  Model loaded in {timing['Model Load']:.1f}s", flush=True)
     else:
