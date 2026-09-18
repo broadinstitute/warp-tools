@@ -36,7 +36,7 @@ You can build and run these images locally — including GPU images — without 
 
 ## Image-specific notes: scvi-scanvi (GPU)
 
-- `scvi-tools` and `snapatac2` are pinned via build `ARG`s — **keep them pinned**; changing `scvi-tools` changes model behavior for the consuming pipeline.
+- `scvi-tools` and `snapatac2` are pinned via build `ARG`s — **keep them pinned**; changing `scvi-tools` (currently 1.5.1) or `snapatac2` (currently 2.10.0) changes model behavior for the consuming pipeline.
 - The gencode annotation is baked in; `snap.genome.hg38` is downloaded at runtime (the container needs network during the ATAC gene-activity step).
 - SCVI/SCANVI training is **stochastic** — outputs are not bit-reproducible, so the consuming pipeline verifies **tolerantly** (warp `VerifyScANVI` / `CompareScanviH5ad`), not by exact match. See the image's [README](3rd-party-tools/scvi-scanvi/README.md).
 - **Keep GPU images device-agnostic — don't hardcode a device.** scvi-tools defaults to `accelerator="auto"`, using a GPU when `torch.cuda.is_available()` and CPU otherwise. This lets ONE image back both a GPU and a CPU-only WDL task; the WDL `runtime` (not the container) decides whether a GPU is attached. Adding explicit `accelerator=`/`devices=` risks changing device-*count* behavior on the multi-GPU path — leave it default unless you mean to. (The warp side needs two tasks — GPU and CPU — for this; see the warp `AGENTS.md` GPU note.)
