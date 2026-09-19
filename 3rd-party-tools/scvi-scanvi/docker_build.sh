@@ -11,7 +11,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/scvi-scanvi"
 QUAY_URL="quay.io/broadinstitute/scvi-scanvi"
 
 # SCVI_TOOLS version
-SCVI_TOOLS_VERSION="1.2"
+SCVI_TOOLS_VERSION="1.5.1"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
