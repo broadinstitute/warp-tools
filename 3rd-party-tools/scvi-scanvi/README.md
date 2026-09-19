@@ -3,7 +3,7 @@
 ## Quick reference
 
 ```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:635d4391d50cba9bd58f1fc41b10d8e1c61285a73bde75371815ce9a0db3430c
+docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:3c6a32f7203a2b5fd82a4bedd00f8aca28807a54020d43b59b93e707d296c2e9
 ```
 
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
@@ -16,9 +16,9 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 ## Image contents
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
-- `scvi-tools` 1.2 · `snapatac2` 2.7 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
+- `scvi-tools` 1.5.1 · `snapatac2` 2.10.0 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
 - ATAC gene-activity conversion uses snapatac2's hg38 annotation (`snap.genome.hg38`), fetched at runtime. (A GENCODE v41 GFF3 is baked in at `/usr/local/gencode.v41.basic.annotation.gff3.gz` but is legacy — the current code path does not use it.)
-- Scripts: `multiome_label_transfer.py`, `gcs_utils.py` (see [Scripts](#scripts))
+- Scripts: `multiome_label_transfer.py`, `label_transfer_from_preprocessed.py`, `gcs_utils.py` (see [Scripts](#scripts))
 
 ## Versioning
 
@@ -33,6 +33,7 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | Script | Language | Purpose |
 | --- | --- | --- |
 | `multiome_label_transfer.py` | Python | Preprocessing, SCVI/SCANVI training, and label transfer. Exposes importable functions (below) and a CLI `main()`. |
+| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. |
 | `gcs_utils.py` | Python | Google Cloud Storage localize/delocalize helpers used by the `--localize` flag. |
 
 Key importable functions in `multiome_label_transfer.py`:
@@ -88,7 +89,7 @@ With `podman` and CDI GPU support, replace `--gpus all` with `--device nvidia.co
 This image is consumed by the WARP [scANVI pipeline](https://github.com/broadinstitute/warp/tree/develop/pipelines/wdl/scanvi/scANVI.wdl):
 
 - **`PreprocessFilter`** (CPU) — runs inline Python (loads/filters GEX, builds the ATAC gene-activity matrix with `snapatac2` in multiome mode); does not import from the script.
-- **`MultiomeLabelTransfer`** (GPU) — imports `run_multi_model` / `run_gex_only_model`, `transfer_labels`, and `finalize_output` from `/usr/local`, and **never calls `main()`**. It calls `run_multi_model` when ATAC is present and `run_gex_only_model` when it is not.
+- **`MultiomeLabelTransfer`** (GPU/CPU) — invokes `/usr/local/label_transfer_from_preprocessed.py` directly. It calls `run_multi_model` when ATAC is present and `run_gex_only_model` when it is not, and handles loading supplied models or training new ones.
 
 The imported function API is the production contract — keep signatures and behavior stable (see [AGENTS.md → Keep scripts importable](../../AGENTS.md#keep-scripts-importable)).
 
