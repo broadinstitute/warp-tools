@@ -68,7 +68,10 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         extract_dir = "scanvi_model_in"
         with tarfile.open(scanvi_model_tar) as tf:
             tf.extractall(extract_dir, filter="data")
-        model_dir = os.path.dirname(glob.glob(f"{extract_dir}/**/model.pt", recursive=True)[0])
+        matches = glob.glob(f"{extract_dir}/**/model.pt", recursive=True)
+        if len(matches) != 1:
+            raise ValueError(f"Expected exactly 1 model.pt in archive, found {len(matches)}.")
+        model_dir = os.path.dirname(matches[0])
         # Rebuild the concat exactly as training does (so genes/labels line up), align to the model's
         # saved gene set, and load. No training is performed.
         if atac_present:
