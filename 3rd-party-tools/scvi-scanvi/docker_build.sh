@@ -2,7 +2,7 @@
 set -e
 
 # Update version when changes to Dockerfile or scripts are made
-DOCKER_IMAGE_VERSION=1.1.0
+DOCKER_IMAGE_VERSION=1.2.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
@@ -11,7 +11,7 @@ GCR_URL="us.gcr.io/broad-gotc-prod/scvi-scanvi"
 QUAY_URL="quay.io/broadinstitute/scvi-scanvi"
 
 # SCVI_TOOLS version
-SCVI_TOOLS_VERSION="1.2"
+SCVI_TOOLS_VERSION="1.5.1"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
