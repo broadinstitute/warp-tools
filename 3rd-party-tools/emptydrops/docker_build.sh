@@ -10,14 +10,14 @@ TAG=$1
 CACHING=$2
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/emptydrops"
+GCR_URL="us.gcr.io/broad-gotc-prod/empty-drops"
 
 #R Version
 R_VERSION="4.2.2"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-t|tools] [TAG] [CACHING] -- script to build the emptydrops image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-t|tools] [TAG] [CACHING] -- script to build the empty-drops image and push to GCR
 where:
     -h|--help Show help text
     -s|--r_version Version of R to use (default: $R_VERSION)
