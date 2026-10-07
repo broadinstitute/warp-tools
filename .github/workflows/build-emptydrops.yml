@@ -38,6 +38,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+    - name: Test emptyDropsWrapper seed reproducibility
+      run: docker run --rm ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG} /usr/local/tools/emptyDropsWrapper/test/test_emptyDropsWrapper.sh
     - name: Check working directory'
       run: |
         echo "Current directory: "
