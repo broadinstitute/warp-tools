@@ -33,7 +33,8 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | Script | Language | Purpose |
 | --- | --- | --- |
 | `multiome_label_transfer.py` | Python | Preprocessing, SCVI/SCANVI training, and label transfer. Exposes importable functions (below) and a CLI `main()`. |
-| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. |
+| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. `--seed N` makes SCVI/SCANVI training reproducible (unset = nondeterministic). |
+| `test_seed_reproducibility.py` | Python | CI check: two `--seed 42` training runs on synthetic data must give identical labels and embedding. |
 | `gcs_utils.py` | Python | Google Cloud Storage localize/delocalize helpers used by the `--localize` flag. |
 
 Key importable functions in `multiome_label_transfer.py`:
