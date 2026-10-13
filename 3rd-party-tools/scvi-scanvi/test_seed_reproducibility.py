@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 
-script = sys.argv[1] if len(sys.argv) > 1 else "/usr/local/label_transfer_from_preprocessed.py"
+script = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "/usr/local/label_transfer_from_preprocessed.py")
 rng = np.random.default_rng(0)
 n_genes, n_types = 1000, 3
 profiles = rng.gamma(1.0, 1.0, (n_types, n_genes))
