@@ -3,7 +3,8 @@
 PreprocessFilter (in scANVI.wdl) has already filtered/batch-labeled/modality-tagged the GEX,
 reference, and (optional) ATAC-activity h5ads. This script runs everything after that: obtain the
 SCANVI model (LOAD a supplied .tar.gz, else TRAIN SCVI+SCANVI), transfer labels, optionally record
-per-cell max posterior, propagate labels back to the matrices, finalize metadata, and write outputs.
+per-cell max posterior, propagate labels back to the matrices, finalize the predictions object
+(celltype column, counts in .raw; no metadata is added), and write outputs.
 
 Kept separate from main() (which re-runs preprocessing) so the WDL task is a single command instead
 of a large inline heredoc, and so the identical command runs unchanged on GPU or CPU nodes —
@@ -134,7 +135,7 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         atac_activity.write(f"{input_id}_atac_annotated_matrix.h5ad")
         print(f"  {input_id}_atac_annotated_matrix.h5ad: {atac_activity.shape}", flush=True)
 
-    # ── 6. Finalize SCANVI predictions (metadata + raw counts for SCP) ───────
+    # ── 6. Finalize SCANVI predictions (celltype column + counts in .raw) ────
     print("Finalizing SCANVI predictions...", flush=True)
     data.obs["final_annotation"] = data.obs["C_scANVI"]
     final_data = finalize_output(data)

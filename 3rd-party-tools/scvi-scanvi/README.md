@@ -43,7 +43,7 @@ Key importable functions in `multiome_label_transfer.py`:
 - `run_gex_only_model(gex, ref)` — train SCVI+SCANVI on GEX + reference only (GEX-only mode).
 - `_concat_and_train_models(adatas, keys)` — shared training core used by both of the above (avoids drift).
 - `transfer_labels(data, lvae)` — predict labels (`C_scANVI`) and compute the SCANVI UMAP.
-- `finalize_output(scanvi_output)` — add metadata, rename `final_annotation` → `celltype`, copy counts into `.raw`.
+- `finalize_output(scanvi_output)` — rename `final_annotation` → `celltype`, copy counts into `.raw`. Adds no sample metadata.
 
 ## Inputs
 
@@ -61,7 +61,7 @@ The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is opt
 
 | Output | Format | Description |
 | --- | --- | --- |
-| `SCANVI_predictions.h5ad` | AnnData | Combined object with SCANVI predictions (`celltype`), UMAP, and metadata; counts in `.raw`. |
+| `SCANVI_predictions.h5ad` | AnnData | Combined object (query + reference cells) with SCANVI predictions (`celltype`) and UMAP; counts in `.raw`. No sample metadata is added: `obs` holds the input h5ads' columns plus the pipeline's own. |
 | `gex_annotated_matrix.h5ad` | AnnData | GEX cells with transferred `final_annotation`. |
 | `atac_annotated_matrix.h5ad` | AnnData | ATAC gene-activity cells with transferred `final_annotation` (multiome mode only). |
 | `vae_test_model_/`, `scvi_scanvi_test_model_/` | scvi-tools model dirs | Saved SCVI and SCANVI models. |
