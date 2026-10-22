@@ -3,7 +3,8 @@
 PreprocessFilter (in scANVI.wdl) has already filtered/batch-labeled/modality-tagged the GEX,
 reference, and (optional) ATAC-activity h5ads. This script runs everything after that: obtain the
 SCANVI model (LOAD a supplied .tar.gz, else TRAIN SCVI+SCANVI), transfer labels, optionally record
-per-cell max posterior, propagate labels back to the matrices, finalize metadata, and write outputs.
+per-cell max posterior, propagate labels back to the matrices, finalize the predictions object
+(celltype column, counts in .raw; no metadata is added), and write outputs.
 
 Kept separate from main() (which re-runs preprocessing) so the WDL task is a single command instead
 of a large inline heredoc, and so the identical command runs unchanged on GPU or CPU nodes —
@@ -19,7 +20,7 @@ Writes to the working directory:
 
   python3 label_transfer_from_preprocessed.py --gex g.h5ad --ref r.h5ad --input-id ID \
       [--atac a.h5ad] [--scanvi-model m.tar.gz] [--max-epochs N] [--batch-size N] \
-      [--output-max-probability]
+      [--output-max-probability] [--seed N]
 """
 import argparse
 import glob
@@ -29,9 +30,7 @@ import time
 
 import anndata as ad
 import scanpy as sc
-
-import torch
-
+import scvi
 
 from multiome_label_transfer import (
     run_multi_model,
@@ -43,7 +42,7 @@ from multiome_label_transfer import (
 
 def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=None,
                                      scanvi_model_tar=None, max_epochs=None, batch_size=None,
-                                     output_max_probability=False):
+                                     output_max_probability=False, seed=None):
     atac_present = bool(atac_path)
     print(f"Mode: {'multiome (GEX + ATAC)' if atac_present else 'GEX-only (no ATAC)'}", flush=True)
 
@@ -58,12 +57,15 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         atac_activity = sc.read_h5ad(atac_path)
         print(f"  ATAC activity: {atac_activity.shape}", flush=True)
 
+    # Unset (default): training is nondeterministic. Tests pin a seed to make runs reproducible.
+    if seed is not None:
+        scvi.settings.seed = seed
+
     timing = {}
     start = time.time()
 
     # ── 2. Obtain the SCANVI model: load a supplied one, else train ──────────
     if scanvi_model_tar:
-        import scvi
         print(f"Loading supplied SCANVI model (skip training): {scanvi_model_tar}", flush=True)
         extract_dir = "scanvi_model_in"
         with tarfile.open(scanvi_model_tar) as tf:
@@ -133,7 +135,7 @@ def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=Non
         atac_activity.write(f"{input_id}_atac_annotated_matrix.h5ad")
         print(f"  {input_id}_atac_annotated_matrix.h5ad: {atac_activity.shape}", flush=True)
 
-    # ── 6. Finalize SCANVI predictions (metadata + raw counts for SCP) ───────
+    # ── 6. Finalize SCANVI predictions (celltype column + counts in .raw) ────
     print("Finalizing SCANVI predictions...", flush=True)
     data.obs["final_annotation"] = data.obs["C_scANVI"]
     final_data = finalize_output(data)
@@ -161,6 +163,8 @@ def _parse_args():
     p.add_argument("--batch-size", type=int, default=None, help="SCVI/SCANVI minibatch size (container default 128).")
     p.add_argument("--output-max-probability", action="store_true",
                    help="Also write a max_probability obs column (the assigned label's confidence).")
+    p.add_argument("--seed", type=int, default=None,
+                   help="Random seed for reproducible SCVI/SCANVI training (default: unseeded).")
     return p.parse_args()
 
 
@@ -169,5 +173,5 @@ if __name__ == "__main__":
     label_transfer_from_preprocessed(
         gex_path=a.gex, ref_path=a.ref, input_id=a.input_id, atac_path=a.atac,
         scanvi_model_tar=a.scanvi_model, max_epochs=a.max_epochs, batch_size=a.batch_size,
-        output_max_probability=a.output_max_probability,
+        output_max_probability=a.output_max_probability, seed=a.seed,
     )

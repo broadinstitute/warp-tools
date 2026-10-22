@@ -3,7 +3,7 @@
 ## Quick reference
 
 ```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:3c6a32f7203a2b5fd82a4bedd00f8aca28807a54020d43b59b93e707d296c2e9
+docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:077d776c1957029b32ef79f12b6dac02e43d5673b70e915d1d690d95612a9831
 ```
 
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
@@ -33,7 +33,8 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | Script | Language | Purpose |
 | --- | --- | --- |
 | `multiome_label_transfer.py` | Python | Preprocessing, SCVI/SCANVI training, and label transfer. Exposes importable functions (below) and a CLI `main()`. |
-| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. |
+| `label_transfer_from_preprocessed.py` | Python | Container entry point for loading/training models and transferring labels from preprocessed inputs. `--seed N` makes SCVI/SCANVI training reproducible (unset = nondeterministic). |
+| `test_seed_reproducibility.py` | Python | CI check: two `--seed 42` training runs on synthetic data must give identical labels and embedding. |
 | `gcs_utils.py` | Python | Google Cloud Storage localize/delocalize helpers used by the `--localize` flag. |
 
 Key importable functions in `multiome_label_transfer.py`:
@@ -42,7 +43,7 @@ Key importable functions in `multiome_label_transfer.py`:
 - `run_gex_only_model(gex, ref)` — train SCVI+SCANVI on GEX + reference only (GEX-only mode).
 - `_concat_and_train_models(adatas, keys)` — shared training core used by both of the above (avoids drift).
 - `transfer_labels(data, lvae)` — predict labels (`C_scANVI`) and compute the SCANVI UMAP.
-- `finalize_output(scanvi_output)` — add metadata, rename `final_annotation` → `celltype`, copy counts into `.raw`.
+- `finalize_output(scanvi_output)` — rename `final_annotation` → `celltype`, copy counts into `.raw`. Adds no sample metadata.
 
 ## Inputs
 
@@ -60,7 +61,7 @@ The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is opt
 
 | Output | Format | Description |
 | --- | --- | --- |
-| `SCANVI_predictions.h5ad` | AnnData | Combined object with SCANVI predictions (`celltype`), UMAP, and metadata; counts in `.raw`. |
+| `SCANVI_predictions.h5ad` | AnnData | Combined object (query + reference cells) with SCANVI predictions (`celltype`) and UMAP; counts in `.raw`. No sample metadata is added: `obs` holds the input h5ads' columns plus the pipeline's own. |
 | `gex_annotated_matrix.h5ad` | AnnData | GEX cells with transferred `final_annotation`. |
 | `atac_annotated_matrix.h5ad` | AnnData | ATAC gene-activity cells with transferred `final_annotation` (multiome mode only). |
 | `vae_test_model_/`, `scvi_scanvi_test_model_/` | scvi-tools model dirs | Saved SCVI and SCANVI models. |
