@@ -356,34 +356,20 @@ def transfer_labels(data, lvae):
 
 
 def finalize_output(scanvi_output):
-    """Finalizes output file by appending required metadata values and copying the count data into the .raw slot for
-    downstream ingest
+    """Finalizes the SCANVI output for writing: renames the annotation column to `celltype` and copies the
+    count data into the .raw slot for downstream ingest.
+
+    No sample metadata is added. `.obs` carries only the columns the input h5ads supplied plus the ones
+    this pipeline computes (`celltype`, `C_scANVI`, `modality`, `batch`, and `max_probability` when
+    requested). Sample-level metadata (donor, species, organ, library prep, ...) is joined downstream
+    from the archive's sample manifests, not stamped here.
 
         Parameters:
         - scanvi_output (AnnData): AnnData object with output from SCANVI.
 
         Returns:
-        - scanvi_output (AnnData): AnnData with raw counts, renamed celltype annotation and metadata defaults added.
+        - scanvi_output (AnnData): AnnData with raw counts in .raw and the annotation renamed to celltype.
     """
-    metadata_defaults = {
-        "biosample_id": "sample_001",
-        "donor_id": "donor_001",
-        "species": "NCBITaxon_9606",
-        "species__ontology_label": "Homo sapiens",
-        "disease": "PATO_0000461",
-        "disease__ontology_label": "normal",
-        "organ": "UBERON_0000955",
-        "organ__ontology_label": "brain",
-        "library_preparation_protocol": "EFO_0030059",
-        "library_preparation_protocol__ontology_label": "10x multiome",
-        "data_modality": "Simultaneous profiling of gene expression and open chromatin from the same cell.",
-        "sex": "unknown"
-    }
-
-    print("Adding metadata to SCANVI output h5ad")
-    for key, value in metadata_defaults.items():
-        scanvi_output.obs[key] = value
-
     scanvi_output.obs.rename(columns={"final_annotation": "celltype"}, inplace=True)
 
     # Move raw gene counts and gene activity counts into raw
@@ -559,7 +545,7 @@ def main(gex_file, atac_file, ref_file, max_epochs=500):
     atac_shared.write("atac_annotated_matrix.h5ad")
     gex_shared.write("gex_annotated_matrix.h5ad")
 
-    # perform final prep on output file to move annotations to correct column, add placeholder metadata and
+    # perform final prep on output file to move annotations to the celltype column and
     # copy count data into .raw layer
     final_data = finalize_output(data)
 
