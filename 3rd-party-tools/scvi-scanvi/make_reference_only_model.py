@@ -1,0 +1,44 @@
+"""Train a SCANVI model on a reference alone, the way warp-scanvi-training does.
+
+Builds the scANVI pipeline's query-mapping test fixture, and is used by the image's CI test. Same
+setup as the harness: every gene of the reference, batch -> 'batch', labels -> 'celltype_scanvi'
+with 'Unknown' unlabeled, a 2-layer SCVI with a 30-dimensional latent, then SCANVI from it. Saved
+without data and tarred, which is the form the pipeline's scanvi_model input takes.
+
+  python3 make_reference_only_model.py --ref ref.h5ad --out model.tar.gz \
+      [--batch-key donor_id] [--labels-key subclass] [--epochs 20] [--seed 0]
+"""
+import argparse
+import tarfile
+
+import anndata as ad
+import scvi
+
+
+def train_reference_only_model(ref, batch_key, labels_key, epochs, seed, out_tar):
+    if ref.X is None:   # AIT references keep their counts in .raw
+        ref = ad.AnnData(X=ref.raw.X, obs=ref.obs, var=ref.var)
+    ref = ref.copy()
+    ref.obs["batch"] = ref.obs[batch_key].astype(str)
+    ref.obs["celltype_scanvi"] = ref.obs[labels_key].astype(str)
+    scvi.settings.seed = seed
+    scvi.model.SCVI.setup_anndata(ref, batch_key="batch", labels_key="celltype_scanvi")
+    vae = scvi.model.SCVI(ref, n_layers=2, n_latent=30)
+    vae.train(max_epochs=epochs, datasplitter_kwargs={"drop_last": True})
+    lvae = scvi.model.SCANVI.from_scvi_model(vae, labels_key="celltype_scanvi", unlabeled_category="Unknown")
+    lvae.train(max_epochs=epochs, datasplitter_kwargs={"drop_last": True})
+    lvae.save("reference_only_model", save_anndata=False, overwrite=True)
+    with tarfile.open(out_tar, "w:gz") as tf:
+        tf.add("reference_only_model")
+
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--ref", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--batch-key", default="donor_id")
+    p.add_argument("--labels-key", default="subclass")
+    p.add_argument("--epochs", type=int, default=20)
+    p.add_argument("--seed", type=int, default=0)
+    a = p.parse_args()
+    train_reference_only_model(ad.read_h5ad(a.ref), a.batch_key, a.labels_key, a.epochs, a.seed, a.out)
