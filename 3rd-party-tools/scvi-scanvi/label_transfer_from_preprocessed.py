@@ -27,6 +27,7 @@ Writes to the working directory:
 """
 import argparse
 import glob
+import importlib.metadata
 import os
 import tarfile
 import time
@@ -119,17 +120,19 @@ def label_transfer(gex, input_id, ref=None, atac_activity=None, scanvi_model_tar
     print(f"  Model ready in {time.time() - start:.1f}s", flush=True)
 
     print("Transferring labels with SCANVI...", flush=True)
-    _plot, data = transfer_labels(data, lvae)
+    data = transfer_labels(data, lvae)
     if output_max_probability:
         data.obs["max_probability"] = lvae.predict(data, soft=True).max(axis=1).astype("float32")
 
     # The model is named by the reference it was trained on; a model without reference.txt falls
-    # back to its archive's file name.
+    # back to its archive's file name. scanvi_versions records the image's key library versions.
     provenance = {
         "scanvi_input_id": input_id,
         "scanvi_input_file": input_file,
         "scanvi_model": str(reference) if reference else (
             os.path.basename(scanvi_model_tar) if scanvi_model_tar else f"{input_id}_scanvi_model.tar.gz"),
+        "scanvi_versions": {p: importlib.metadata.version(p) for p in
+                            ("scvi-tools", "torch", "scanpy", "anndata", "snapatac2", "numpy", "scipy")},
     }
     print(f"Writing outputs (input_id={input_id})...", flush=True)
     gex = _annotate(gex, data, "_rna_unannotated", provenance, output_max_probability)

@@ -16,9 +16,10 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 ## Image contents
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
-- `scvi-tools` 1.5.1 · `snapatac2` 2.10.0 · `scanpy` · `anndata` · `numpy` · `scikit-misc` · `google-cloud-storage`
-- ATAC gene-activity conversion uses snapatac2's hg38 annotation (`snap.genome.hg38`), fetched at runtime. (A GENCODE v41 GFF3 is baked in at `/usr/local/gencode.v41.basic.annotation.gff3.gz` but is legacy — the current code path does not use it.)
-- Scripts: `multiome_label_transfer.py`, `label_transfer_from_preprocessed.py`, `gcs_utils.py` (see [Scripts](#scripts))
+- `scvi-tools` 1.5.1 and `snapatac2` 2.10.0, pinned; `scanpy`, `anndata`, `numpy`, `torch`, `scipy` and `scikit-misc` at the newest versions compatible with those when the image is built.
+- Each build records its exact library versions: `/usr/local/versions.txt` holds the build's `pip freeze`, the CI build log prints it, and every output h5ad records the key versions in `uns['scanvi_versions']`.
+- ATAC gene-activity conversion uses snapatac2's genome annotations (`snap.genome.hg38`, `mm10`, `mm39`), downloaded at runtime.
+- Scripts: see [Scripts](#scripts).
 
 ## Versioning
 
@@ -38,31 +39,32 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | `label_transfer_from_preprocessed.py` | Python | `label_transfer()`: obtain the model (train, load, or map the sample onto a reference-only model), transfer labels, write outputs. Also a CLI over preprocessed files. `--seed N` makes training reproducible. |
 | `reference_id.py` | Python | `reference_id()`: names a reference by its `uns['title']` (or file name) plus the first 8 hex digits of the file's sha256; models carry it in `reference.txt`. |
 | `scp_output.py` | Python | `make_scp_ready()`: puts an annotated matrix in the form Single Cell Portal reads, with `.X` as log2(CPM + 1) (see [Outputs](#outputs)). |
-| `multiome_label_transfer.py` | Python | SCVI/SCANVI training and label transfer functions (below), plus a standalone CLI `main()`. |
+| `multiome_label_transfer.py` | Python | SCVI/SCANVI training and label transfer functions (below), imported by `label_transfer_from_preprocessed.py`. No CLI. |
 | `make_reference_only_model.py` | Python | Trains a SCANVI model on a reference alone, the way warp-scanvi-training does. Builds the WARP query-mapping test fixture. |
 | `test_seed_reproducibility.py` | Python | CI check: two `--seed 42` training runs on synthetic data must give identical labels and embedding. |
 | `test_scp_and_query_mapping.py` | Python | CI check: SCP-ready outputs, run provenance and query mapping onto a reference-only model, on synthetic data; and that `validate_inputs.py` rejects bad inputs. |
-| `gcs_utils.py` | Python | Google Cloud Storage localize/delocalize helpers used by the `--localize` flag. |
 
 Key importable functions in `multiome_label_transfer.py`:
 
 - `run_multi_model(gex, atac_activity, ref)` — train SCVI+SCANVI on GEX + ATAC activity + reference.
 - `run_gex_only_model(gex, ref)` — train SCVI+SCANVI on GEX + reference only (GEX-only mode).
 - `_concat_and_train_models(adatas, keys)` — shared training core used by both of the above (avoids drift).
-- `transfer_labels(data, lvae)` — predict labels (`C_scANVI`) and compute the SCANVI UMAP.
+- `transfer_labels(data, lvae)` — predict labels (`C_scANVI`), store the latent (`X_scANVI`), and fit neighbors and a UMAP on it. Returns `data`.
 - `finalize_output(scanvi_output)` — rename `final_annotation` → `celltype`, copy counts into `.raw`. Adds no sample metadata.
 
 ## Inputs
 
-The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is optional — see [Task descriptions](#task-descriptions).)
+`scanvi_sample.py` labels one sample:
 
-| Input | Type / format | Required | Description |
-| --- | --- | --- | --- |
-| `-g` / `--gex-file` | AnnData `.h5ad` | yes | Gene expression. Expected `obs['star_IsCell']` (STARsolo cell calls). |
-| `-a` / `--atac-file` | AnnData `.h5ad` (cell-by-bin) | yes (CLI) | ATAC cell-by-bin matrix. Expected `obs['gex_barcodes']` to align with GEX. |
-| `-r` / `--ref-file` | AnnData `.h5ad` | yes | Annotated reference. **Must** carry `obs['final_annotation']` (cell-type labels) **and** `obs['batch']` (training is batch-aware). |
-| `-e` / `--max-epochs` | int | no | Maximum SCVI/SCANVI training epochs (default `500`). Lower it for fast smoke runs or to bound wall-clock on very large datasets. Also available on `run_multi_model`/`run_gex_only_model` as the `max_epochs` keyword. |
-| `-l` / `--localize` | flag | no | Localize inputs from / delocalize outputs to GCS via `gcs_utils`. |
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--input-id` | yes | The sample's id; it prefixes every output file and is recorded in each output. |
+| `--gex` | yes | The sample's GEX h5ad (Optimus output). A missing `obs['star_IsCell']` is added as all True. |
+| `--atac` | no | The sample's ATAC cell-by-bin h5ad (multiome mode); barcodes are matched through `obs['gex_barcodes']` (or the index). |
+| `--genome` | no | Genome for the ATAC gene-activity conversion: `hg38` (default), `mm10` or `mm39`. |
+| `--scanvi-model` | one of these two | A saved SCANVI model (`.tar.gz`), used instead of training. |
+| `--ref` | one of these two | A reference preprocessed by the WDL's PreprocessReference task (counts in `.X`, labels in `obs['final_annotation']`, batch in `obs['batch']`), to train on. |
+| `--max-epochs`, `--query-max-epochs`, `--batch-size`, `--seed`, `--output-max-probability` | no | Training epochs (default 500), query-mapping epochs (default 100), minibatch size (default 128), random seed, and a `max_probability` column. |
 
 ## Outputs
 
@@ -77,25 +79,20 @@ The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is opt
 
 SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); `obsm['X_scANVI']`, the 30-dimensional latent; `obsm['X_umap']`, 2 columns fitted on the sample's own latent; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file` and `scanvi_model`, the model's name, which is its reference's id from `reference.txt` (or the archive's file name when it has none). No sample metadata is added.
 
-The standalone `multiome_label_transfer.py` CLI writes unprefixed `SCANVI_predictions.h5ad`, `gex_annotated_matrix.h5ad`, `atac_annotated_matrix.h5ad`, its model directories and an intermediate `adata_scanvi_labels.h5ad`, in the older form.
-
 ## Usage
 
-Run the multiome workflow standalone (GPU required for reasonable runtime):
+Label one sample with a saved model, on CPU:
 
 ```bash
-docker run --rm -it --gpus all \
-    -v /files:/files \
+docker run --rm -v /files:/files -w /files \
     us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest> \
-    python multiome_label_transfer.py \
-      --gex-file /files/gex.h5ad \
-      --atac-file /files/atac.cellbybin.h5ad \
-      --ref-file /files/pbmc.h5ad
+    python3 /usr/local/scanvi_sample.py \
+      --input-id sample_a \
+      --gex /files/sample_a_gex.h5ad \
+      --scanvi-model /files/scanvi_model.tar.gz
 ```
 
-With `podman` and CDI GPU support, replace `--gpus all` with `--device nvidia.com/gpu=all`.
-
-> The CLI `main()` always runs the **multiome** path. **GEX-only** mode is exercised through the WARP pipeline, which imports `run_gex_only_model` directly (it does not call `main()`).
+To train instead, pass `--ref` with a reference prepared by the WDL's PreprocessReference task, and attach a GPU: `--gpus all` (docker) or `--device nvidia.com/gpu=all` (podman with CDI). The WARP pipeline is the normal way to run this image.
 
 ## Task descriptions
 
@@ -109,7 +106,7 @@ The imported function API is the production contract — keep signatures and beh
 ## Requirements / dependencies
 
 - **GPU strongly recommended** (e.g. NVIDIA T4 or better); pass `--gpus all` (docker) or `--device nvidia.com/gpu=all` (podman/CDI).
-- **Network at runtime**: the ATAC gene-activity step downloads `snapatac2`'s hg38 annotation (`snap.genome.hg38`).
+- **Network at runtime**: the ATAC gene-activity step downloads `snapatac2`'s genome annotation.
 - Reference sizing: the PBMC reference is ~2 GB; a full multiome run is comfortable with ~30 GB RAM and ~200 GB disk.
 
 ## Troubleshooting
