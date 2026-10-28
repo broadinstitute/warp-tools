@@ -36,7 +36,7 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | `validate_inputs.py` | Python | Checks every sample's input files and ids before any sample runs, reporting every problem at once. |
 | `preprocess_query.py` | Python | `preprocess_query(gex_path, atac_path, genome)`: one sample's GEX filtering and, in multiome mode, the ATAC gene-activity conversion (formerly the WDL's inline PreprocessFilter task). |
 | `label_transfer_from_preprocessed.py` | Python | `label_transfer()`: obtain the model (train, load, or map the sample onto a reference-only model), transfer labels, write outputs. Also a CLI over preprocessed files. `--seed N` makes training reproducible. |
-| `scp_output.py` | Python | `make_scp_ready()`: puts an annotated matrix in the form Single Cell Portal reads (see [Outputs](#outputs)). |
+| `scp_output.py` | Python | `make_scp_ready()`: puts an annotated matrix in the form Single Cell Portal reads, with `.X` as log2(CPM + 1) (see [Outputs](#outputs)). |
 | `multiome_label_transfer.py` | Python | SCVI/SCANVI training and label transfer functions (below), plus a standalone CLI `main()`. |
 | `make_reference_only_model.py` | Python | Trains a SCANVI model on a reference alone, the way warp-scanvi-training does. Builds the WARP query-mapping test fixture. |
 | `test_seed_reproducibility.py` | Python | CI check: two `--seed 42` training runs on synthetic data must give identical labels and embedding. |
@@ -74,7 +74,7 @@ The CLI consumes three AnnData `.h5ad` files. (In the WARP pipeline, ATAC is opt
 | `<id>_SCANVI_predictions.h5ad` | AnnData | The labelled data the model saw (`celltype`, latent, UMAP; counts in `.raw`): the sample only with a supplied model, the sample plus the reference when training. |
 | `<id>_scanvi_model.tar.gz` | tar.gz | The minimal SCANVI model (no bundled data), reusable as `--scanvi-model`. |
 
-SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` normalized to 10,000 per cell then `log1p` (float32); `obsm['X_scANVI']`, the 30-dimensional latent; `obsm['X_umap']`, 2 columns fitted on the sample's own latent; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file` and `scanvi_model`. No sample metadata is added.
+SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); `obsm['X_scANVI']`, the 30-dimensional latent; `obsm['X_umap']`, 2 columns fitted on the sample's own latent; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file` and `scanvi_model`. No sample metadata is added.
 
 The standalone `multiome_label_transfer.py` CLI writes unprefixed `SCANVI_predictions.h5ad`, `gex_annotated_matrix.h5ad`, `atac_annotated_matrix.h5ad`, its model directories and an intermediate `adata_scanvi_labels.h5ad`, in the older form.
 

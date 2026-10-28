@@ -59,7 +59,9 @@ with tempfile.TemporaryDirectory() as tmp:
     check(raw is not None and np.allclose(raw, np.round(raw)), ".raw holds integer counts")
     check(not np.allclose(x, np.round(x)), ".X is normalized, not counts")
     check("counts" not in gex.layers, "no duplicate counts layer")
-    check(gex.uns.get("log1p") == {}, "log1p marker has no null base (older anndata can read it)")
+    cpm = raw / raw.sum(axis=1, keepdims=True) * 1e6
+    check(np.allclose(x, np.log2(1 + cpm), atol=1e-4), ".X is log2(CPM + 1)")
+    check(gex.uns.get("log1p", {}).get("base") == 2, "uns records log base 2")
     check(gex.obsm["X_umap"].shape == (gex.n_obs, 2), "X_umap has 2 columns, one row per cell")
     check(gex.obsm["X_scANVI"].shape == (gex.n_obs, 30), "X_scANVI is the 30-dimensional latent")
     check(gex.uns.get("scanvi_input_id") == "s1", "uns records the input id")
