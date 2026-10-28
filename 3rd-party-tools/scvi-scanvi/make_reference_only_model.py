@@ -1,6 +1,7 @@
 """Train a SCANVI model on a reference alone, the way warp-scanvi-training does.
 
-Builds the scANVI pipeline's query-mapping test fixture, and is used by the image's CI test. Same
+Builds the scANVI pipeline's query-mapping test fixture, and is used by the image's CI test. The
+model carries the reference's id (reference_id.py) in reference.txt, as harness models should. Same
 setup as the harness: every gene of the reference, batch -> 'batch', labels -> 'celltype_scanvi'
 with 'Unknown' unlabeled, a 2-layer SCVI with a 30-dimensional latent, then SCANVI from it. Saved
 without data and tarred, which is the form the pipeline's scanvi_model input takes.
@@ -14,8 +15,10 @@ import tarfile
 import anndata as ad
 import scvi
 
+from reference_id import reference_id, write_reference
 
-def train_reference_only_model(ref, batch_key, labels_key, epochs, seed, out_tar):
+
+def train_reference_only_model(ref, batch_key, labels_key, epochs, seed, out_tar, reference=None):
     if ref.X is None:   # AIT references keep their counts in .raw
         ref = ad.AnnData(X=ref.raw.X, obs=ref.obs, var=ref.var)
     ref = ref.copy()
@@ -28,6 +31,8 @@ def train_reference_only_model(ref, batch_key, labels_key, epochs, seed, out_tar
     lvae = scvi.model.SCANVI.from_scvi_model(vae, labels_key="celltype_scanvi", unlabeled_category="Unknown")
     lvae.train(max_epochs=epochs, datasplitter_kwargs={"drop_last": True})
     lvae.save("reference_only_model", save_anndata=False, overwrite=True)
+    if reference:
+        write_reference("reference_only_model", reference)
     with tarfile.open(out_tar, "w:gz") as tf:
         tf.add("reference_only_model")
 
@@ -41,4 +46,6 @@ if __name__ == "__main__":
     p.add_argument("--epochs", type=int, default=20)
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
-    train_reference_only_model(ad.read_h5ad(a.ref), a.batch_key, a.labels_key, a.epochs, a.seed, a.out)
+    ref = ad.read_h5ad(a.ref)
+    train_reference_only_model(ref, a.batch_key, a.labels_key, a.epochs, a.seed, a.out,
+                               reference=reference_id(a.ref, ref.uns))

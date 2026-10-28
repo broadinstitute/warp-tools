@@ -43,7 +43,8 @@ with tempfile.TemporaryDirectory() as tmp:
     ref = ad.AnnData(X, var=pd.DataFrame(index=genes), obs=pd.DataFrame(
         {"donor_id": rng.choice(["d1", "d2"], 400), "subclass": [f"type{t}" for t in types]},
         index=[f"r{i}" for i in range(400)]))
-    train_reference_only_model(ref, "donor_id", "subclass", epochs=2, seed=0, out_tar="ref_only.tar.gz")
+    train_reference_only_model(ref, "donor_id", "subclass", epochs=2, seed=0, out_tar="ref_only.tar.gz",
+                               reference="synthetic_reference-0123abcd")
 
     _, X = synthetic_counts(300)
     ad.AnnData(X, var=pd.DataFrame(index=genes), obs=pd.DataFrame(
@@ -66,7 +67,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check(gex.obsm["X_scANVI"].shape == (gex.n_obs, 30), "X_scANVI is the 30-dimensional latent")
     check(gex.uns.get("scanvi_input_id") == "s1", "uns records the input id")
     check(gex.uns.get("scanvi_input_file") == "sample.h5ad", "uns records the input file name")
-    check(gex.uns.get("scanvi_model") == "ref_only.tar.gz", "uns records the model file name")
+    check(gex.uns.get("scanvi_model") == "synthetic_reference-0123abcd", "uns names the model by its reference")
     check(set(gex.obs["final_annotation"].astype(str)) <= {"type0", "type1", "type2"},
           "labels come from the reference-only model")
     check(predictions.n_obs == gex.n_obs, "with a supplied model the predictions hold the sample only")

@@ -18,7 +18,7 @@ RUN set -eux; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY multiome_label_transfer.py gcs_utils.py label_transfer_from_preprocessed.py preprocess_query.py \
-     scp_output.py scanvi_sample.py validate_inputs.py make_reference_only_model.py \
+     scp_output.py scanvi_sample.py validate_inputs.py make_reference_only_model.py reference_id.py \
      test_seed_reproducibility.py test_scp_and_query_mapping.py .
 
 # Set tini as the entrypoint

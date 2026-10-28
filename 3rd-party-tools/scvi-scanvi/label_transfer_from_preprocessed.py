@@ -11,8 +11,9 @@ the outputs. The model comes from one of three places:
 With a supplied model the reference is not needed and the outputs hold the sample's cells only.
 
 The annotated matrices are written SCP-ready (see scp_output.py) and every output records the run
-provenance in uns. No sample metadata is added. scvi-tools picks the accelerator itself, so the
-same command runs on GPU and CPU machines.
+provenance in uns: the sample's id and input file, and in scanvi_model the reference the model was
+trained on (reference_id.py), carried in the model's reference.txt. No sample metadata is added.
+scvi-tools picks the accelerator itself, so the same command runs on GPU and CPU machines.
 
 Writes to the working directory:
   <input_id>_gex_annotated_matrix.h5ad
@@ -40,6 +41,7 @@ from multiome_label_transfer import (
     transfer_labels,
     finalize_output,
 )
+from reference_id import read_reference, write_reference
 from scp_output import make_scp_ready, write_h5ad
 
 QUERY_MAX_EPOCHS = 100   # scvi-tools' scArches tutorial value for training on the query
@@ -54,9 +56,8 @@ def _extract_model(model_tar):
     return os.path.dirname(matches[0])
 
 
-def load_supplied_model(gex, atac_activity, model_tar, query_max_epochs=None, batch_size=None):
-    """Fit a saved SCANVI model to this sample alone. Returns (data, model)."""
-    model_dir = _extract_model(model_tar)
+def load_supplied_model(gex, atac_activity, model_dir, query_max_epochs=None, batch_size=None):
+    """Fit the saved SCANVI model in model_dir to this sample alone. Returns (data, model)."""
     adatas, keys = [gex], ["rna_unannotated"]
     if atac_activity is not None:
         adatas, keys = [gex, atac_activity], ["rna_unannotated", "atac_unannotated"]
@@ -104,8 +105,11 @@ def label_transfer(gex, input_id, ref=None, atac_activity=None, scanvi_model_tar
     start = time.time()
     if scanvi_model_tar:
         print(f"Using the supplied SCANVI model {scanvi_model_tar}", flush=True)
-        data, lvae = load_supplied_model(gex, atac_activity, scanvi_model_tar, query_max_epochs, batch_size)
+        model_dir = _extract_model(scanvi_model_tar)
+        reference = read_reference(model_dir)
+        data, lvae = load_supplied_model(gex, atac_activity, model_dir, query_max_epochs, batch_size)
     else:
+        reference = ref.uns.get("scanvi_reference")   # set by the WDL's PreprocessReference
         print("Training SCVI and SCANVI on the reference plus this sample...", flush=True)
         train_kwargs = {k: v for k, v in [("max_epochs", max_epochs), ("batch_size", batch_size)] if v is not None}
         if atac_activity is not None:
@@ -119,11 +123,13 @@ def label_transfer(gex, input_id, ref=None, atac_activity=None, scanvi_model_tar
     if output_max_probability:
         data.obs["max_probability"] = lvae.predict(data, soft=True).max(axis=1).astype("float32")
 
+    # The model is named by the reference it was trained on; a model without reference.txt falls
+    # back to its archive's file name.
     provenance = {
         "scanvi_input_id": input_id,
         "scanvi_input_file": input_file,
-        "scanvi_model": (os.path.basename(scanvi_model_tar) if scanvi_model_tar
-                         else f"{input_id}_scanvi_model.tar.gz"),
+        "scanvi_model": str(reference) if reference else (
+            os.path.basename(scanvi_model_tar) if scanvi_model_tar else f"{input_id}_scanvi_model.tar.gz"),
     }
     print(f"Writing outputs (input_id={input_id})...", flush=True)
     gex = _annotate(gex, data, "_rna_unannotated", provenance, output_max_probability)
@@ -138,6 +144,8 @@ def label_transfer(gex, input_id, ref=None, atac_activity=None, scanvi_model_tar
     write_h5ad(predictions, f"{input_id}_SCANVI_predictions.h5ad")
 
     lvae.save("scanvi_model_out", save_anndata=False, overwrite=True)
+    if reference:
+        write_reference("scanvi_model_out", str(reference))
     with tarfile.open(f"{input_id}_scanvi_model.tar.gz", "w:gz") as tf:
         tf.add("scanvi_model_out")
     print(f"Done: {input_id} ({gex.n_obs} GEX cells, predictions {predictions.shape}).", flush=True)
