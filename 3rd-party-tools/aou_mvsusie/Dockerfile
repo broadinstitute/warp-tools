@@ -11,9 +11,9 @@
 #   docker buildx build --platform linux/amd64 -t <registry>/<name>:<tag> --push .
 #
 # Pinning: the R packages come from the dated Posit package snapshot that rocker/r-ver
-# uses for this R version, so CRAN versions are reproducible. mvsusieR is installed from
-# GitHub. Its API changed in its 2026 refactor (it now builds on susieR 2.0), so set
-# MVSUSIER_REF (and SUSIER_VERSION if needed) to match what trans_window_model.R was
+# uses for this R version, so CRAN versions are reproducible. mvsusieR and susieR
+# are installed from GitHub by default. Set MVSUSIER_REF and SUSIER_REF (or a released
+# CRAN SUSIER_VERSION) to match what trans_window_model.R was
 # written against. The "R session information" file written by FitMvSusie in the
 # collaborator's runs (session_info.txt) lists the exact versions.
 
@@ -21,6 +21,7 @@ FROM --platform=linux/amd64 rocker/r-ver:4.4.1
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG MVSUSIER_REF=HEAD
+ARG SUSIER_REF=HEAD
 ARG SUSIER_VERSION=""
 
 # Command-line tools used by the WDL tasks: tabix and bgzip (htslib), gzip, awk, sort, comm
@@ -46,8 +47,11 @@ RUN R -q -e 'options(Ncpus = 4L); \
       if (length(missing)) stop("Failed to install: ", paste(missing, collapse = ", "))'
 
 RUN if [ -n "${SUSIER_VERSION}" ]; then \
-      R -q -e "remotes::install_version('susieR', version = '${SUSIER_VERSION}', upgrade = 'never')"; \
-    fi
+      R -q -e "remotes::install_version('susieR', version = '${SUSIER_VERSION}', repos = 'https://cloud.r-project.org', upgrade = 'never'); stopifnot(as.character(packageVersion('susieR')) == '${SUSIER_VERSION}')"; \
+    else \
+      R -q -e 'remotes::install_github("stephenslab/susieR", ref = Sys.getenv("SUSIER_REF", "HEAD"), upgrade = "never")'; \
+    fi \
+ && R -q -e 'library(susieR); stopifnot(packageVersion("susieR") >= "0.15.54")'
 
 RUN R -q -e 'remotes::install_github("stephenslab/mvsusieR", ref = Sys.getenv("MVSUSIER_REF", "HEAD"), upgrade = "never")' \
  && R -q -e 'library(mvsusieR); library(mashr); library(susieR); \
