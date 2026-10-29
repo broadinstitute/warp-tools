@@ -36,6 +36,8 @@ RUN set -eux; \
             xz-dev \
             zlib-dev \
     ; \
+    # Security: brotli-libs (pulled in transitively via curl) < 1.2.1-r0 is vulnerable to CVE-2026-111497
+    apk upgrade --no-cache "brotli-libs>=1.2.1-r0"; \
     # Install BCFTools
     wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2; \
     tar xf bcftools-${BCFTOOLS_VERSION}.tar.bz2; \
