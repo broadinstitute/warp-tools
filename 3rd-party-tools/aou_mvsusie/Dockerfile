@@ -24,6 +24,14 @@ ARG MVSUSIER_REF=HEAD
 ARG SUSIER_REF=HEAD
 ARG SUSIER_VERSION=""
 
+LABEL org.opencontainers.image.title="WARP AoU mvSuSiE" \
+  org.opencontainers.image.description="R environment and AoU analysis scripts for CisMvSusie.wdl" \
+  org.opencontainers.image.source="https://github.com/broadinstitute/warp-tools" \
+  org.opencontainers.image.url="https://github.com/broadinstitute/warp-tools/tree/develop/3rd-party-tools/aou_mvsusie" \
+  org.broadinstitute.warp-tools.scripts.source="https://github.com/AoU-Multiomics-Analysis/mvSusieR" \
+  org.broadinstitute.warp-tools.mvsusier.source="https://github.com/stephenslab/mvsusieR" \
+  org.broadinstitute.warp-tools.susier.source="https://github.com/stephenslab/susieR"
+
 # Command-line tools used by the WDL tasks: tabix and bgzip (htslib), gzip, awk, sort, comm
 RUN apt-get update && apt-get install -y --no-install-recommends \
       tabix gzip gawk coreutils procps ca-certificates curl git \
