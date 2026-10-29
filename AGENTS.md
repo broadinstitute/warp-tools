@@ -21,7 +21,7 @@ Images publish to **GCR only** (`us.gcr.io/broad-gotc-prod/<image>`); CI builds 
 
 ## Keep scripts importable
 
-WARP pipelines frequently import specific functions from a baked-in script rather than calling its `main()` (e.g. scANVI runs `from multiome_label_transfer import run_multi_model, run_gex_only_model, …`). The imported function API — not `main()` — is the production contract. Preserve signatures/behavior, factor shared internals into a helper when adding a variant (scvi-scanvi: `_concat_and_train_models` is shared by `run_multi_model` and `run_gex_only_model`), and document hidden preconditions in docstrings. See [BUILDING.md → Adding or updating an image](BUILDING.md#adding-or-updating-an-image).
+WARP pipelines frequently import specific functions from a baked-in script rather than calling its `main()` (e.g. scANVI's `label_transfer_from_preprocessed.py` runs `from multiome_label_transfer import train_scvi, train_scanvi`). The imported function API — not `main()` — is the production contract. Preserve signatures/behavior, factor shared internals into a helper when adding a variant (scvi-scanvi: `train_scvi` serves both multiome and GEX-only mode), and document hidden preconditions in docstrings. See [BUILDING.md → Adding or updating an image](BUILDING.md#adding-or-updating-an-image).
 
 ## Local build & GPU testing
 
@@ -31,7 +31,7 @@ You can build and run these images locally — including GPU images — without 
 - **Build:** `flatpak-spawn --host podman build -t <tool>:local 3rd-party-tools/<tool>`.
 - **GPU passthrough:** the host NVIDIA Container Toolkit (`nvidia-ctk`) provides a CDI spec at `/etc/cdi/nvidia.yaml`; attach the GPU with `--device nvidia.com/gpu=all`. Smoke-test with `podman run --rm --device nvidia.com/gpu=all <img> nvidia-smi` and an in-container `python -c "import torch; print(torch.cuda.is_available())"`.
 - **Test edited code without rebuilding** by volume-mounting the changed script over the image copy: `-v "$PWD/3rd-party-tools/<tool>/script.py:/usr/local/script.py:Z"`.
-- **Verify a published image's contents** by importing the module and checking expected symbols, e.g. `python -c "import multiome_label_transfer as m; print(hasattr(m,'run_gex_only_model'))"`.
+- **Verify a published image's contents** by importing the module and checking expected symbols, e.g. `python -c "import multiome_label_transfer as m; print(hasattr(m,'train_scanvi'))"`.
 - **Pull auth (GCR):** `gcloud auth print-access-token | podman login -u oauth2accesstoken --password-stdin us.gcr.io`.
 
 ## Image-specific notes: scvi-scanvi (GPU)

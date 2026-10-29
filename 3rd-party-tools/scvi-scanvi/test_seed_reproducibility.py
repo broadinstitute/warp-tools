@@ -25,17 +25,22 @@ profiles = rng.gamma(1.0, 1.0, (n_types, n_genes))
 def make(n, prefix, batch, labeled):
     types = rng.integers(n_types, size=n)
     obs = pd.DataFrame({"batch": batch}, index=[f"{prefix}{i}" for i in range(n)])
-    obs["final_annotation"] = [f"type{t}" for t in types] if labeled else "Unknown"
-    X = sp.csr_matrix(rng.poisson(profiles[types] * 2).astype(np.float32))
-    return ad.AnnData(X, obs=obs, var=pd.DataFrame(index=[f"g{j}" for j in range(n_genes)]))
+    adata = ad.AnnData(sp.csr_matrix(rng.poisson(profiles[types] * 2).astype(np.float32)), obs=obs,
+                       var=pd.DataFrame(index=[f"g{j}" for j in range(n_genes)]))
+    if labeled:   # the form PreprocessReference writes
+        adata.obs["subclass"] = [f"type{t}" for t in types]
+        adata.uns["scanvi_levels"] = ["subclass"]
+        adata.uns["scanvi_reference"] = "synthetic-0123abcd"
+    return adata
 
 
 def run(tmp, name, *extra):
     workdir = os.path.join(tmp, name)
     os.mkdir(workdir)
     subprocess.run([sys.executable, script, "--gex", "../gex.h5ad", "--ref", "../ref.h5ad",
-                    "--input-id", "t", "--max-epochs", "2", *extra], cwd=workdir, check=True)
-    return ad.read_h5ad(os.path.join(workdir, "t_SCANVI_predictions.h5ad"))
+                    "--input-id", "t", "--gex-out", "gex_annotated.h5ad", "--max-epochs", "2", *extra],
+                   cwd=workdir, check=True)
+    return ad.read_h5ad(os.path.join(workdir, "gex_annotated.h5ad"))
 
 
 with tempfile.TemporaryDirectory() as tmp:
@@ -45,8 +50,8 @@ with tempfile.TemporaryDirectory() as tmp:
     second = run(tmp, "seeded2", "--seed", "42")
     run(tmp, "unseeded")
 
-same = (first.obs["celltype"].astype(str).equals(second.obs["celltype"].astype(str))
-        and np.array_equal(first.obsm["X_scANVI"], second.obsm["X_scANVI"]))
+same = (first.obs["subclass"].astype(str).equals(second.obs["subclass"].astype(str))
+        and np.array_equal(first.obsm["X_scANVI_subclass"], second.obsm["X_scANVI_subclass"]))
 print(("PASSED" if same else "FAILED") + ": --seed 42 labels and embedding "
       + ("identical" if same else "differ") + " across runs")
 sys.exit(0 if same else 1)

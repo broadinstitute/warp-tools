@@ -6,7 +6,7 @@ are unchanged, but the result is returned in memory instead of written to disk:
         with fewer than 3 counts, keep the counts in layers['counts'].
   ATAC  (multiome only) index by gex_barcodes, keep the barcodes shared with GEX, and convert the
         cell-by-bin matrix to a gene-activity matrix for the chosen genome.
-  Both  the batch label, the placeholder label 'Unknown', and the modality tag used downstream.
+  Both  the batch label and the modality tag used downstream.
 """
 import scanpy as sc
 
@@ -55,13 +55,11 @@ def preprocess_query(gex_path, atac_path=None, genome="hg38"):
         atac.obs["batch"] = ATAC_BATCH
         print(f"  Converting ATAC cell-by-bin to gene activity ({genome})...", flush=True)
         atac_activity = snap.pp.make_gene_matrix(atac, gene_anno=_gene_annotation(snap, genome))
-        atac_activity.obs["final_annotation"] = "Unknown"
         atac_activity.obs["modality"] = "atac_unannotated"
         print(f"  Gene activity matrix: {atac_activity.shape}", flush=True)
     else:
         gex = gex.copy()
 
     gex.obs["batch"] = GEX_BATCH
-    gex.obs["final_annotation"] = "Unknown"
     gex.obs["modality"] = "rna_unannotated"
     return gex, atac_activity

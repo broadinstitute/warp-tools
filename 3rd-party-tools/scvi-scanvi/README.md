@@ -34,23 +34,34 @@ docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>
 | Script | Language | Purpose |
 | --- | --- | --- |
 | `scanvi_sample.py` | Python | **WARP entry point.** Labels one sample end to end: `preprocess_query.py`, then `label_transfer()`. The scANVI WDL runs it once per sample, each in its own process. |
-| `validate_inputs.py` | Python | Checks every sample's input files and ids before any sample runs, reporting every problem at once. |
+| `validate_inputs.py` | Python | Checks every sample's input files and ids, and that no two outputs share a name, before any sample runs, reporting every problem at once. |
 | `preprocess_query.py` | Python | `preprocess_query(gex_path, atac_path, genome)`: one sample's GEX filtering and, in multiome mode, the ATAC gene-activity conversion (formerly the WDL's inline PreprocessFilter task). |
-| `label_transfer_from_preprocessed.py` | Python | `label_transfer()`: obtain the model (train, load, or map the sample onto a reference-only model), transfer labels, write outputs. Also a CLI over preprocessed files. `--seed N` makes training reproducible. |
-| `reference_id.py` | Python | `reference_id()`: names a reference by its `uns['title']` (or file name) plus the first 8 hex digits of the file's sha256; models carry it in `reference.txt`. |
+| `label_transfer_from_preprocessed.py` | Python | `label_transfer()`: for each label level, obtain the model (train, load, or map the sample onto a reference-only model) and transfer labels; then write outputs. Also a CLI over preprocessed files. `--seed N` makes training reproducible. |
+| `model_archive.py` | Python | The model archive (below): `write_archive()`, `read_archive()`, and `reference_id()`, which names a reference by its `uns['title']` (or file name) plus the first 8 hex digits of the file's sha256. warp-scanvi-training keeps a copy. |
 | `scp_output.py` | Python | `make_scp_ready()`: puts an annotated matrix in the form Single Cell Portal reads, with `.X` as log2(CPM + 1) (see [Outputs](#outputs)). |
-| `multiome_label_transfer.py` | Python | SCVI/SCANVI training and label transfer functions (below), imported by `label_transfer_from_preprocessed.py`. No CLI. |
-| `make_reference_only_model.py` | Python | Trains a SCANVI model on a reference alone, the way warp-scanvi-training does. Builds the WARP query-mapping test fixture. |
+| `multiome_label_transfer.py` | Python | SCVI/SCANVI training on a reference plus one sample (below), imported by `label_transfer_from_preprocessed.py`. No CLI. |
+| `make_reference_only_model.py` | Python | Trains scVI and a SCANVI per label level on a reference alone, the way warp-scanvi-training does, into a model archive. Builds the WARP query-mapping test fixture. |
 | `test_seed_reproducibility.py` | Python | CI check: two `--seed 42` training runs on synthetic data must give identical labels and embedding. |
-| `test_scp_and_query_mapping.py` | Python | CI check: SCP-ready outputs, run provenance and query mapping onto a reference-only model, on synthetic data; and that `validate_inputs.py` rejects bad inputs. |
+| `test_scp_and_query_mapping.py` | Python | CI check: SCP-ready outputs, run provenance and query mapping onto a two-level reference-only model, on synthetic data; and that `validate_inputs.py` rejects bad inputs. |
 
 Key importable functions in `multiome_label_transfer.py`:
 
-- `run_multi_model(gex, atac_activity, ref)` — train SCVI+SCANVI on GEX + ATAC activity + reference.
-- `run_gex_only_model(gex, ref)` — train SCVI+SCANVI on GEX + reference only (GEX-only mode).
-- `_concat_and_train_models(adatas, keys)` — shared training core used by both of the above (avoids drift).
-- `transfer_labels(data, lvae)` — predict labels (`C_scANVI`), store the latent (`X_scANVI`), and fit neighbors and a UMAP on it. Returns `data`.
-- `finalize_output(scanvi_output)` — rename `final_annotation` → `celltype`, copy counts into `.raw`. Adds no sample metadata.
+- `train_scvi(gex, atac_activity, ref)` — concatenate the sample (GEX, plus ATAC activity in multiome mode) with the reference and train SCVI. Returns `(data, vae)`.
+- `train_scanvi(data, vae, ref, level)` — train a SCANVI from `vae` with the reference's `obs[level]` as labels; the sample's cells are unlabelled.
+
+### Model archive
+
+One `.tar.gz` holds every model trained from one reference (`model_archive.py`):
+
+```text
+scanvi_model/
+  reference.txt             the reference id: the model's name in every output
+  levels.txt                the label levels, one per line, in order; the first is SCP's default
+  scvi/model.pt             the scVI model the SCANVI models were trained from (optional)
+  scanvi/<level>/model.pt   one SCANVI model per label level, e.g. class, subclass
+```
+
+Models are saved without data. Level names are limited to letters, digits, `_`, `.` and `-`, because each becomes an `obs` column and part of `obsm` keys.
 
 ## Inputs
 
@@ -58,26 +69,27 @@ Key importable functions in `multiome_label_transfer.py`:
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `--input-id` | yes | The sample's id; it prefixes every output file and is recorded in each output. |
+| `--input-id` | yes | The sample's id, recorded in each output. |
 | `--gex` | yes | The sample's GEX h5ad (Optimus output). A missing `obs['star_IsCell']` is added as all True. |
-| `--atac` | no | The sample's ATAC cell-by-bin h5ad (multiome mode); barcodes are matched through `obs['gex_barcodes']` (or the index). |
+| `--gex-out` | yes | Path of the annotated GEX h5ad to write (the WDL uses `<gex file name>_annotated.h5ad`). |
+| `--atac`, `--atac-out` | no | The sample's ATAC cell-by-bin h5ad (multiome mode; barcodes are matched through `obs['gex_barcodes']` or the index), and the annotated ATAC h5ad to write. |
 | `--genome` | no | Genome for the ATAC gene-activity conversion: `hg38` (default), `mm10` or `mm39`. |
-| `--scanvi-model` | one of these two | A saved SCANVI model (`.tar.gz`), used instead of training. |
-| `--ref` | one of these two | A reference preprocessed by the WDL's PreprocessReference task (counts in `.X`, labels in `obs['final_annotation']`, batch in `obs['batch']`), to train on. |
-| `--max-epochs`, `--query-max-epochs`, `--batch-size`, `--seed`, `--output-max-probability` | no | Training epochs (default 500), query-mapping epochs (default 100), minibatch size (default 128), random seed, and a `max_probability` column. |
+| `--scanvi-model` | one of these two | A model archive (`.tar.gz`), used instead of training. |
+| `--ref` | one of these two | A reference preprocessed by the WDL's PreprocessReference task (counts in `.X`, one string column per label level listed in `uns['scanvi_levels']`, batch in `obs['batch']`), to train on. |
+| `--model-out` | no | When training, also write the trained models as a model archive. |
+| `--max-epochs`, `--query-max-epochs`, `--batch-size`, `--seed`, `--output-max-probability` | no | Training epochs (default 500), query-mapping epochs (default 100), minibatch size (default 128), random seed, and a `<level>_max_probability` column per level. |
 
 ## Outputs
 
-`scanvi_sample.py` and `label_transfer_from_preprocessed.py` write, prefixed by the sample's input id and compressed with gzip:
+`scanvi_sample.py` and `label_transfer_from_preprocessed.py` write to the paths given, compressed with gzip:
 
 | Output | Format | Description |
 | --- | --- | --- |
-| `<id>_gex_annotated_matrix.h5ad` | AnnData | The sample's GEX cells with transferred `final_annotation`, in SCP form (below). |
-| `<id>_atac_annotated_matrix.h5ad` | AnnData | The sample's ATAC gene-activity cells, same form (multiome mode only). |
-| `<id>_SCANVI_predictions.h5ad` | AnnData | The labelled data the model saw (`celltype`, latent, UMAP; counts in `.raw`): the sample only with a supplied model, the sample plus the reference when training. |
-| `<id>_scanvi_model.tar.gz` | tar.gz | The minimal SCANVI model (no bundled data) plus `reference.txt`, reusable as `--scanvi-model`. |
+| `--gex-out` | AnnData | The sample's GEX cells with their labels at each level, in SCP form (below). |
+| `--atac-out` | AnnData | The sample's ATAC gene-activity cells, same form (multiome mode only). |
+| `--model-out` | tar.gz | Training only: the model archive (scVI plus a SCANVI per level, no bundled data), reusable as `--scanvi-model`. |
 
-SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); `obsm['X_scANVI']`, the 30-dimensional latent; `obsm['X_umap']`, 2 columns fitted on the sample's own latent; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file` and `scanvi_model`, the model's name, which is its reference's id from `reference.txt` (or the archive's file name when it has none). No sample metadata is added.
+SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); per level, the labels in `obs['<level>']`, the 30-dimensional latent in `obsm['X_scANVI_<level>']` and a 2-column UMAP fitted on it, for the sample's own cells, in `obsm['X_umap_<level>']`; `obsm['X_umap']` is a copy of the first level's; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file`, `scanvi_model` (the model's name, its reference's id from `reference.txt`), `scanvi_levels` and `scanvi_versions`. No sample metadata is added.
 
 ## Usage
 
@@ -89,6 +101,7 @@ docker run --rm -v /files:/files -w /files \
     python3 /usr/local/scanvi_sample.py \
       --input-id sample_a \
       --gex /files/sample_a_gex.h5ad \
+      --gex-out /files/sample_a_gex_annotated.h5ad \
       --scanvi-model /files/scanvi_model.tar.gz
 ```
 
@@ -98,8 +111,8 @@ To train instead, pass `--ref` with a reference prepared by the WDL's Preprocess
 
 This image is consumed by the WARP [scANVI pipeline](https://github.com/broadinstitute/warp/tree/develop/pipelines/wdl/scanvi/scANVI.wdl):
 
-- **`PreprocessReference`** (CPU, training runs only) — runs inline Python to adapt the reference; does not import from the scripts.
-- **`MultiomeLabelTransfer`** (GPU/CPU) — runs `/usr/local/validate_inputs.py` once, then `/usr/local/scanvi_sample.py` once per sample, each in its own process and working directory. A supplied model that knows the sample's batch label is loaded as is; one trained on the reference alone gets the sample mapped onto it (`SCANVI.load_query_data` plus `--query-max-epochs` of training on the sample).
+- **`PreprocessReference`** (CPU, training runs only) — runs inline Python to adapt the reference; imports `check_levels()` and `reference_id()` from `/usr/local/model_archive.py`.
+- **`MultiomeLabelTransfer`** (GPU/CPU) — runs `/usr/local/validate_inputs.py` once, then `/usr/local/scanvi_sample.py` once per sample, each in its own process and working directory. For each level, a supplied model that knows the sample's batch label is loaded as is; one trained on the reference alone gets the sample mapped onto it (`SCANVI.load_query_data` plus `--query-max-epochs` of training on the sample).
 
 The imported function API is the production contract — keep signatures and behavior stable (see [AGENTS.md → Keep scripts importable](../../AGENTS.md#keep-scripts-importable)).
 

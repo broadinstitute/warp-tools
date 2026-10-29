@@ -1,6 +1,7 @@
 """Check every query input before any sample is processed, and report every problem at once.
 
-  python3 validate_inputs.py --input-ids a b --gex a.h5ad b.h5ad [--atac a_atac.h5ad b_atac.h5ad]
+  python3 validate_inputs.py --input-ids a b --gex a.h5ad b.h5ad [--atac a_atac.h5ad b_atac.h5ad] \
+      --outputs a_annotated.h5ad b_annotated.h5ad ...
 """
 import argparse
 import os
@@ -27,6 +28,7 @@ def main():
     p.add_argument("--input-ids", nargs="+", required=True)
     p.add_argument("--gex", nargs="+", required=True)
     p.add_argument("--atac", nargs="*", default=[])
+    p.add_argument("--outputs", nargs="*", default=[], help="Every output file name of the run.")
     a = p.parse_args()
 
     errors = []
@@ -35,10 +37,14 @@ def main():
                       "files do not line up (ATAC must be empty or one per GEX file)")
     duplicates = sorted({i for i in a.input_ids if a.input_ids.count(i) > 1})
     if duplicates:
-        errors.append(f"input ids must be unique, because outputs are named by id: {duplicates}")
-    bad_ids = [i for i in a.input_ids if not i or "/" in i]
-    if bad_ids:
-        errors.append(f"input ids cannot be empty or contain '/': {bad_ids}")
+        errors.append(f"input ids must be unique: {duplicates}")
+    if not all(a.input_ids):
+        errors.append("input ids cannot be empty")
+    # Outputs are named after the input files, so two inputs with the same file name collide.
+    clashes = sorted({o for o in a.outputs if a.outputs.count(o) > 1})
+    if clashes:
+        errors.append(f"input files must have distinct names, because outputs are named after them: "
+                      f"{clashes} would be written twice")
     for i, input_id in enumerate(a.input_ids):
         files = [(a.gex[i] if i < len(a.gex) else None, "GEX"),
                  (a.atac[i] if i < len(a.atac) else None, "ATAC")]
