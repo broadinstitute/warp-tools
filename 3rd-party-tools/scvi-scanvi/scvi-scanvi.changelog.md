@@ -10,6 +10,7 @@
 * Removed the scipy<1.14 pin (added 2026-09-04 for an anndata backed-CSR bug that no longer reproduces). The image now resolves anndata 0.13.4 and scipy 1.18.1, with scvi-tools 1.5.1, snapatac2 2.10.0, torch 2.15.0, lightning 2.6.6, scanpy 1.12.4, numpy 2.5.4 and pandas 2.3.3. Outputs are identical to the pinned build's on the WARP Plumbing data, and anndata 0.10.8 reads them
 * Added /usr/local/versions.txt (the build's pip freeze), printed by the CI build so every build's versions are on record
 * Added test_scp_and_query_mapping.py to CI, beside the seed test
+* Updated make_reference_only_model.py to train the way warp-scanvi-training does since 2026-10-29: negative binomial, dispersion gene, scvi-tools' scArches settings (covariates encoded, layer norm, no batch norm, dropout 0.2) and scVI set up without labels; default 200 epochs, because those settings converge slowly on a small reference
 * Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:2f32323adcb5dafcca4ce4326316eb0a23dc9a1701ce96fd13b175e10907ffba, pinned by WARP scANVI 3.0.0
 
 # 1.4.0
