@@ -11,7 +11,7 @@
 * Added /usr/local/versions.txt (the build's pip freeze), printed by the CI build so every build's versions are on record
 * Added test_scp_and_query_mapping.py to CI, beside the seed test
 * Updated make_reference_only_model.py to train the way warp-scanvi-training does since 2026-10-29: negative binomial, dispersion gene, scvi-tools' scArches settings (covariates encoded, layer norm, no batch norm, dropout 0.2) and scVI set up without labels; default 200 epochs, because those settings converge slowly on a small reference
-* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:2f32323adcb5dafcca4ce4326316eb0a23dc9a1701ce96fd13b175e10907ffba, pinned by WARP scANVI 3.0.0
+* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:1104c3af170132945a61757e3558bab15e13b53c408629a5e8aa532566bfe7e6, pinned by WARP scANVI 3.0.0
 
 # 1.4.0
 2026-10-22 (Date of Last Commit)

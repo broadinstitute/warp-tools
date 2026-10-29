@@ -2,4 +2,4 @@ DOCKER_VERSION
 us.gcr.io/broad-gotc-prod/scvi-scanvi:1.0.0-1.2-1756234975
 us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:e3ac81e74796993e1d37c0fc0c6226aae9e9c7dcff26093c9fcd22e6cbf60fc2
 us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:077d776c1957029b32ef79f12b6dac02e43d5673b70e915d1d690d95612a9831
-us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:2f32323adcb5dafcca4ce4326316eb0a23dc9a1701ce96fd13b175e10907ffba
+us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:1104c3af170132945a61757e3558bab15e13b53c408629a5e8aa532566bfe7e6
