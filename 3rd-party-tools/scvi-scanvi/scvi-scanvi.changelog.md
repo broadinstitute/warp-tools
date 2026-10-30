@@ -2,6 +2,7 @@
 2026-10-30 (Date of Last Commit)
 
 * Renamed obsm['X_scANVI_<level>'] to obsm['X_scVI_<level>']: the 30-dimensional latent is the scVI encoder's z (as trained with that level's SCANVI model), not a SCANVI-specific space. Values are unchanged
+* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:938baa80261c9d2122838403d36e000cf914035705f4cbddc6eed34595289386, pinned by WARP scANVI 3.0.0
 
 # 1.5.0
 2026-10-29 (Date of Last Commit)
@@ -19,7 +20,7 @@
 * Added /usr/local/versions.txt (the build's pip freeze), printed by the CI build so every build's versions are on record
 * Added test_scp_and_query_mapping.py to CI, beside the seed test
 * Updated make_reference_only_model.py to train the way warp-scanvi-training does since 2026-10-29: negative binomial, dispersion gene, scvi-tools' scArches settings (covariates encoded, layer norm, no batch norm, dropout 0.2) and scVI set up without labels, then a SCANVI per --levels entry, into a model archive; default 200 epochs, because those settings converge slowly on a small reference
-* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:eaadce983e21a8cac8461d99bc20489b887451f0e24f364a7f9a1013b972d811, pinned by WARP scANVI 3.0.0
+* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:eaadce983e21a8cac8461d99bc20489b887451f0e24f364a7f9a1013b972d811
 
 # 1.4.0
 2026-10-22 (Date of Last Commit)
