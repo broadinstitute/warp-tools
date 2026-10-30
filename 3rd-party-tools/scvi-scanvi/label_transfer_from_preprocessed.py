@@ -1,173 +1,201 @@
-"""scANVI label transfer from PREPROCESSED inputs — the post-preprocessing half of the pipeline.
+"""scANVI label transfer for one sample, after preprocessing.
 
-PreprocessFilter (in scANVI.wdl) has already filtered/batch-labeled/modality-tagged the GEX,
-reference, and (optional) ATAC-activity h5ads. This script runs everything after that: obtain the
-SCANVI model (LOAD a supplied .tar.gz, else TRAIN SCVI+SCANVI), transfer labels, optionally record
-per-cell max posterior, propagate labels back to the matrices, finalize metadata, and write outputs.
+Labels the sample at every label level of the model (model_archive.py): each level has its own
+SCANVI model, and each gives the sample a label column, a latent and a UMAP. The models come from
+one of three places:
+  - no model supplied: train SCVI on the reference plus this sample, then one SCANVI per level of
+    the reference (needs --ref);
+  - a model this pipeline trained: it already knows the sample's batch label, so each level loads
+    and predicts on the sample alone;
+  - a model trained on the reference alone (warp-scanvi-training): the sample's batch is new to
+    it, so the sample is mapped onto each level with scArches (load_query_data plus a short
+    training on the sample alone).
+With a supplied model the reference is not needed. A supplied model whose genes are Ensembl IDs is
+matched through the sample's Ensembl IDs, looked up from its Optimus ensembl_ids column.
 
-Kept separate from main() (which re-runs preprocessing) so the WDL task is a single command instead
-of a large inline heredoc, and so the identical command runs unchanged on GPU or CPU nodes —
-scvi-tools auto-detects the accelerator (accelerator="auto"), so no device handling is needed here.
-Living in the container with run_multi_model/run_gex_only_model also means the training kwargs
-(max_epochs, batch_size) can never skew against the WDL.
+The annotated matrices are written SCP-ready (see scp_output.py) and record the run provenance in
+uns: the sample's id and input file, the model's name (the reference it was trained on), its
+levels and the image's library versions. No sample metadata is added. scvi-tools picks the
+accelerator itself, so the same command runs on GPU and CPU machines.
 
-Writes to the working directory:
-  <input_id>_SCANVI_predictions.h5ad
-  <input_id>_gex_annotated_matrix.h5ad
-  <input_id>_atac_annotated_matrix.h5ad   (multiome mode only)
-  <input_id>_scanvi_model.tar.gz          (minimal SCANVI model, no bundled adata)
-
-  python3 label_transfer_from_preprocessed.py --gex g.h5ad --ref r.h5ad --input-id ID \
-      [--atac a.h5ad] [--scanvi-model m.tar.gz] [--max-epochs N] [--batch-size N] \
-      [--output-max-probability]
+  python3 label_transfer_from_preprocessed.py --gex g.h5ad --input-id ID --gex-out g_annotated.h5ad \
+      (--scanvi-model m.tar.gz | --ref r.h5ad [--model-out m.tar.gz]) [--atac a.h5ad --atac-out ...] \
+      [--max-epochs N] [--query-max-epochs N] [--batch-size N] [--seed N] [--output-max-probability]
 """
 import argparse
-import glob
+import importlib.metadata
 import os
-import tarfile
+import re
 import time
 
 import anndata as ad
+import numpy as np
 import scanpy as sc
-
+import scvi
 import torch
 
+from model_archive import read_archive, write_archive
+from multiome_label_transfer import train_scanvi, train_scvi
+from scp_output import make_scp_ready, write_h5ad
 
-from multiome_label_transfer import (
-    run_multi_model,
-    run_gex_only_model,
-    transfer_labels,
-    finalize_output,
-)
+QUERY_MAX_EPOCHS = 100   # scvi-tools' scArches tutorial value for training on the query
+ENSEMBL_ID = re.compile(r"ENS[A-Z]*G\d+")
 
 
-def label_transfer_from_preprocessed(gex_path, ref_path, input_id, atac_path=None,
-                                     scanvi_model_tar=None, max_epochs=None, batch_size=None,
-                                     output_max_probability=False):
-    atac_present = bool(atac_path)
-    print(f"Mode: {'multiome (GEX + ATAC)' if atac_present else 'GEX-only (no ATAC)'}", flush=True)
+def match_gene_ids(data, gex, model_dir):
+    """Name the sample's genes (data, the sample's modelling copy) the way the model does: for a
+    model whose genes are Ensembl IDs, each gene symbol is looked up in the sample's Ensembl ID
+    column. The annotated outputs keep the sample's own names. Prints the genes in common."""
+    model_genes = list(torch.load(os.path.join(model_dir, "model.pt"), map_location="cpu",
+                                  weights_only=False)["var_names"])
+    if sum(bool(ENSEMBL_ID.fullmatch(g)) for g in model_genes[:100]) > 50:
+        column = next((c for c in ("ensembl_ids", "gene_ids", "ensembl_id") if c in gex.var), None)
+        if column is None:
+            raise SystemExit("ERROR: the model names genes by Ensembl ID, but the sample has no Ensembl ID "
+                             "column (Optimus writes var['ensembl_ids']).")
+        lookup = dict(zip(gex.var_names, gex.var[column].astype(str).str.replace(r"\.\d+$", "", regex=True)))
+        data.var_names = [lookup.get(g, g) for g in data.var_names]
+        print(f"  The model names genes by Ensembl ID; looked them up in var['{column}'].", flush=True)
+    found = len(set(model_genes) & set(data.var_names))
+    print(f"  The sample has {found:,} of the model's {len(model_genes):,} genes.", flush=True)
+    return data
 
-    # ── 1. Load preprocessed inputs (no re-preprocessing) ────────────────────
-    print("Loading preprocessed inputs (no re-preprocessing)...", flush=True)
-    gex = sc.read_h5ad(gex_path)
-    ref = sc.read_h5ad(ref_path)
-    print(f"  GEX:       {gex.shape}", flush=True)
-    print(f"  Reference: {ref.shape}", flush=True)
-    atac_activity = None
-    if atac_present:
-        atac_activity = sc.read_h5ad(atac_path)
-        print(f"  ATAC activity: {atac_activity.shape}", flush=True)
 
-    timing = {}
+def load_supplied_model(data, model_dir, query_max_epochs=None, batch_size=None):
+    """Fit one level's saved SCANVI model in model_dir to this sample alone. Returns (query, model),
+    where query is data with its genes matched to the model's."""
+    query = scvi.model.SCANVI.prepare_query_anndata(data, model_dir, inplace=False)
+    registry = scvi.model.SCANVI.load_registry(model_dir)
+    known = registry["field_registries"]["batch"]["state_registry"]["categorical_mapping"]
+    new = sorted(set(query.obs["batch"].astype(str)) - set(map(str, known)))
+    if not new:
+        print("  The model knows this sample's batch label; loading it as is.", flush=True)
+        return query, scvi.model.SCANVI.load(model_dir, adata=query)
+
+    epochs = query_max_epochs or QUERY_MAX_EPOCHS
+    print(f"  Batch {new} is new to the model; mapping the sample onto it (scArches, "
+          f"{epochs} epochs on the sample).", flush=True)
+    model = scvi.model.SCANVI.load_query_data(query, model_dir)
+    model.train(max_epochs=epochs, batch_size=batch_size or 128,
+                plan_kwargs={"weight_decay": 0.0}, datasplitter_kwargs={"drop_last": True})
+    return query, model
+
+
+def _predict(lvae, adata, with_probability):
+    """(labels, latent, max posterior or None) for every cell of adata."""
+    labels = np.asarray(lvae.predict(adata)).astype(str)
+    latent = lvae.get_latent_representation(adata)
+    probability = None
+    if with_probability:
+        probability = lvae.predict(adata, soft=True).max(axis=1).to_numpy(dtype="float32")
+    return labels, latent, probability
+
+
+def _annotate(matrix, obs_names, suffix, results, provenance):
+    """Copy this matrix's rows of each level's labels and latent, then make it SCP-ready."""
+    rows = obs_names.get_indexer(matrix.obs_names + suffix)
+    if (rows < 0).any():
+        raise ValueError(f"{(rows < 0).sum()} cells of the matrix are missing from the labelled data.")
+    for level, (labels, _, probability) in results.items():
+        if level in matrix.obs:
+            print(f"  The input's obs['{level}'] is replaced by the predicted labels.", flush=True)
+        matrix.obs[level] = labels[rows]
+        if probability is not None:
+            matrix.obs[f"{level}_max_probability"] = probability[rows]
+    latents = {level: latent[rows] for level, (_, latent, _) in results.items()}
+    return make_scp_ready(matrix, latents, provenance)
+
+
+def label_transfer(gex, input_id, gex_out, ref=None, atac_activity=None, atac_out=None,
+                   scanvi_model_tar=None, model_out=None, max_epochs=None, query_max_epochs=None,
+                   batch_size=None, output_max_probability=False, seed=None, input_file=""):
+    """Label one preprocessed sample (in memory) at every level and write its outputs."""
+    if not scanvi_model_tar and ref is None:
+        raise SystemExit("ERROR: give a reference (to train) or a SCANVI model (to predict).")
+    # Unset (default): training is nondeterministic. Tests pin a seed to make runs reproducible.
+    if seed is not None:
+        scvi.settings.seed = seed
+
+    results = {}   # level -> (labels, latent, max posterior), one row per cell of data
     start = time.time()
-
-    # ── 2. Obtain the SCANVI model: load a supplied one, else train ──────────
     if scanvi_model_tar:
-        import scvi
-        print(f"Loading supplied SCANVI model (skip training): {scanvi_model_tar}", flush=True)
-        extract_dir = "scanvi_model_in"
-        with tarfile.open(scanvi_model_tar) as tf:
-            tf.extractall(extract_dir, filter="data")
-        matches = glob.glob(f"{extract_dir}/**/model.pt", recursive=True)
-        if len(matches) != 1:
-            raise ValueError(f"Expected exactly 1 model.pt in archive, found {len(matches)}.")
-        model_dir = os.path.dirname(matches[0])
-        # Rebuild the concat exactly as training does (so genes/labels line up), align to the model's
-        # saved gene set, and load. No training is performed.
-        if atac_present:
-            adatas, keys = [gex, atac_activity, ref], ["rna_unannotated", "atac_unannotated", "rna_annotated"]
-        else:
-            adatas, keys = [gex, ref], ["rna_unannotated", "rna_annotated"]
+        print(f"Using the supplied model {scanvi_model_tar}", flush=True)
+        reference, level_dirs = read_archive(scanvi_model_tar)
+        adatas, keys = [gex], ["rna_unannotated"]
+        if atac_activity is not None:
+            adatas, keys = [gex, atac_activity], ["rna_unannotated", "atac_unannotated"]
         data = ad.concat(adatas, join="inner", label="modality", keys=keys, index_unique="_")
-        sc.pp.filter_genes(data, min_cells=5)
         data.obs["celltype_scanvi"] = "Unknown"
-        scvi.model.SCANVI.prepare_query_anndata(data, model_dir)   # subset/pad to the model's var_names
-        lvae = scvi.model.SCANVI.load(model_dir, adata=data)
-        timing["Model Load"] = time.time() - start
-        print(f"  Model loaded in {timing['Model Load']:.1f}s", flush=True)
+        data = match_gene_ids(data, gex, next(iter(level_dirs.values())))
+        for level, model_dir in level_dirs.items():
+            print(f"Level '{level}':", flush=True)
+            query, lvae = load_supplied_model(data, model_dir, query_max_epochs, batch_size)
+            results[level] = _predict(lvae, query, output_max_probability)
     else:
-        print("Training SCVI and SCANVI models...", flush=True)
-        train_kwargs = {}
-        if max_epochs is not None:
-            train_kwargs["max_epochs"] = max_epochs
-        if batch_size is not None:
-            train_kwargs["batch_size"] = batch_size
-        print(f"  training kwargs: {train_kwargs}", flush=True)
-        if atac_present:
-            data, vae, lvae = run_multi_model(gex, atac_activity, ref, **train_kwargs)
-        else:
-            data, vae, lvae = run_gex_only_model(gex, ref, **train_kwargs)
-        timing["Model Training"] = time.time() - start
-        print(f"  Model training complete in {timing['Model Training']:.1f}s", flush=True)
+        reference = ref.uns.get("scanvi_reference")   # set by the WDL's PreprocessReference
+        levels = [str(level) for level in ref.uns["scanvi_levels"]]
+        train_kwargs = {k: v for k, v in [("max_epochs", max_epochs), ("batch_size", batch_size)] if v is not None}
+        print("Training SCVI on the reference plus this sample...", flush=True)
+        data, vae = train_scvi(gex, atac_activity, ref, **train_kwargs)
+        if model_out:
+            vae.save("models_out/scvi", save_anndata=False, overwrite=True)
+        for level in levels:
+            print(f"Training SCANVI on level '{level}'...", flush=True)
+            lvae = train_scanvi(data, vae, ref, level, **train_kwargs)
+            results[level] = _predict(lvae, data, output_max_probability)
+            if model_out:
+                lvae.save(f"models_out/scanvi/{level}", save_anndata=False, overwrite=True)
+        if model_out:
+            write_archive(model_out, str(reference), "models_out/scvi",
+                          {level: f"models_out/scanvi/{level}" for level in levels})
+    print(f"  Labelled at levels {list(results)} in {time.time() - start:.1f}s", flush=True)
 
-    # ── 3. Transfer labels using the trained/loaded SCANVI model ─────────────
-    print("Transferring labels with SCANVI...", flush=True)
-    start = time.time()
-    _plot, data = transfer_labels(data, lvae)
-    timing["Label Transfer"] = time.time() - start
-
-    # ── 3b. Optional per-cell label confidence (max posterior probability) ───
-    if output_max_probability:
-        print("Computing per-cell max label probability (SCANVI predict soft=True)...", flush=True)
-        soft_probs = lvae.predict(data, soft=True)
-        data.obs["max_probability"] = soft_probs.max(axis=1).astype("float32")
-
-    # ── 4. Propagate predicted labels back to the original matrices ──────────
-    print("Propagating predicted labels to GEX matrix...", flush=True)
-    gex.obs["final_annotation"] = data.obs.loc[gex.obs_names + "_rna_unannotated"]["C_scANVI"].to_numpy()
-    if output_max_probability:
-        gex.obs["max_probability"] = data.obs.loc[gex.obs_names + "_rna_unannotated"]["max_probability"].to_numpy()
-    if atac_present:
-        print("Propagating predicted labels to ATAC matrix...", flush=True)
-        atac_activity.obs["final_annotation"] = data.obs.loc[
-            atac_activity.obs_names + "_atac_unannotated"]["C_scANVI"].to_numpy()
-        if output_max_probability:
-            atac_activity.obs["max_probability"] = data.obs.loc[
-                atac_activity.obs_names + "_atac_unannotated"]["max_probability"].to_numpy()
-
-    # ── 5. Write annotated GEX (and ATAC) matrices ───────────────────────────
-    print(f"Writing annotated matrices (input_id={input_id})...", flush=True)
-    gex.write(f"{input_id}_gex_annotated_matrix.h5ad")
-    print(f"  {input_id}_gex_annotated_matrix.h5ad:  {gex.shape}", flush=True)
-    if atac_present:
-        atac_activity.write(f"{input_id}_atac_annotated_matrix.h5ad")
-        print(f"  {input_id}_atac_annotated_matrix.h5ad: {atac_activity.shape}", flush=True)
-
-    # ── 6. Finalize SCANVI predictions (metadata + raw counts for SCP) ───────
-    print("Finalizing SCANVI predictions...", flush=True)
-    data.obs["final_annotation"] = data.obs["C_scANVI"]
-    final_data = finalize_output(data)
-    final_data.write(f"{input_id}_SCANVI_predictions.h5ad")
-    print(f"  {input_id}_SCANVI_predictions.h5ad:    {final_data.shape}", flush=True)
-
-    # ── 7. Emit the minimal SCANVI model (no adata), tar'd for reuse ─────────
-    print("Saving minimal SCANVI model (no adata)...", flush=True)
-    lvae.save("scanvi_model_out", save_anndata=False, overwrite=True)
-    with tarfile.open(f"{input_id}_scanvi_model.tar.gz", "w:gz") as tf:
-        tf.add("scanvi_model_out")
-
-    print("Timing:", {k: f"{v:.1f}s" for k, v in timing.items()}, flush=True)
-    print("label_transfer_from_preprocessed complete.", flush=True)
+    # scanvi_model names the model by the reference it was trained on (reference.txt); a model
+    # without one falls back to its archive's file name.
+    provenance = {
+        "scanvi_input_id": input_id,
+        "scanvi_input_file": input_file,
+        "scanvi_model": str(reference) if reference else os.path.basename(scanvi_model_tar or model_out or ""),
+        "scanvi_levels": list(results),
+        "scanvi_versions": {p: importlib.metadata.version(p) for p in
+                            ("scvi-tools", "torch", "scanpy", "anndata", "snapatac2", "numpy", "scipy")},
+    }
+    print(f"Writing outputs (input_id={input_id})...", flush=True)
+    gex = _annotate(gex, data.obs_names, "_rna_unannotated", results, provenance)
+    write_h5ad(gex, gex_out)
+    if atac_activity is not None:
+        atac_activity = _annotate(atac_activity, data.obs_names, "_atac_unannotated", results, provenance)
+        write_h5ad(atac_activity, atac_out)
+    print(f"Done: {input_id} ({gex.n_obs} GEX cells) -> {os.path.basename(gex_out)}", flush=True)
 
 
-def _parse_args():
-    p = argparse.ArgumentParser(description="scANVI label transfer from preprocessed inputs.")
-    p.add_argument("--gex", required=True, help="Preprocessed GEX h5ad.")
-    p.add_argument("--ref", required=True, help="Preprocessed reference h5ad.")
-    p.add_argument("--input-id", required=True, help="Prefix for all output filenames.")
-    p.add_argument("--atac", default=None, help="Preprocessed ATAC activity h5ad (multiome mode).")
-    p.add_argument("--scanvi-model", default=None, help="Saved SCANVI model .tar.gz to load (skip training).")
+def add_label_transfer_args(p):
+    p.add_argument("--input-id", required=True, help="The sample's id, recorded in uns['scanvi_input_id'].")
+    p.add_argument("--gex-out", required=True, help="Path of the annotated GEX h5ad to write.")
+    p.add_argument("--atac-out", default=None, help="Path of the annotated ATAC h5ad to write (multiome).")
+    p.add_argument("--ref", default=None, help="Preprocessed reference h5ad (needed to train).")
+    p.add_argument("--scanvi-model", default=None, help="Model archive .tar.gz to use instead of training.")
+    p.add_argument("--model-out", default=None, help="When training, also write the trained models here.")
     p.add_argument("--max-epochs", type=int, default=None, help="SCVI/SCANVI training epochs (container default 500).")
+    p.add_argument("--query-max-epochs", type=int, default=None,
+                   help=f"Epochs when mapping a sample onto a reference-only model (default {QUERY_MAX_EPOCHS}).")
     p.add_argument("--batch-size", type=int, default=None, help="SCVI/SCANVI minibatch size (container default 128).")
     p.add_argument("--output-max-probability", action="store_true",
-                   help="Also write a max_probability obs column (the assigned label's confidence).")
-    return p.parse_args()
+                   help="Also write a <level>_max_probability obs column (each label's confidence).")
+    p.add_argument("--seed", type=int, default=None,
+                   help="Random seed for reproducible SCVI/SCANVI training (default: unseeded).")
 
 
 if __name__ == "__main__":
-    a = _parse_args()
-    label_transfer_from_preprocessed(
-        gex_path=a.gex, ref_path=a.ref, input_id=a.input_id, atac_path=a.atac,
-        scanvi_model_tar=a.scanvi_model, max_epochs=a.max_epochs, batch_size=a.batch_size,
-        output_max_probability=a.output_max_probability,
-    )
+    p = argparse.ArgumentParser(description="scANVI label transfer from preprocessed inputs.")
+    p.add_argument("--gex", required=True, help="Preprocessed GEX h5ad.")
+    p.add_argument("--atac", default=None, help="Preprocessed ATAC activity h5ad (multiome mode).")
+    add_label_transfer_args(p)
+    a = p.parse_args()
+    label_transfer(sc.read_h5ad(a.gex), a.input_id, a.gex_out,
+                   ref=sc.read_h5ad(a.ref) if a.ref and not a.scanvi_model else None,
+                   atac_activity=sc.read_h5ad(a.atac) if a.atac else None, atac_out=a.atac_out,
+                   scanvi_model_tar=a.scanvi_model, model_out=a.model_out, max_epochs=a.max_epochs,
+                   query_max_epochs=a.query_max_epochs, batch_size=a.batch_size,
+                   output_max_probability=a.output_max_probability, seed=a.seed,
+                   input_file=os.path.basename(a.gex))
