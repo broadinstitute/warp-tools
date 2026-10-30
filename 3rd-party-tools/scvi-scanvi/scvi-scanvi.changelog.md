@@ -2,12 +2,13 @@
 2026-10-30 (Date of Last Commit)
 
 * Added gene matching by Ensembl ID (a SCORCH sample has 99.5 % of AIT33's genes by Ensembl ID, 93.3 % by symbol): when a supplied model's genes are Ensembl IDs, the sample's genes are looked up in its Ensembl ID column (Optimus's ensembl_ids) before matching; the annotated outputs keep the sample's gene names. Every supplied-model run prints how many of the model's genes the sample has
+* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:59206dd15b3fb8170b63c0da429b35ba597847ee30e4cf520b513ed9bebad22e, pinned by WARP scANVI 3.0.0
 
 # 1.6.0
 2026-10-30 (Date of Last Commit)
 
 * Renamed obsm['X_scANVI_<level>'] to obsm['X_scVI_<level>']: the 30-dimensional latent is the scVI encoder's z (as trained with that level's SCANVI model), not a SCANVI-specific space. Values are unchanged
-* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:938baa80261c9d2122838403d36e000cf914035705f4cbddc6eed34595289386, pinned by WARP scANVI 3.0.0
+* Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:938baa80261c9d2122838403d36e000cf914035705f4cbddc6eed34595289386
 
 # 1.5.0
 2026-10-29 (Date of Last Commit)
