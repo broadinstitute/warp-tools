@@ -1,3 +1,8 @@
+# 1.6.0
+2026-10-30 (Date of Last Commit)
+
+* Renamed obsm['X_scANVI_<level>'] to obsm['X_scVI_<level>']: the 30-dimensional latent is the scVI encoder's z (as trained with that level's SCANVI model), not a SCANVI-specific space. Values are unchanged
+
 # 1.5.0
 2026-10-29 (Date of Last Commit)
 

@@ -5,7 +5,8 @@ make_scp_ready(adata, latents, provenance) changes the matrix in place:
   .X                        log2(CPM + 1) (float32): counts per million, log base 2, so the units
                             are bits. This is the Allen Institute's convention (the ABC atlas log2
                             matrices, and the 'log2CPM' input of their cell_type_mapper / MapMyCells).
-  obsm['X_scANVI_<level>']  each level's full scANVI latent for these cells
+  obsm['X_scVI_<level>']    each level's 30-dimensional scVI latent (the encoder's z, as trained
+                            with that level's SCANVI model) for these cells
   obsm['X_umap_<level>']    a 2-column UMAP fitted on that latent, for these cells only
   obsm['X_umap']            a copy of the first level's UMAP, the layout SCP shows by default
   uns                       run provenance (scanvi_input_id, scanvi_input_file, scanvi_model, ...)
@@ -29,8 +30,8 @@ def make_scp_ready(adata, latents, provenance):
     sc.pp.normalize_total(adata, target_sum=TARGET_SUM)
     sc.pp.log1p(adata, base=2)   # records uns['log1p'] = {'base': 2}, which scanpy reads for fold changes
     for level, latent in latents.items():
-        adata.obsm[f"X_scANVI_{level}"] = np.asarray(latent, dtype=np.float32)
-        sc.pp.neighbors(adata, use_rep=f"X_scANVI_{level}", key_added="scp")
+        adata.obsm[f"X_scVI_{level}"] = np.asarray(latent, dtype=np.float32)
+        sc.pp.neighbors(adata, use_rep=f"X_scVI_{level}", key_added="scp")
         sc.tl.umap(adata, neighbors_key="scp", n_components=2)
         adata.obsm[f"X_umap_{level}"] = adata.obsm.pop("X_umap")
         # The neighbor graph only served the UMAP; SCP does not read it.

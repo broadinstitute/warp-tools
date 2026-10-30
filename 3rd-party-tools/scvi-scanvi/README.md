@@ -89,7 +89,7 @@ Models are saved without data. Level names are limited to letters, digits, `_`, 
 | `--atac-out` | AnnData | The sample's ATAC gene-activity cells, same form (multiome mode only). |
 | `--model-out` | tar.gz | Training only: the model archive (scVI plus a SCANVI per level, no bundled data), reusable as `--scanvi-model`. |
 
-SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); per level, the labels in `obs['<level>']`, the 30-dimensional latent in `obsm['X_scANVI_<level>']` and a 2-column UMAP fitted on it, for the sample's own cells, in `obsm['X_umap_<level>']`; `obsm['X_umap']` is a copy of the first level's; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file`, `scanvi_model` (the model's name, its reference's id from `reference.txt`), `scanvi_levels` and `scanvi_versions`. No sample metadata is added.
+SCP form (`make_scp_ready`): counts in `.raw` (float32); `.X` is log2(CPM + 1) (float32; units are bits; Allen's convention, `uns['log1p']['base'] = 2`); per level, the labels in `obs['<level>']`, the 30-dimensional scVI latent in `obsm['X_scVI_<level>']` and a 2-column UMAP fitted on it, for the sample's own cells, in `obsm['X_umap_<level>']`; `obsm['X_umap']` is a copy of the first level's; no `counts` layer. Every output records its run provenance in `uns`: `scanvi_input_id`, `scanvi_input_file`, `scanvi_model` (the model's name, its reference's id from `reference.txt`), `scanvi_levels` and `scanvi_versions`. No sample metadata is added.
 
 ## Usage
 

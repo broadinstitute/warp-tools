@@ -68,7 +68,7 @@ with tempfile.TemporaryDirectory() as tmp:
     check(list(gex.uns.get("scanvi_levels", [])) == ["class", "subclass"], "uns lists the levels in order")
     for level in ("class", "subclass"):
         check(gex.obsm[f"X_umap_{level}"].shape == (gex.n_obs, 2), f"X_umap_{level} has 2 columns, one row per cell")
-        check(gex.obsm[f"X_scANVI_{level}"].shape == (gex.n_obs, 30), f"X_scANVI_{level} is the 30-dimensional latent")
+        check(gex.obsm[f"X_scVI_{level}"].shape == (gex.n_obs, 30), f"X_scVI_{level} is the 30-dimensional latent")
         check(gex.obs[f"{level}_max_probability"].between(0, 1).all(), f"{level}_max_probability is a probability")
     check(np.array_equal(gex.obsm["X_umap"], gex.obsm["X_umap_class"]), "X_umap is the first level's layout")
     check(set(gex.obs["class"].astype(str)) <= {"class0", "class1"}, "class labels come from the class model")

@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory() as tmp:
     run(tmp, "unseeded")
 
 same = (first.obs["subclass"].astype(str).equals(second.obs["subclass"].astype(str))
-        and np.array_equal(first.obsm["X_scANVI_subclass"], second.obsm["X_scANVI_subclass"]))
+        and np.array_equal(first.obsm["X_scVI_subclass"], second.obsm["X_scVI_subclass"]))
 print(("PASSED" if same else "FAILED") + ": --seed 42 labels and embedding "
       + ("identical" if same else "differ") + " across runs")
 sys.exit(0 if same else 1)
