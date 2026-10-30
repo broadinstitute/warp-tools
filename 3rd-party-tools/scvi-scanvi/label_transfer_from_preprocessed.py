@@ -10,7 +10,8 @@ one of three places:
   - a model trained on the reference alone (warp-scanvi-training): the sample's batch is new to
     it, so the sample is mapped onto each level with scArches (load_query_data plus a short
     training on the sample alone).
-With a supplied model the reference is not needed.
+With a supplied model the reference is not needed. A supplied model whose genes are Ensembl IDs is
+matched through the sample's Ensembl IDs, looked up from its Optimus ensembl_ids column.
 
 The annotated matrices are written SCP-ready (see scp_output.py) and record the run provenance in
 uns: the sample's id and input file, the model's name (the reference it was trained on), its
@@ -24,18 +25,40 @@ accelerator itself, so the same command runs on GPU and CPU machines.
 import argparse
 import importlib.metadata
 import os
+import re
 import time
 
 import anndata as ad
 import numpy as np
 import scanpy as sc
 import scvi
+import torch
 
 from model_archive import read_archive, write_archive
 from multiome_label_transfer import train_scanvi, train_scvi
 from scp_output import make_scp_ready, write_h5ad
 
 QUERY_MAX_EPOCHS = 100   # scvi-tools' scArches tutorial value for training on the query
+ENSEMBL_ID = re.compile(r"ENS[A-Z]*G\d+")
+
+
+def match_gene_ids(data, gex, model_dir):
+    """Name the sample's genes (data, the sample's modelling copy) the way the model does: for a
+    model whose genes are Ensembl IDs, each gene symbol is looked up in the sample's Ensembl ID
+    column. The annotated outputs keep the sample's own names. Prints the genes in common."""
+    model_genes = list(torch.load(os.path.join(model_dir, "model.pt"), map_location="cpu",
+                                  weights_only=False)["var_names"])
+    if sum(bool(ENSEMBL_ID.fullmatch(g)) for g in model_genes[:100]) > 50:
+        column = next((c for c in ("ensembl_ids", "gene_ids", "ensembl_id") if c in gex.var), None)
+        if column is None:
+            raise SystemExit("ERROR: the model names genes by Ensembl ID, but the sample has no Ensembl ID "
+                             "column (Optimus writes var['ensembl_ids']).")
+        lookup = dict(zip(gex.var_names, gex.var[column].astype(str).str.replace(r"\.\d+$", "", regex=True)))
+        data.var_names = [lookup.get(g, g) for g in data.var_names]
+        print(f"  The model names genes by Ensembl ID; looked them up in var['{column}'].", flush=True)
+    found = len(set(model_genes) & set(data.var_names))
+    print(f"  The sample has {found:,} of the model's {len(model_genes):,} genes.", flush=True)
+    return data
 
 
 def load_supplied_model(data, model_dir, query_max_epochs=None, batch_size=None):
@@ -103,6 +126,7 @@ def label_transfer(gex, input_id, gex_out, ref=None, atac_activity=None, atac_ou
             adatas, keys = [gex, atac_activity], ["rna_unannotated", "atac_unannotated"]
         data = ad.concat(adatas, join="inner", label="modality", keys=keys, index_unique="_")
         data.obs["celltype_scanvi"] = "Unknown"
+        data = match_gene_ids(data, gex, next(iter(level_dirs.values())))
         for level, model_dir in level_dirs.items():
             print(f"Level '{level}':", flush=True)
             query, lvae = load_supplied_model(data, model_dir, query_max_epochs, batch_size)

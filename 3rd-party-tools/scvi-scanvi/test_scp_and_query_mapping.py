@@ -2,7 +2,8 @@
 
 Builds a small synthetic reference with two label levels and an Optimus-like sample on CPU, trains
 a reference-only model archive the way warp-scanvi-training does (make_reference_only_model.py),
-labels the sample with scanvi_sample.py, and checks the outputs. Then checks that
+labels the sample with scanvi_sample.py, and checks the outputs. Then the same with a model whose
+genes are Ensembl IDs, matched through the sample's ensembl_ids column. Then checks that
 validate_inputs.py rejects a missing file, a duplicate id and two inputs with the same file name.
 CI runs it inside the built image before pushing.
 
@@ -49,7 +50,8 @@ with tempfile.TemporaryDirectory() as tmp:
                                out_tar="ref_only.tar.gz", reference="synthetic_reference-0123abcd")
 
     _, X = synthetic_counts(300)
-    ad.AnnData(X, var=pd.DataFrame(index=genes), obs=pd.DataFrame(
+    ensembl = [f"ENSMUSG{j:011d}" for j in range(len(genes))]
+    ad.AnnData(X, var=pd.DataFrame({"ensembl_ids": ensembl}, index=genes), obs=pd.DataFrame(
         {"star_IsCell": True}, index=[f"BC{i}" for i in range(300)])).write_h5ad("sample.h5ad")
     subprocess.run([sys.executable, os.path.join(HERE, "scanvi_sample.py"), "--input-id", "s1",
                     "--gex", os.path.abspath("sample.h5ad"), "--gex-out", "sample_annotated.h5ad",
@@ -78,6 +80,20 @@ with tempfile.TemporaryDirectory() as tmp:
     check(gex.uns.get("scanvi_input_id") == "s1", "uns records the input id")
     check(gex.uns.get("scanvi_input_file") == "sample.h5ad", "uns records the input file name")
     check(gex.uns.get("scanvi_model") == "synthetic_reference-0123abcd", "uns names the model by its reference")
+
+    # A model trained on Ensembl IDs: the sample's symbols are looked up in its ensembl_ids column.
+    ref_ensembl = ad.AnnData(ref.X, obs=ref.obs, var=pd.DataFrame(index=ensembl))
+    train_reference_only_model(ref_ensembl, "donor_id", ["subclass"], epochs=2, seed=0,
+                               out_tar="ref_ensembl.tar.gz", reference="synthetic_ensembl-0123abcd")
+    os.makedirs("ensembl", exist_ok=True)
+    run = subprocess.run([sys.executable, os.path.join(HERE, "scanvi_sample.py"), "--input-id", "s2",
+                          "--gex", os.path.abspath("sample.h5ad"), "--gex-out", "ensembl/sample_annotated.h5ad",
+                          "--scanvi-model", "ref_ensembl.tar.gz", "--query-max-epochs", "2", "--seed", "0"],
+                         check=True, capture_output=True, text=True)
+    check("500 of the model's 500 genes" in run.stdout, "an Ensembl-ID model finds every gene of the sample")
+    mapped = ad.read_h5ad("ensembl/sample_annotated.h5ad")
+    check(list(mapped.var_names[:2]) == ["g0", "g1"], "the annotated output keeps the sample's gene names")
+    check(set(mapped.obs["subclass"].astype(str)) <= {"type0", "type1", "type2"}, "the Ensembl-ID model labels the sample")
 
     result = subprocess.run([sys.executable, os.path.join(HERE, "validate_inputs.py"),
                              "--input-ids", "a", "a", "--gex", "sample.h5ad", "missing.h5ad",

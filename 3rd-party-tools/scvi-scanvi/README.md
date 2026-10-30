@@ -74,7 +74,7 @@ Models are saved without data. Level names are limited to letters, digits, `_`, 
 | `--gex-out` | yes | Path of the annotated GEX h5ad to write (the WDL uses `<gex file name>_annotated.h5ad`). |
 | `--atac`, `--atac-out` | no | The sample's ATAC cell-by-bin h5ad (multiome mode; barcodes are matched through `obs['gex_barcodes']` or the index), and the annotated ATAC h5ad to write. |
 | `--genome` | no | Genome for the ATAC gene-activity conversion: `hg38` (default), `mm10` or `mm39`. |
-| `--scanvi-model` | one of these two | A model archive (`.tar.gz`), used instead of training. |
+| `--scanvi-model` | one of these two | A model archive (`.tar.gz`), used instead of training. A model whose genes are Ensembl IDs is matched through the sample's `ensembl_ids` (Optimus) column; the log reports how many of the model's genes the sample has. |
 | `--ref` | one of these two | A reference preprocessed by the WDL's PreprocessReference task (counts in `.X`, one string column per label level listed in `uns['scanvi_levels']`, batch in `obs['batch']`), to train on. |
 | `--model-out` | no | When training, also write the trained models as a model archive. |
 | `--max-epochs`, `--query-max-epochs`, `--batch-size`, `--seed`, `--output-max-probability` | no | Training epochs (default 500), query-mapping epochs (default 100), minibatch size (default 128), random seed, and a `<level>_max_probability` column per level. |
