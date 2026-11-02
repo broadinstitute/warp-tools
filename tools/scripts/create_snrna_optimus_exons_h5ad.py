@@ -315,9 +315,13 @@ def create_h5ad_files(args):
     attrDict = dict()
     attrDict['expression_data_type'] = args.expression_data_type
     attrDict['optimus_output_schema_version'] = version
-    attrDict['input_id'] = args.input_id
-    if args.input_name is not None:
-        attrDict['input_name'] = args.input_name
+    # input_name (when supplied) is used as the uns KEY label under which the
+    # input_id value is stored; it defaults to "input_id" to preserve prior output.
+    # The value defaults to input_id but can be overridden (e.g. Multiome passes
+    # the un-suffixed base input_id via --input_id_metadata_value).
+    input_id_label = args.input_name if args.input_name is not None else "input_id"
+    input_id_value = args.input_id_metadata_value if args.input_id_metadata_value is not None else args.input_id
+    attrDict[input_id_label] = input_id_value
     if args.input_id_metadata_field is not None:
         attrDict['input_id_metadata_field'] = args.input_id_metadata_field
     if args.input_name_metadata_field is not None:
@@ -460,7 +464,14 @@ def main():
     parser.add_argument(
         "--input_name",
         dest="input_name",
-        help= "sequencing_input.biomaterial_core.biomaterial_id in HCA metadata, defined by the user",
+        help= "uns KEY label under which input_id is stored (defaults to 'input_id'); e.g. 'Local_Name_and_Job_ID'",
+    )
+
+    parser.add_argument(
+        "--input_id_metadata_value",
+        dest="input_id_metadata_value",
+        default=None,
+        help= "value to store for the input_id uns entry; defaults to --input_id when not supplied",
     )
 
     parser.add_argument(

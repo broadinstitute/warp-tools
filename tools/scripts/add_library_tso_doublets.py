@@ -80,15 +80,21 @@ def compute_doublet_scores(gex_h5ad_modified, proportion_artificial=0.2):
 
 
 # Function to calculate additional library metrics such as keeper cells
-def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores, counting_mode, expected_cells):
+def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, doublets, doublet_scores, counting_mode, expected_cells, nhash_id_name="NHashID", additional_sample_id=None, additional_sample_name="additional_sample_id"):
     print("Reading Optimus h5ad:")
     gex_data = gex_h5ad_modified
-    # NHashID is optional input, so the logic below sets it if undefined
+    # The nhash_id value is stored under a configurable uns KEY label (nhash_id_name),
+    # which defaults to "NHashID" to preserve prior output.
+    # gex_nhash_id is an optional input, so the logic below sets it if undefined
     if gex_nhash_id is not None:
-        gex_data.uns['NHashID'] = gex_nhash_id
+        gex_data.uns[nhash_id_name] = gex_nhash_id
     else:
         gex_nhash_id = "NA"
-        gex_data.uns['NHashID'] = gex_nhash_id
+        gex_data.uns[nhash_id_name] = gex_nhash_id
+
+    # Optional additional sample id, stored under a configurable uns KEY label.
+    if additional_sample_id is not None:
+        gex_data.uns[additional_sample_name] = additional_sample_id
 
     #gex_data.write(f"{input_id}.h5ad")
 
@@ -155,6 +161,9 @@ def main():
     parser.add_argument("--gex_h5ad", type=str, required=True, help="Path to the GEX h5ad file.")
     parser.add_argument("--cellbarcodes", type=str, required=True, help="Path to the cell barcodes file.")
     parser.add_argument("--gex_nhash_id", type=str, required=False, help="NHashID for the GEX data.")
+    parser.add_argument("--nhash_id_name", type=str, required=False, default="NHashID", help="uns KEY label under which gex_nhash_id is stored (defaults to 'NHashID'); e.g. 'Library_Aliquot_ID'.")
+    parser.add_argument("--additional_sample_id", type=str, required=False, default=None, help="Optional additional sample id value to store in the h5ad uns metadata.")
+    parser.add_argument("--additional_sample_name", type=str, required=False, default="additional_sample_id", help="uns KEY label under which additional_sample_id is stored (defaults to 'additional_sample_id'); e.g. 'Barcoded_Cell_Sample_ID'.")
     parser.add_argument("--library_csv", type=str, required=True, help="Path to the library metrics CSV file.")
     parser.add_argument("--input_id", type=str, required=True, help="Input ID for output files.")
     parser.add_argument("--counting_mode", type=str, required=True, help="Counting mode for STARsolo alignment.")
@@ -167,7 +176,7 @@ def main():
     print("Calculating doublets based on cell calls")
     doublet_scores, percent_doublets = compute_doublet_scores(cell_h5ad, proportion_artificial=args.proportion_artificial)
     print("Adding doublet scores, NHashID to h5ad and calculating library metrics")
-    revised_adata = process_gex_data(cell_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets, doublet_scores, args.counting_mode, args.expected_cells)
+    revised_adata = process_gex_data(cell_h5ad, args.gex_nhash_id, args.library_csv, args.input_id, percent_doublets, doublet_scores, args.counting_mode, args.expected_cells, nhash_id_name=args.nhash_id_name, additional_sample_id=args.additional_sample_id, additional_sample_name=args.additional_sample_name)
     # Output the results
     output_path = args.gex_h5ad.replace(".h5ad", "_doublet_scores.csv")
     print("Output path: ", output_path)
