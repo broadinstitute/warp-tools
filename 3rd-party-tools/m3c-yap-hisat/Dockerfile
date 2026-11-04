@@ -34,6 +34,18 @@ RUN micromamba install -y -f /tmp/hisat3n_env.yml && \
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
+# cytozip (.cz): compact columnar replacement for allc -- https://github.com/DingWB/cytozip
+# Builds Cython extensions with -fopenmp and links against htslib/libdeflate.
+# Do NOT add libcurl4-openssl-dev: libhts-dev depends on libcurl4-gnutls-dev and they conflict.
+ARG CYTOZIP_VERSION=0.4.1
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libhts-dev libdeflate-dev zlib1g-dev libbz2-dev liblzma-dev && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir cytozip==${CYTOZIP_VERSION}
+RUN czip --version && czip bam_to_cz --help > /dev/null
+
+# These run after the cytozip install on purpose: if pip disturbs the pinned
+# hisat3n env, the build fails here instead of shipping a broken allcools.
 RUN yap --version
 RUN allcools --version    
 RUN mkdir -p ~/pkg; \
