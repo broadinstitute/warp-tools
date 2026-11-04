@@ -8,13 +8,16 @@ LABEL MAINTAINER="Broad Institute DSDE dsde-engineering@broadinstitute.org" \
 
 WORKDIR /usr/local
 
+COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /usr/local/bin/uv
+
 RUN set -eux; \
     apt-get update; \
     apt-get install -y tini wget gcc zlib1g-dev; \
-    pip install --upgrade pip; \
-    pip install snapatac2==2.10.0 scvi-tools==${SCVI_TOOLS_VERSION} scanpy numpy; \
-    pip install --user scikit-misc; \
-    pip freeze > /usr/local/versions.txt; \
+    uv pip install --system --no-cache \
+        snapatac2==2.10.0 scvi-tools==${SCVI_TOOLS_VERSION} \
+        torch==2.15.0 scanpy==1.12.5 anndata==0.13.4 scipy==1.18.1 numpy==2.5.4 scikit-misc==0.5.3; \
+    uv pip uninstall --system pip; \
+    uv pip freeze --system > /usr/local/versions.txt; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY multiome_label_transfer.py label_transfer_from_preprocessed.py preprocess_query.py \

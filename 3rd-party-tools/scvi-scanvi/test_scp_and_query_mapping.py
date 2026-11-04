@@ -17,6 +17,7 @@ import tempfile
 import anndata as ad
 import numpy as np
 import pandas as pd
+from scanpy.neighbors._common import _ind_dist_shortcut
 import scipy.sparse as sp
 
 from make_reference_only_model import train_reference_only_model
@@ -102,6 +103,8 @@ with tempfile.TemporaryDirectory() as tmp:
     check(result.returncode == 1 and "missing.h5ad" in result.stderr and "unique" in result.stderr
           and "distinct names" in result.stderr,
           "validate_inputs.py reports a missing file, a duplicate id and a duplicate file name")
+    check(_ind_dist_shortcut(sp.csr_array(np.ones((4, 3), dtype=np.float32))) is not None,
+          "scanpy neighbors accepts pynndescent csr_array graphs (n_obs >= 8192)")
 
 print("PASSED" if not failures else f"FAILED: {failures}", flush=True)
 sys.exit(1 if failures else 0)
