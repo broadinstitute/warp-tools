@@ -65,7 +65,8 @@ def load_supplied_model(data, model_dir, query_max_epochs=None, batch_size=None)
     """Fit one level's saved SCANVI model in model_dir to this sample alone. Returns (query, model),
     where query is data with its genes matched to the model's."""
     query = scvi.model.SCANVI.prepare_query_anndata(data, model_dir, inplace=False)
-    registry = scvi.model.SCANVI.load_registry(model_dir)
+    registry = torch.load(os.path.join(model_dir, "model.pt"), map_location="cpu",
+                          weights_only=False)["attr_dict"]["registry_"]
     known = registry["field_registries"]["batch"]["state_registry"]["categorical_mapping"]
     new = sorted(set(query.obs["batch"].astype(str)) - set(map(str, known)))
     if not new:
