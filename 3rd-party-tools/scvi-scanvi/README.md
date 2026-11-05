@@ -3,7 +3,7 @@
 ## Quick reference
 
 ```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:59206dd15b3fb8170b63c0da429b35ba597847ee30e4cf520b513ed9bebad22e
+docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:29147e532b3f84d8251a48e6d5c860e73fcfa4bc1522d0a5711308a979086b94
 ```
 
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
@@ -17,7 +17,6 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
 - `scvi-tools` 1.5.1, `snapatac2` 2.10.0, `torch` 2.15.0, `scanpy` 1.12.5, `anndata` 0.13.4, `scipy` 1.18.1, `numpy` 2.5.4, `scikit-misc` 0.5.3 and `pyarrow` 26.0.1, all pinned and installed with `uv` (`pip` removed). Everything but torch is in [requirements.txt](requirements.txt). This image is also warp-scanvi-training's x86 training image, and that repo's arm64 image (`cluster/Dockerfile.arm64`, NVIDIA's PyTorch for DGX Spark) installs an identical copy of the same file, so both architectures share one stack. Change the pins here; that repo copies them.
-- The digest in [Quick reference](#quick-reference) is 1.7.0, built on 2026-10-30 with `pip` and only scvi-tools and snapatac2 pinned. This Dockerfile is 1.7.1, not yet published (see the [changelog](scvi-scanvi.changelog.md)).
 - Each build records its exact library versions: `/usr/local/versions.txt` holds `uv pip freeze`, the CI build log prints it, and every output h5ad records the key versions in `uns['scanvi_versions']`.
 - ATAC gene-activity conversion uses snapatac2's genome annotations (`snap.genome.hg38`, `mm10`, `mm39`), downloaded at runtime.
 - Scripts: see [Scripts](#scripts).
