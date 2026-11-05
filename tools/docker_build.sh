@@ -12,7 +12,6 @@ CACHING=$2
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/warp-tools"
 
-
 # Necessary tools and help text
 TOOLS=(docker gcloud)
 HELP="$(basename "$0") [-h|--help] [-t|tools] [TAG] [CACHING] -- script to build the image and push to GCR

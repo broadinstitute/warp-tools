@@ -8,7 +8,6 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/dragmap"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-dragmap"
 
 # DRAGMAP version
 DRAGMAP_VERSION="1.2.1"
@@ -21,7 +20,7 @@ SAMTOOLS_VERSION="1.11"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-d|--dragmap_version] [-p|--picard_version] [-s|--samtools_version] [-t|--tools] -- script to build the DRAGMAP image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-d|--dragmap_version] [-p|--picard_version] [-s|--samtools_version] [-t|--tools] -- script to build the DRAGMAP image and push to GCR
 
 where:
     -h|--help Show help text
@@ -81,10 +80,6 @@ function main(){
         --build-arg SAMTOOLS_VERSION="${SAMTOOLS_VERSION}" \
         --no-cache $DIR
     docker push "${GCR_URL}:${IMAGE_TAG}"
-
-    echo "tagging and pushing Quay Image"
-    docker tag "${GCR_URL}:${IMAGE_TAG}" "${QUAY_URL}:${IMAGE_TAG}"
-    docker push "${QUAY_URL}:${IMAGE_TAG}"
 
     echo -e "${GCR_URL}:${IMAGE_TAG}" >> "${DIR}/docker_versions.tsv"
     echo "done"
