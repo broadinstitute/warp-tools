@@ -59,12 +59,8 @@ function main(){
         --build-arg PICARD_PRIVATE_VERSION="$PICARD_PRIVATE_VERSION" $DIR  
     docker push "$GCR_URL:$IMAGE_TAG"
     
-
     echo "$GCR_URL:$IMAGE_TAG $PICARD_PRIVATE_VERSION" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 
 main "$@"
-
-
-

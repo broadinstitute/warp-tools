@@ -8,7 +8,6 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/star-merge-npz"
-#QUAY_URL="quay.io/broadinstitute/gotc-prod-star" # Update and uncomment push block below after setting up quay repo
 
 # STAR version
 STAR_VERSION="2.7.11a"
@@ -59,10 +58,6 @@ function main(){
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg STAR_VERSION="$STAR_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
-
-#    echo "tagging and pushing Quay Image"
-#    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-#    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

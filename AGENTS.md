@@ -17,7 +17,7 @@ This file holds **container-operational** guidance only. It does **not** repeat 
 
 Images publish to **GCR only** (`us.gcr.io/broad-gotc-prod/<image>`); CI builds on a PR touching an image's directory; then pin the resulting `@sha256` digest in the consuming WARP pipeline. Commands and the full flow are in [BUILDING.md](BUILDING.md#how-images-are-consumed-by-warp-digest-pinning).
 
-> There is **no Quay** publishing. CI pushes only to GCR. Some `docker_build.sh` scripts still contain `quay.io/...` tag/push lines — these are **stale and nonfunctional** (the newer images were never pushed to Quay); treat them as dead code to be removed, not a live target.
+> There is **no Quay** publishing. CI pushes only to GCR.
 
 ## Keep scripts importable
 
