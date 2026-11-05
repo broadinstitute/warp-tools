@@ -16,7 +16,8 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 ## Image contents
 
 - Base image: `python:3.12-slim-trixie` (`--platform=linux/amd64`)
-- `scvi-tools` 1.5.1, `snapatac2` 2.10.0, `torch` 2.15.0, `scanpy` 1.12.5, `anndata` 0.13.4, `scipy` 1.18.1, `numpy` 2.5.4 and `scikit-misc` 0.5.3, all pinned and installed with `uv` (`pip` removed).
+- `scvi-tools` 1.5.1, `snapatac2` 2.10.0, `torch` 2.15.0, `scanpy` 1.12.5, `anndata` 0.13.4, `scipy` 1.18.1, `numpy` 2.5.4, `scikit-misc` 0.5.3 and `pyarrow` 26.0.1, all pinned and installed with `uv` (`pip` removed). Everything but torch is in [requirements.txt](requirements.txt), which warp-scanvi-training's arm64 training image installs as well, so the two share one stack.
+- The digest in [Quick reference](#quick-reference) is 1.7.0, built on 2026-10-30 with `pip` and only scvi-tools and snapatac2 pinned. This Dockerfile is 1.7.1, not yet published (see the [changelog](scvi-scanvi.changelog.md)).
 - Each build records its exact library versions: `/usr/local/versions.txt` holds `uv pip freeze`, the CI build log prints it, and every output h5ad records the key versions in `uns['scanvi_versions']`.
 - ATAC gene-activity conversion uses snapatac2's genome annotations (`snap.genome.hg38`, `mm10`, `mm39`), downloaded at runtime.
 - Scripts: see [Scripts](#scripts).

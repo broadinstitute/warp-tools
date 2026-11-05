@@ -1,8 +1,17 @@
+# 1.7.1
+2026-11-05 (Date of Last Commit)
+
+Not yet published: the 1.7.0 digest below was built on 2026-10-30, before these changes.
+
+* Pinned scanpy 1.12.5, anndata 0.13.4, scipy 1.18.1, numpy 2.5.4, torch 2.15.0 and scikit-misc 0.5.3, installed with uv (pip removed). 1.7.0 and earlier installed with pip and pinned only scvi-tools and snapatac2
+* The pins other than torch live in requirements.txt, which warp-scanvi-training's arm64 training image installs too, so the two images share one stack. pyarrow 26.0.1 is pinned explicitly: the training harness reads its Parquet split tables with it, and until now it came only as a snapatac2 dependency
+* A supplied model trained on a GPU now loads on a CPU-only machine: its registry is read with `map_location="cpu"`
+* `test_scp_and_query_mapping.py` checks that scanpy's neighbors accept the `csr_array` graphs pynndescent returns for 8,192 cells or more
+
 # 1.7.0
-2026-11-04 (Date of Last Commit)
+2026-10-30 (Date of Last Commit)
 
 * Added gene matching by Ensembl ID (a SCORCH sample has 99.5 % of AIT33's genes by Ensembl ID, 93.3 % by symbol): when a supplied model's genes are Ensembl IDs, the sample's genes are looked up in its Ensembl ID column (Optimus's ensembl_ids) before matching; the annotated outputs keep the sample's gene names. Every supplied-model run prints how many of the model's genes the sample has
-* Pinned scanpy 1.12.5, anndata 0.13.4, scipy 1.18.1, numpy 2.5.4, torch 2.15.0 and scikit-misc 0.5.3 in Dockerfile, installed with uv (pip removed)
 * Published as us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:59206dd15b3fb8170b63c0da429b35ba597847ee30e4cf520b513ed9bebad22e, pinned by WARP scANVI 3.0.0
 
 # 1.6.0
