@@ -85,12 +85,14 @@ def process_gex_data(gex_h5ad_modified, gex_nhash_id, library_csv, input_id, dou
     gex_data = gex_h5ad_modified
     # The nhash_id value is stored under a configurable uns KEY label (nhash_id_name),
     # which defaults to "NHashID" to preserve prior output.
-    # gex_nhash_id is an optional input, so the logic below sets it if undefined
+    # gex_nhash_id is an optional input: only add the uns key when a value is
+    # provided, so we don't write an empty/placeholder global-metadata key.
     if gex_nhash_id is not None:
         gex_data.uns[nhash_id_name] = gex_nhash_id
     else:
+        # Leave the uns key absent, but keep "NA" as the value written to the
+        # library metrics CSV below (line unchanged from prior behavior).
         gex_nhash_id = "NA"
-        gex_data.uns[nhash_id_name] = gex_nhash_id
 
     # Optional additional sample id, stored under a configurable uns KEY label.
     if additional_sample_id is not None:
