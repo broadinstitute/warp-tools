@@ -1,8 +1,8 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform=linux/amd64 python:3.8-alpine
 
-ARG BCFTOOLS_VERSION=1.10.2 \
-        VCFTOOLS_VERSION=0.1.16
+ARG BCFTOOLS_VERSION=1.24 \
+        VCFTOOLS_VERSION=0.1.17
 
 ENV TERM=xterm-256color
 
@@ -63,17 +63,17 @@ RUN set -eux; \
     rm vcftools-${VCFTOOLS_VERSION}.tar.gz \
     ; \
 # Install HTSlib
-    wget  https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2; \
-    tar xf samtools-1.10.tar.bz2; \
-    cd samtools-1.10/htslib-1.10; \
+    wget  https://github.com/samtools/samtools/releases/download/${BCFTOOLS_VERSION}/samtools-${BCFTOOLS_VERSION}.tar.bz2; \
+    tar xf samtools-${BCFTOOLS_VERSION}.tar.bz2; \
+    cd samtools-${BCFTOOLS_VERSION}/htslib-${BCFTOOLS_VERSION}; \
     \
     ./configure; \
     make; \
     make install; \
     \
     cd ../..; \
-    rm -r samtools-1.10; \
-    rm samtools-1.10.tar.bz2
+    rm -r samtools-${BCFTOOLS_VERSION}; \
+    rm samtools-${BCFTOOLS_VERSION}.tar.bz2
 
 # Set tini as default entrypoint
 ENTRYPOINT [ "/sbin/tini", "--" ]
