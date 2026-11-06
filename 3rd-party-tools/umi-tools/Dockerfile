@@ -12,6 +12,7 @@ LABEL MAINTAINER="Broad Institute DSDE <dsde-engineering@broadinstitute.org>" \
 # Install dependencies
 RUN set -eux; \
         apt-get update; \
+        apt-get upgrade -y; \
         apt-get install -y \
             gcc \
             wget \

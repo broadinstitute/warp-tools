@@ -1,3 +1,8 @@
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Vscode config files
 .vscode/*
 !.vscode/tasks.json
@@ -19,6 +24,7 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/**/vcs.xml
 
 # AWS User-specific
 .idea/**/aws.xml
@@ -84,3 +90,11 @@ atlassian-ide-plugin.xml
 
 # Ignore all .DS_Store for all directories
 **/.DS_Store
+
+# Claude Code local config/state
+.claude/
+
+# Local container/GPU test artifacts (run locally, kept out of version control)
+.cache/
+scanvi_gpu_test/
+*.h5ad

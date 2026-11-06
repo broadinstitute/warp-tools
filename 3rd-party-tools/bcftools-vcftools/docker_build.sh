@@ -2,19 +2,19 @@
 set -e
 
 # Update version when changes to Dockerfile are made
-DOCKER_IMAGE_VERSION=1.0.7
+DOCKER_IMAGE_VERSION=2.0.0
 TIMESTAMP=$(date +"%s")
 DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/imputation-bcf-vcf"
+GCR_URL="us.gcr.io/broad-gotc-prod/bcftools-vcftools"
 # QUAY_URL="quay.io/broadinstitute/gotc-prod-imputation_bcf_vcf"
 
 #BCFTOOLS version
-BCFTOOLS_VERSION="1.10.2"
+BCFTOOLS_VERSION="1.24"
 
 #VCFTOOLS version
-VCFTOOLS_VERSION="0.1.16"
+VCFTOOLS_VERSION="0.1.17"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
@@ -69,7 +69,7 @@ function main(){
     docker build -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg BCFTOOLS_VERSION="$BCFTOOLS_VERSION" \
         --build-arg VCFTOOLS_VERSION="$VCFTOOLS_VERSION" \
-        --no-cache $DIR   
+        --no-cache $DIR
     docker push "$GCR_URL:$IMAGE_TAG"
 
 #    echo "tagging and pushing Quay Image"

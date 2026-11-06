@@ -24,8 +24,3 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: 'echo "No build required"'
-  build-for-acr:
-      runs-on: ubuntu-latest
-      steps:
-      - run: 'echo "No build required"'
-    
