@@ -48,7 +48,8 @@ def match_gene_ids(data, gex, model_dir):
     column. The annotated outputs keep the sample's own names. Prints the genes in common."""
     model_genes = list(torch.load(os.path.join(model_dir, "model.pt"), map_location="cpu",
                                   weights_only=False)["var_names"])
-    if sum(bool(ENSEMBL_ID.fullmatch(g)) for g in model_genes[:100]) > 50:
+    if (sum(bool(ENSEMBL_ID.fullmatch(g)) for g in model_genes[:100]) > 50
+            and not all(ENSEMBL_ID.fullmatch(g) for g in data.var_names)):
         column = next((c for c in ("ensembl_ids", "gene_ids", "ensembl_id") if c in gex.var), None)
         if column is None:
             raise SystemExit("ERROR: the model names genes by Ensembl ID, but the sample has no Ensembl ID "
