@@ -34,4 +34,5 @@ if __name__ == "__main__":
                    max_epochs=a.max_epochs,
                    query_max_epochs=a.query_max_epochs, batch_size=a.batch_size,
                    output_max_probability=a.output_max_probability, seed=a.seed,
-                   input_file=os.path.basename(a.gex))
+                   input_file=os.path.basename(a.gex),
+                   atac_input_file=os.path.basename(a.atac) if a.atac else None)

@@ -78,8 +78,11 @@ def load_supplied_model(data, model_dir, query_max_epochs=None, batch_size=None)
     print(f"  Batch {new} is new to the model; mapping the sample onto it (scArches, "
           f"{epochs} epochs on the sample).", flush=True)
     model = scvi.model.SCANVI.load_query_data(query, model_dir)
+    # drop_last=False: this trains on the query alone (scArches mapping), which can be far smaller
+    # than batch_size (e.g. ~100-300 cells vs the default 128) -- dropping the last partial batch
+    # can leave zero complete batches and the sample never gets adapted to the reference model.
     model.train(max_epochs=epochs, batch_size=batch_size or 128,
-                plan_kwargs={"weight_decay": 0.0}, datasplitter_kwargs={"drop_last": True})
+                plan_kwargs={"weight_decay": 0.0}, datasplitter_kwargs={"drop_last": False})
     return query, model
 
 
@@ -110,10 +113,14 @@ def _annotate(matrix, obs_names, suffix, results, provenance):
 
 def label_transfer(gex, input_id, gex_out, ref=None, atac_activity=None, atac_out=None,
                    scanvi_model_tar=None, model_out=None, max_epochs=None, query_max_epochs=None,
-                   batch_size=None, output_max_probability=False, seed=None, input_file=""):
+                   batch_size=None, output_max_probability=False, seed=None, input_file="",
+                   atac_input_file=None):
     """Label one preprocessed sample (in memory) at every level and write its outputs."""
     if not scanvi_model_tar and ref is None:
         raise SystemExit("ERROR: give a reference (to train) or a SCANVI model (to predict).")
+    if atac_activity is not None and not atac_out:
+        raise SystemExit("ERROR: --atac-out is required when ATAC input is given; the ATAC output "
+                         "needs a path to write to. (Caught here before model training starts.)")
     # Unset (default): training is nondeterministic. Tests pin a seed to make runs reproducible.
     if seed is not None:
         scvi.settings.seed = seed
@@ -166,7 +173,12 @@ def label_transfer(gex, input_id, gex_out, ref=None, atac_activity=None, atac_ou
     gex = _annotate(gex, data.obs_names, "_rna_unannotated", results, provenance)
     write_h5ad(gex, gex_out)
     if atac_activity is not None:
-        atac_activity = _annotate(atac_activity, data.obs_names, "_atac_unannotated", results, provenance)
+        # The ATAC matrix is derived from its own input file, not the GEX one: record it separately
+        # (defaulting to input_file keeps the single-input_file contract for callers that don't pass
+        # atac_input_file). A new dict, not a mutation of `provenance`, so the GEX output's uns --
+        # already written above -- is unaffected.
+        atac_provenance = {**provenance, "scanvi_input_file": atac_input_file or input_file}
+        atac_activity = _annotate(atac_activity, data.obs_names, "_atac_unannotated", results, atac_provenance)
         write_h5ad(atac_activity, atac_out)
     print(f"Done: {input_id} ({gex.n_obs} GEX cells) -> {os.path.basename(gex_out)}", flush=True)
 
@@ -200,4 +212,5 @@ if __name__ == "__main__":
                    scanvi_model_tar=a.scanvi_model, model_out=a.model_out, max_epochs=a.max_epochs,
                    query_max_epochs=a.query_max_epochs, batch_size=a.batch_size,
                    output_max_probability=a.output_max_probability, seed=a.seed,
-                   input_file=os.path.basename(a.gex))
+                   input_file=os.path.basename(a.gex),
+                   atac_input_file=os.path.basename(a.atac) if a.atac else None)
