@@ -27,7 +27,7 @@ SCVI_MODEL_KWARGS = {"gene_likelihood": "nb", "dispersion": "gene", "encode_cova
 
 def train_reference_only_model(ref, batch_key, levels, epochs, seed, out_tar, reference):
     if ref.X is None:   # AIT references keep their counts in .raw
-        ref = ad.AnnData(X=ref.raw.X, obs=ref.obs, var=ref.var)
+        ref = ad.AnnData(X=ref.raw.X, obs=ref.obs, var=ref.raw.var)
     ref = ref.copy()
     ref.obs["batch"] = ref.obs[batch_key].astype(str)
     scvi.settings.seed = seed
