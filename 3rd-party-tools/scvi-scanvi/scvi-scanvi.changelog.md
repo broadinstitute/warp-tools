@@ -1,3 +1,11 @@
+# 1.7.2
+2026-11-13 (Date of Last Commit)
+
+* Fixed `train_reference_only_model` restoring an AIT reference's counts from `.raw.X` but pairing them with the parent object's current `.var` instead of `.raw.var`; a reference subset or reordered after `.raw` was recorded could shape-mismatch or silently mislabel genes
+* Fixed the scArches query-mapping step (`load_supplied_model`) dropping its only training batch when a query sample is smaller than the default batch size (128), silently leaving the sample unadapted to the reference model; it no longer drops a partial batch
+* `label_transfer` now rejects an ATAC input given without `--atac-out` before any model training starts, instead of training, writing the GEX output, and only then failing on the ATAC write
+* Fixed the ATAC output recording the GEX input's file name in `uns['scanvi_input_file']`; each output now records its own source file
+
 # 1.7.1
 2026-11-05 (Date of Last Commit)
 
