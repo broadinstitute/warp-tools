@@ -3,7 +3,7 @@
 ## Quick reference
 
 ```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:29147e532b3f84d8251a48e6d5c860e73fcfa4bc1522d0a5711308a979086b94
+docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:a8b3699f2e3ce97aac227c0b8d100b3f4af6ae94fb72c0b14ca58c357a0f9c54
 ```
 
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
