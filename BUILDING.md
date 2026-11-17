@@ -34,18 +34,16 @@ us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timesta
 - **`tool-version`** — the version of the wrapped tool (e.g. `samtools` `1.19`), so consumers can identify it without inspecting the image. Left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — guarantees a unique tag and avoids Cromwell image-cache collisions.
 
-Release tags are added to a tested CI build by WARP's release script (next section) and never move; a fix is a new release with a new tag. Keep `DOCKER_IMAGE_VERSION` and the tool version in each image's `docker_build.sh` current: they are the `<image-version>[-<tool-version>]` part of the next release tag. The `docker_versions.tsv` files are kept as history and are no longer updated.
+Release tags are added to a PR's CI build by WARP's release script (next section) and never move; a fix is a new release with a new tag. Keep `DOCKER_IMAGE_VERSION` and the tool version in each image's `docker_build.sh` current: they are the `<image-version>[-<tool-version>]` part of the next release tag. The `docker_versions.tsv` files are kept as history and are no longer updated.
 
 ## Releasing an image to WARP
 
 WARP pins each image as `<image>:<release-tag>@sha256:<digest>`: the digest fixes what runs and the tag says which release it is. Never pin a branch tag, `latest`, a bare tag or a bare digest. A change takes four steps; the WARP side is in WARP's [Updating a warp-tools image](https://broadinstitute.github.io/warp/docs/contribution/contribute_to_warp/update_warp_tools_image) page.
 
-1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`. CI pushes `us.gcr.io/broad-gotc-prod/<image>:<branch-name>`; the digest is in the CI "Push image" log.
-2. **Release and pin the build from a WARP branch:** `python3 scripts/image_pins.py release <image> <branch-name or sha256 digest> <image-version>[-<tool-version>] [paths]`. It tags the build `<version>-<unix-timestamp>` and rewrites WARP's pins. It needs write access to the registry (`gcloud auth`).
-3. **Bump, test and review in WARP.** If the image has to change again, push here, wait for the new build, and repeat step 2.
+1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`. CI builds the image and pushes it under the branch name.
+2. **From a WARP branch, release and pin the build:** `python3 scripts/image_pins.py release <PR number>`. It finds the image, its version and the PR's latest build, tags that build `<version>-<unix-timestamp>`, and rewrites WARP's pins. It needs write access to the registry (`gcloud auth`).
+3. **Bump, test and review in WARP.** If the image has to change again, push here and repeat step 2 once it has built.
 4. **Merge this PR, then the WARP PR.**
-
-The branch tag moves with every push to this PR, even a README edit. Once WARP has tested a build, release that build's digest, not the branch name.
 
 ## Adding or updating an image
 
