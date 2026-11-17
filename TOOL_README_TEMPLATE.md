@@ -13,7 +13,7 @@ worked example, and BUILDING.md for build/versioning conventions.
 
 ## Quick reference
 
-<!-- One copy-pasteable pull command (current tag from docker_versions.tsv) and a
+<!-- One copy-pasteable pull command (the release tag WARP pins) and a
 one-line description of what this image is. -->
 
 ```bash
@@ -41,10 +41,11 @@ A short bullet list is fine. -->
 ## Versioning
 
 This image follows the WARP-Tools tag convention
-`us.gcr.io/broad-gotc-prod/<image>:<image-version>-<tool-version>-<unix-timestamp>`
+`us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timestamp>`
 (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)).
-Past versions are tracked in [docker_versions.tsv](docker_versions.tsv); the last
-line is the version currently used by WARP. Inspect an image with:
+WARP pins a release as `<image>:<release-tag>@sha256:<digest>`; see
+[BUILDING.md → Releasing an image to WARP](../../BUILDING.md#releasing-an-image-to-warp).
+Inspect an image with:
 
 ```bash
 docker inspect us.gcr.io/broad-gotc-prod/<image>:<tag>
