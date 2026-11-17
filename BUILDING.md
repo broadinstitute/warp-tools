@@ -6,7 +6,7 @@ How to build, version, publish, and add Docker images in this repository, plus t
 
 - [How images are built and published](#how-images-are-built-and-published)
 - [Versioning strategy](#versioning-strategy)
-- [How images are consumed by WARP (digest pinning)](#how-images-are-consumed-by-warp-digest-pinning)
+- [Releasing an image to WARP](#releasing-an-image-to-warp)
 - [Adding or updating an image](#adding-or-updating-an-image)
 - [Docker style guide](#docker-style-guide)
 - [Troubleshooting and running standalone](#troubleshooting-and-running-standalone)
@@ -27,27 +27,25 @@ There are two build paths:
 Images use **semantic tags**, never rolling tags like `latest` or `master` (rolling tags make it impossible to trace which image content a pipeline actually ran):
 
 ```
-us.gcr.io/broad-gotc-prod/<image>:<image-version>-<tool-version>-<unix-timestamp>
+us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timestamp>
 ```
 
 - **`image-version`** — `major.minor.patch` of the image itself; bump it when the image changes for reasons unrelated to the wrapped tool (base OS, system packages, baked-in scripts).
-- **`tool-version`** — the version of the wrapped tool (e.g. `samtools` `1.19`), so consumers can identify it without inspecting the image.
+- **`tool-version`** — the version of the wrapped tool (e.g. `samtools` `1.19`), so consumers can identify it without inspecting the image. Left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — guarantees a unique tag and avoids Cromwell image-cache collisions.
 
-Each image directory keeps a `docker_versions.tsv` recording every published tag; **the last line is the version currently used by WARP**. The `docker_build.sh` script appends to it automatically. When bumping a manual build, also bump `DOCKER_IMAGE_VERSION` in that image's `docker_build.sh`.
+Release tags are added to a tested CI build by WARP's release script (next section) and never move; a fix is a new release with a new tag. Keep `DOCKER_IMAGE_VERSION` and the tool version in each image's `docker_build.sh` current: they are the `<image-version>[-<tool-version>]` part of the next release tag. The `docker_versions.tsv` files are kept as history and are no longer updated.
 
-## How images are consumed by WARP (digest pinning)
+## Releasing an image to WARP
 
-WARP pipelines pin images by **immutable `@sha256` digest**, not by tag, so a pipeline always runs an exact image. After changing an image you must update the digest in the consuming pipeline or it keeps running the old image:
+WARP pins each image as `<image>:<release-tag>@sha256:<digest>`: the digest fixes what runs and the tag says which release it is. Never pin a branch tag, `latest`, a bare tag or a bare digest. A change takes four steps; the WARP side is in WARP's [Updating a warp-tools image](https://broadinstitute.github.io/warp/docs/contribution/contribute_to_warp/update_warp_tools_image) page.
 
-1. Make the change here and open a PR → CI builds & pushes the branch-tagged image.
-2. Resolve the digest for that tag:
-   ```bash
-   gcloud container images list-tags us.gcr.io/broad-gotc-prod/<image> \
-     --filter="tags=<branch-or-tag>" --format="get(digest)"
-   ```
-   (or read it from the CI "Push image" log).
-3. In the [warp](https://github.com/broadinstitute/warp) repo, update the pipeline's `String docker = "us.gcr.io/broad-gotc-prod/<image>@sha256:<digest>"` (and any docs that cite the digest), and validate the WDL.
+1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`. CI pushes `us.gcr.io/broad-gotc-prod/<image>:<branch-name>`; the digest is in the CI "Push image" log.
+2. **Release and pin the build from a WARP branch:** `python3 scripts/image_pins.py release <image> <branch-name or sha256 digest> <image-version>[-<tool-version>] [paths]`. It tags the build `<version>-<unix-timestamp>` and rewrites WARP's pins. It needs write access to the registry (`gcloud auth`).
+3. **Bump, test and review in WARP.** If the image has to change again, push here, wait for the new build, and repeat step 2.
+4. **Merge this PR, then the WARP PR.**
+
+The branch tag moves with every push to this PR, even a README edit. Once WARP has tested a build, release that build's digest, not the branch name.
 
 ## Adding or updating an image
 
@@ -55,7 +53,7 @@ WARP pipelines pin images by **immutable `@sha256` digest**, not by tag, so a pi
 2. Write the `README.md` from the standard [tool README template](TOOL_README_TEMPLATE.md) (synopsis, inputs, outputs, usage, task descriptions).
 3. Keep any baked-in scripts **importable and stable**: WARP pipelines often import specific functions from a script in the image (e.g. `from multiome_label_transfer import train_scvi`) rather than calling its `main()`. The imported function API — not `main()` — is the production contract, so preserve signatures/behavior and document hidden preconditions in docstrings. When adding a variant, factor shared internals into a helper to avoid drift.
 4. Add a `.github/workflows/build-<tool>.yml` (copy an existing one; set `GCR_PATH: broad-gotc-prod/<tool>` and the `paths` trigger) and register the image in [.github/workflows/trivy.yml](.github/workflows/trivy.yml).
-5. Open a PR to build the image, then pin its digest in the consuming pipeline as above.
+5. Open a PR to build the image, then release and pin it in WARP as above.
 
 ## Docker style guide
 
