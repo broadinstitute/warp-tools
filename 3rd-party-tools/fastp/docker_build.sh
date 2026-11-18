@@ -7,14 +7,13 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/fastp"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-fastp"
 
 # Fgbio version
 FASTP_VERSION="0.20.1"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the fastp image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the fastp image and push to GCR
 
 where:
     -h|--help Show help text
@@ -59,10 +58,6 @@ function main(){
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg FASTP_VERSION="$FASTP_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
-
-    #echo "tagging and pushing Quay Image"
-    #docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    #docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

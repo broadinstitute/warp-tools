@@ -8,7 +8,6 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/samtools-star"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-samtools-star"
 
 # Samtools version
 SAMTOOLS_VERSION="1.11"
@@ -18,7 +17,7 @@ STAR_VERSION="2.7.11a"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the samtools/star image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the samtools/star image and push to GCR
 
 where:
     -h|--help Show help text
@@ -63,10 +62,6 @@ function main(){
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg STAR_VERSION="$STAR_VERSION" "$DIR" 
     docker push "$GCR_URL:$IMAGE_TAG"
-
-    echo "tagging and pushing Quay Image"
-    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

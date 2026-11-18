@@ -29,7 +29,6 @@ GLIMPSE_REPO="https://github.com/odelaneau/GLIMPSE.git"
 GLIMPSE_COMMIT_HASH=""  # Required - must be specified by user
 CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 
-
 # Help text
 HELP="$(basename "$0") [-h|--help] [-r|--repo] -c|--commit [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the Imputation GLIMPSE2 image and push to GCR
 

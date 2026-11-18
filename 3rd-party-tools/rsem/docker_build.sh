@@ -8,7 +8,6 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/rsem"
-#QUAY_URL="quay.io/broadinstitute/gotc-prod-rsem" # Update and uncomment push block below after setting up quay repo
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
@@ -49,10 +48,6 @@ function main(){
     echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
-
-#    echo "tagging and pushing Quay Image"
-#    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-#    docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"

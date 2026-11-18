@@ -8,14 +8,13 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/umi_tools"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-umi_tools"
 
 # umi_tools version
 UMI_TOOLS_VERSION="1.1.1"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the UMI_TOOLS image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the UMI_TOOLS image and push to GCR
 
 where:
     -h|--help Show help text
@@ -60,10 +59,6 @@ function main(){
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
         --build-arg UMI_TOOLS_VERSION="$UMI_TOOLS_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
-
-    #echo "tagging and pushing Quay Image"
-    #docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    #docker push "$QUAY_URL:$IMAGE_TAG"
 
     echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
