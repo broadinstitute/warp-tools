@@ -4,11 +4,17 @@
 # starts the task with its own command (bash), and mounts the task directory at
 # /cromwell_root. Nothing here needs an entrypoint or a working directory.
 #
-# Build on Google Cloud (native amd64, no emulation), after running ./get_scripts.sh:
+# Previous image: us.gcr.io/broad-gotc-prod/aou-mvsusie:1.0.0-20261029
+#
+# Build from this directory and this checkout's scripts/.
+# Do not run ./get_scripts.sh first; it overwrites the local script changes.
+# On Google Cloud (native amd64, no emulation):
 #   gcloud builds submit --timeout=60m --machine-type=e2-highcpu-8 \
-#     --tag <region>-docker.pkg.dev/<project>/<repo>/cis-mvsusie:0.1 .
-# Or locally (slow on Apple Silicon):
-#   docker buildx build --platform linux/amd64 -t <registry>/<name>:<tag> --push .
+#     --tag us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0 .
+# On a Mac (amd64 emulation can be slow on Apple Silicon):
+#   docker buildx build --platform linux/amd64 \
+#     -t us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0 --load .
+#   docker push us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0
 #
 # Pinning: the R packages come from the dated Posit package snapshot that rocker/r-ver
 # uses for this R version, so CRAN versions are reproducible. mvsusieR and susieR
@@ -75,8 +81,9 @@ COPY scripts/ /opt/mvsusie/scripts/
 RUN chmod +x /opt/mvsusie/scripts/*.R \
  && for f in prepare_trans_window.R prepare_window.R fit_window.R summarize_window.R \
              plot_window_mvsusie.R trans_window_cli.R trans_window_io.R trans_window_logging.R \
-             trans_window_model.R trans_window_preprocess.R trans_window_prior.R; do \
-      test -s "/opt/mvsusie/scripts/$f" || { echo "Missing /opt/mvsusie/scripts/$f. Run ./get_scripts.sh first." >&2; exit 1; }; \
+             trans_window_model.R trans_window_preprocess.R trans_window_prior.R \
+             trans_window_prior_modes.R; do \
+      test -s "/opt/mvsusie/scripts/$f" || { echo "Missing /opt/mvsusie/scripts/$f in the build context." >&2; exit 1; }; \
     done \
  && R -q -e 'for (f in list.files("/opt/mvsusie/scripts", "[.]R$", full.names = TRUE)) invisible(parse(f))'
 

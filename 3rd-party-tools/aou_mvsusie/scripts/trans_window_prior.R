@@ -240,7 +240,9 @@ learn_joint_mashr_prior <- function(
     n_pca = 5L,
     seed = NULL,
     strong_lfsr = 0.05,
-    cov_pca_fun = mashr::cov_pca
+    cov_pca_fun = mashr::cov_pca,
+    include_canonical_priors = FALSE,
+    use_mashr_null_weight = FALSE
 ) {
   validate_marginal_summary_statistics(Bhat, Shat)
   if (
@@ -254,6 +256,16 @@ learn_joint_mashr_prior <- function(
     strong_lfsr <= 0 || strong_lfsr >= 1
   ) {
     stop("strong_lfsr must be between zero and one.", call. = FALSE)
+  }
+  if (
+    length(include_canonical_priors) != 1L ||
+    is.na(include_canonical_priors) ||
+    !is.logical(include_canonical_priors) ||
+    length(use_mashr_null_weight) != 1L ||
+    is.na(use_mashr_null_weight) ||
+    !is.logical(use_mashr_null_weight)
+  ) {
+    stop("Prior options must be single logical values.", call. = FALSE)
   }
   if (!is.null(seed)) set.seed(seed)
 
@@ -299,21 +311,38 @@ learn_joint_mashr_prior <- function(
       subset = covariance_rows
     )
   }
+  covariance_inputs <- pca_covariances
+  canonical_covariances <- list()
+  if (include_canonical_priors && ncol(Bhat) > 1L) {
+    pipeline_log("Adding canonical cross-outcome covariance inputs.")
+    canonical_covariances <- mashr::cov_canonical(mash_data)
+    names(canonical_covariances) <- paste0(
+      "canonical_",
+      names(canonical_covariances)
+    )
+    names(pca_covariances) <- paste0("pca_", names(pca_covariances))
+    covariance_inputs <- c(canonical_covariances, pca_covariances)
+    covariance_input_method <- "canonical_and_pca"
+  } else if (include_canonical_priors) {
+    pipeline_log("Skipping canonical covariances for a single outcome.")
+    covariance_input_method <- "univariate_pca_equivalent"
+  }
   pipeline_log(sprintf(
-    "PCA covariance learning returned %d matrices in %.2f seconds.",
+    "Covariance learning returned %d canonical and %d PCA matrices in %.2f seconds.",
+    length(canonical_covariances),
     length(pca_covariances),
     proc.time()[["elapsed"]] - stage_time
   ))
-  validate_mashr_covariances(pca_covariances, ncol(Bhat))
+  validate_mashr_covariances(covariance_inputs, ncol(Bhat))
 
   stage_time <- proc.time()[["elapsed"]]
   pipeline_log(sprintf(
-    "Starting the mashr mixture fit on all %d SNP rows.",
-    nrow(Bhat)
+    "Starting the mashr mixture fit on all %d SNP rows using %d covariance inputs.",
+    nrow(Bhat), length(covariance_inputs)
   ))
   mash_fit <- mashr::mash(
     data = mash_data,
-    Ulist = pca_covariances,
+    Ulist = covariance_inputs,
     usepointmass = TRUE,
     outputlevel = 0,
     verbose = TRUE
@@ -322,15 +351,25 @@ learn_joint_mashr_prior <- function(
     "The mashr mixture fit completed in %.2f seconds.",
     proc.time()[["elapsed"]] - stage_time
   ))
+  mashr_null_weight <- if (isTRUE(mash_fit$fitted_g$usepointmass)) {
+    as.numeric(mash_fit$fitted_g$pi[[1L]])
+  } else {
+    0
+  }
+  requested_null_weight <- if (use_mashr_null_weight) {
+    NULL
+  } else {
+    0
+  }
   prior <- mvsusieR::create_mixture_prior(
     fitted_g = mash_fit$fitted_g,
-    null_weight = 0
+    null_weight = requested_null_weight
   )
   fallback_to_input_covariances <- FALSE
   if (!length(prior$xUlist)) {
     prior <- mvsusieR::create_mixture_prior(
-      mixture_prior = list(matrices = pca_covariances),
-      null_weight = 0,
+      mixture_prior = list(matrices = covariance_inputs),
+      null_weight = if (use_mashr_null_weight) mashr_null_weight else 0,
       weights_tol = 0
     )
     fallback_to_input_covariances <- TRUE
@@ -344,6 +383,17 @@ learn_joint_mashr_prior <- function(
     abs(sum(fitted_weights) - 1) > 1e-8
   ) {
     stop("The fitted mashr weights are invalid.", call. = FALSE)
+  }
+
+  prior_method <- if (
+    !include_canonical_priors && !use_mashr_null_weight
+  ) {
+    "mashr_pca_only"
+  } else {
+    paste0(
+      "mashr_", covariance_input_method, "_",
+      if (use_mashr_null_weight) "estimated_null" else "null_weight_zero"
+    )
   }
 
   list(
@@ -361,10 +411,15 @@ learn_joint_mashr_prior <- function(
     pca_requested = pca_requested,
     pca_used = pca_used,
     pca_returned = length(pca_covariances),
+    canonical_returned = length(canonical_covariances),
     covariance_input_method = covariance_input_method,
-    n_covariance_inputs = length(pca_covariances),
+    n_covariance_inputs = length(covariance_inputs),
     n_prior_components = length(prior$xUlist),
     fallback_to_input_covariances = fallback_to_input_covariances,
+    prior_method = prior_method,
+    use_mashr_null_weight = use_mashr_null_weight,
+    mashr_estimated_null_weight = mashr_null_weight,
+    mvsusie_null_weight = prior$null_weight,
     fitted_g = mash_fit$fitted_g,
     fitted_weights = fitted_weights,
     seed = seed

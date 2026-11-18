@@ -203,7 +203,11 @@ fit_mvsusie_greedy_schedule <- function(
   )
 }
 
-fit_window_mvsusie <- function(prepared, config) {
+fit_window_mvsusie <- function(
+    prepared,
+    config,
+    prior_learner = learn_joint_mashr_prior
+) {
   if (
     !is.matrix(prepared$X) || !is.matrix(prepared$Y) ||
     nrow(prepared$X) != nrow(prepared$Y)
@@ -216,13 +220,24 @@ fit_window_mvsusie <- function(prepared, config) {
 
   pipeline_log("Computing all-SNP associations for the joint mashr prior.")
   marginal <- compute_marginal_bhat_shat_matrix(prepared$X, prepared$Y)
-  mashr_training <- learn_joint_mashr_prior(
+  mashr_training <- prior_learner(
     Bhat = marginal$Bhat,
     Shat = marginal$Shat,
     n_pca = config$mashr_n_pca,
     seed = config$mashr_seed,
     strong_lfsr = config$mashr_strong_lfsr
   )
+  pipeline_log(sprintf(
+    paste(
+      "Learned prior %s from %d covariance inputs (%d canonical);",
+      "mashr estimated null weight=%.6g, applied null weight=%.6g."
+    ),
+    mashr_training$prior_method,
+    mashr_training$n_covariance_inputs,
+    mashr_training$canonical_returned,
+    mashr_training$mashr_estimated_null_weight,
+    mashr_training$mvsusie_null_weight
+  ))
   raw_prior <- mashr_training$raw_prior
   validate_prior_for_outcomes(raw_prior, ncol(prepared$Y))
   raw_covariance_values <- unlist(raw_prior$xUlist, use.names = FALSE)
@@ -278,11 +293,15 @@ fit_window_mvsusie <- function(prepared, config) {
     mashr_training = mashr_training,
     metadata = list(
       window_id = prepared$qc$window_id,
-      prior = "mashr_pca_only",
+      prior = mashr_training$prior_method,
       prior_components = length(prepared_prior$xUlist),
       pca_requested = mashr_training$pca_requested,
       pca_used = mashr_training$pca_used,
       pca_returned = mashr_training$pca_returned,
+      canonical_returned = mashr_training$canonical_returned,
+      use_mashr_null_weight = mashr_training$use_mashr_null_weight,
+      mashr_estimated_null_weight = mashr_training$mashr_estimated_null_weight,
+      mvsusie_null_weight = mashr_training$mvsusie_null_weight,
       mash_model_training_scope = mashr_training$mash_model_training_scope,
       mash_model_training_n = mashr_training$mash_model_training_n,
       covariance_training_scope = mashr_training$covariance_training_scope,

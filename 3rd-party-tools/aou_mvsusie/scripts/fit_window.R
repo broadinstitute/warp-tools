@@ -32,6 +32,16 @@ args <- parse_cli_args(
     optparse::make_option("--mashr-n-pca", type = "integer", default = 5L),
     optparse::make_option("--mashr-seed", type = "integer", default = NULL),
     optparse::make_option("--mashr-strong-lfsr", type = "double", default = 0.05),
+    optparse::make_option(
+      "--include-canonical-priors",
+      action = "store_true",
+      default = FALSE
+    ),
+    optparse::make_option(
+      "--use-mashr-null-weight",
+      action = "store_true",
+      default = FALSE
+    ),
     optparse::make_option("--mashr-output", type = "character"),
     optparse::make_option("--greedy-history-output", type = "character"),
     optparse::make_option("--covariate-provenance-output", type = "character"),
@@ -65,7 +75,20 @@ config <- make_model_config(
   mashr_seed = mashr_seed,
   mashr_strong_lfsr = as_cli_numeric(args, "mashr_strong_lfsr", 0.05)
 )
-result <- fit_window_mvsusie(prepared, config)
+prior_learner <- learn_joint_mashr_prior
+if (args$include_canonical_priors || args$use_mashr_null_weight) {
+  source(file.path(script_dir, "trans_window_prior_modes.R"))
+  prior_learner <- make_mvsusie_prior_learner(
+    include_canonical_priors = args$include_canonical_priors,
+    use_mashr_null_weight = args$use_mashr_null_weight
+  )
+}
+pipeline_log(sprintf(
+  "Prior settings: canonical=%s, mashr_null_weight=%s.",
+  args$include_canonical_priors,
+  args$use_mashr_null_weight
+))
+result <- fit_window_mvsusie(prepared, config, prior_learner = prior_learner)
 bundle <- list(
   fit = result$fit,
   metadata = result$metadata,
