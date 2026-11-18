@@ -1,7 +1,7 @@
 # Adding a platform tag to ensure that images built on ARM-based machines doesn't break pipelines
 FROM --platform="linux/amd64" eclipse-temurin:17-jdk-alpine
 
-ARG BEAGLE_COMMIT_HASH=0b17ad0214dc2a4c1c1bbeef8f221e6e3a5052f2 \
+ARG BEAGLE_COMMIT_HASH=74b95445ae2e0de7392a5db246cf4a8fa164911d \
     BREF3_VERSION=17Dec24.224 \
     BCFTOOLS_VERSION=1.10.2
 
@@ -36,6 +36,8 @@ RUN set -eux; \
             xz-dev \
             zlib-dev \
     ; \
+    # Security: brotli-libs (pulled in transitively via curl) < 1.2.1-r0 is vulnerable to CVE-2026-111497
+    apk add --no-cache --upgrade "brotli-libs>=1.2.1-r0"; \
     # Install BCFTools
     wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2; \
     tar xf bcftools-${BCFTOOLS_VERSION}.tar.bz2; \

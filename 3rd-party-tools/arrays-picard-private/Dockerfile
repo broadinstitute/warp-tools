@@ -26,6 +26,8 @@ RUN set -eux; \
             unzip \
             wget \
     ; \
+# Security: brotli-libs (pulled in transitively via curl) < 1.2.1-r0 is vulnerable to CVE-2026-111497
+    apk add --no-cache --upgrade "brotli-libs>=1.2.1-r0"; \
 # Install Picard private
     curl -L ${ARTIFACTORY_URL}/${PICARD_PRIVATE_VERSION}/jars/picard-private-all-${PICARD_PRIVATE_VERSION}.jar > picard-private.jar \
     ; \
