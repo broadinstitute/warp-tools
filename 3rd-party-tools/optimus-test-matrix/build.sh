@@ -8,4 +8,4 @@ if [ -z $tag ]; then
     exit 1
 fi
 
-docker build -t quay.io/humancellatlas/optimus-matrix-test:$tag .
+docker build -t optimus-matrix-test:$tag .

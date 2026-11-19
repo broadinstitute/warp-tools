@@ -24,7 +24,7 @@ The Imputation GLIMPSE2 image uses the following convention for versioning:
 
 #### `us.gcr.io/broad-gotc-prod/imputation-glimpse2:<image-version>-<short-git-commit-hash>-<unix-timestamp>`
 
-We keep track of all past versions in [docker_versions.tsv](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 _Note: The commit hash comes from the [GLIMPSE GitHub repository](https://github.com/odelaneau/GLIMPSE)._
 

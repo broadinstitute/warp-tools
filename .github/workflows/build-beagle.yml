@@ -7,6 +7,9 @@ on:
     branches: [ "develop", "master" ]
     paths:
       - '3rd-party-tools/beagle/**'
+      - '!3rd-party-tools/beagle/README*'
+      - '!3rd-party-tools/beagle/docker_versions.tsv'
+      - '!3rd-party-tools/beagle/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:

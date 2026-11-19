@@ -60,11 +60,8 @@ function main(){
     docker push "$GCR_URL:$IMAGE_TAG"
     
 
-    echo "$GCR_URL:$IMAGE_TAG $PICARD_PRIVATE_VERSION" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 
 main "$@"
-
-
 
