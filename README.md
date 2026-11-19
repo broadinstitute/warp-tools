@@ -9,7 +9,7 @@ This README is a map of the repository. For build instructions and the Dockerfil
 | Path | What it is |
 | --- | --- |
 | `tools/` | The in-house **`warp-tools`** image — a single image bundling Broad-authored tools (`fastqpreprocessing` and `TagSort` in C++, plus helper `scripts/`). It has its own `Dockerfile`, `docker_build.sh`, `docker_versions.tsv`, and `warp-tools.changelog.md` at the top level. |
-| `3rd-party-tools/` | One subdirectory per third-party image (~57). Each contains a `Dockerfile`, a `docker_build.sh`, a `docker_versions.tsv`, a `README.md`, and any baked-in scripts/assets. |
+| `3rd-party-tools/` | One subdirectory per third-party image (~57). Each contains a `Dockerfile`, a `docker_build.sh`, a `README.md`, and any baked-in scripts/assets. |
 | `.github/workflows/` | CI. One `build-<tool>.yml` per image (builds & pushes to GCR), plus `trivy.yml` for vulnerability scanning. |
 
 Every image directory carries its own `README.md` describing the tool and its usage — see the [tool README template](TOOL_README_TEMPLATE.md) for the standard structure.
@@ -36,7 +36,7 @@ us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timesta
 - **`tool-version`** — version of the wrapped tool (e.g. `samtools` `1.19`); left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — keeps every tag unique and avoids Cromwell image-cache collisions.
 
-Version tags are fixed once their PR merges. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp). The `docker_versions.tsv` files are kept as history and are no longer updated.
+Version tags are fixed once their PR merges. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp). The remaining `docker_versions.tsv` files are history; each is deleted the next time its image changes.
 
 ## Building images
 

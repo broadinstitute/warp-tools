@@ -15,9 +15,9 @@ This file holds **container-operational** guidance only. It does **not** repeat 
 
 ## Build & publish, in one line
 
-Images publish to **GCR only** (`us.gcr.io/broad-gotc-prod/<image>`); CI builds on a PR touching an image's directory; then WARP's `scripts/image_pins.py pin <PR number>` tags the PR's latest build and pins it as `<image>:<version-tag>@sha256:<digest>`; rerunning it while the PR is open moves that tag to the newer build, and the merge fixes it. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
+Open a PR: CI builds the image into GCR (`us.gcr.io/broad-gotc-prod/<image>`), and WARP's `scripts/image_pins.py pin <PR number>` tags that build and pins it. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
 
-> There is **no Quay** publishing. CI pushes only to GCR. Some `docker_build.sh` scripts still contain `quay.io/...` tag/push lines — these are **stale and nonfunctional** (the newer images were never pushed to Quay); treat them as dead code to be removed, not a live target.
+> **Never push from `docker_build.sh`.** Its push, Quay and `docker_versions.tsv` lines, and version tags copied into READMEs, are leftovers of the old process. Remove an image's leftovers in the PR that next changes it ([Tidying an image](BUILDING.md#tidying-an-image)); don't sweep them, since a sweep rebuilds every image it touches.
 
 ## Keep scripts importable
 
@@ -42,23 +42,14 @@ You can build and run these images locally — including GPU images — without 
 - **Keep GPU images device-agnostic — don't hardcode a device.** scvi-tools defaults to `accelerator="auto"`, using a GPU when `torch.cuda.is_available()` and CPU otherwise. This lets ONE image back both a GPU and a CPU-only WDL task; the WDL `runtime` (not the container) decides whether a GPU is attached. Adding explicit `accelerator=`/`devices=` risks changing device-*count* behavior on the multi-GPU path — leave it default unless you mean to. (The warp side needs two tasks — GPU and CPU — for this; see the warp `AGENTS.md` GPU note.)
 - **Prefer a container entry point over a big inline-Python WDL heredoc.** scANVI's post-preprocessing step lives in `label_transfer_from_preprocessed.py` (a CLI over the same imported functions), so the WDL task is a one-line `python3 …` call. This keeps the command and the functions it calls in **one image** — no WDL↔image kwarg skew (an image predating a new arg like `max_epochs`/`batch_size` otherwise raises `unexpected keyword argument`) — and lets the WDL split cheaply into GPU/CPU task variants. Still honor the importable-function contract above.
 
-## Pipeline verification & CI (in the warp consuming repo)
+## Testing an image in its pipeline
 
-How this image's outputs get tested lives in the [warp](https://github.com/broadinstitute/warp) repo, but these cross-repo lessons are easy to trip over:
-
-- **Tolerant verification for stochastic models.** scvi-scanvi training is non-deterministic, so the scANVI pipeline does **not** compare outputs to truth by exact equality. Its `CompareScanviH5ad` task checks structure + distribution: cell counts match, the predicted-label vocabulary is a subset of truth's, and per-cell-type proportions correlate with truth above a threshold. Use this pattern for any stochastic/ML image.
-- **Keep a pipeline's verification task out of the shared `verification/VerifyTasks.wdl`.** That shared file is in **~27** pipelines' GitHub Actions `paths:` filters, so editing it triggers **every** pipeline's (Terra-based) test suite — slow, costly, noisy. Put the compare task in the pipeline's own `verification/Verify<Pipeline>.wdl` instead (scANVI keeps `CompareScanviH5ad` in `VerifyScANVI.wdl`). The same "don't touch in a feature PR" caution applies to other shared trigger files: `tasks/wdl/Utilities.wdl`, `tasks/wdl/TerraCopyFilesFromCloudToCloud.wdl`, `.github/workflows/warp_test_workflow.yml`, and `scripts/firecloud_api/firecloud_api.py` (each in ~24–27 path filters).
-- **New `test_<pipeline>.yml` needs an explicit `permissions:` block.** The reusable `warp_test_workflow.yml` job requests `contents: read`, `id-token: write` (Terra/GCP auth), and `actions: write`; the caller must grant at least those (CodeQL also flags a missing block).
-
-### Future work (stashed, separate PR)
-
-- **`firecloud_api.py` robustness.** Terra/Dockstore intermittently return non-JSON 5xx (e.g. an HTML `502`) during submission polling and method-config cleanup; `firecloud_api.py` parses the body unconditionally and crashes with `requests.exceptions.JSONDecodeError`. This surfaces as widespread, transient red CI across unrelated pipelines — infrastructure flakiness, not real breakage. A future PR should detect non-JSON / 5xx responses and retry-with-backoff instead of crashing. Note: `firecloud_api.py` is itself in ~24 pipeline `paths:` filters, so that fix is a CI-infra PR that triggers every pipeline — keep it out of feature PRs.
+Pipeline tests live in WARP; see its [agents/ci-tests.md](https://github.com/broadinstitute/warp/blob/develop/agents/ci-tests.md). For a stochastic image such as scvi-scanvi, the pipeline's `Verify*` task compares outputs tolerantly (scANVI's `CompareScanviH5ad`), never by exact match.
 
 ## Agent-Specific Notes
 
 Record recurring container-build learnings/mistakes here. Keep entries short and **link** to [BUILDING.md](BUILDING.md) or the warp AGENTS.md rather than duplicating them. Before adding a note, check it isn't already covered above or in a linked doc.
 
 - **Dockerfiles `COPY` each script explicitly (no wildcard).** Adding a new `.py` to a tool dir does nothing until you add a matching `COPY <file> .` line to that tool's `Dockerfile` — otherwise it's silently absent from the built image and a WDL calling it fails at **runtime**, not build (scvi-scanvi hit exactly this when `label_transfer_from_preprocessed.py` was added). Check the `COPY` list whenever you add files.
-- **Per-branch image tags are reused, so untagged digests pile up.** `build-<tool>.yml` triggers on `pull_request` (to develop/master, path-filtered) and `workflow_dispatch` — **no `push` trigger** — building once per commit and tagging with the branch name (`head_ref`), not per-commit. Each new commit's build **moves** that tag to a new digest, leaving prior builds untagged in GCR. So a PR shows several untagged digests with only the latest tagged — expected, not a double-build. WARP's `image_pins.py` checks that the branch tag is the PR's latest build before tagging it; never pin the branch tag itself.
-- **`docker_versions.tsv` is history.** It is no longer updated; WARP's pins and changelogs record which image version each pipeline runs.
-- **CI and `docker_build.sh` can publish to different GCR repos.** Check that `GCR_PATH` in `build-<tool>.yml` matches `GCR_URL` in `docker_build.sh`; keep both on the repo WARP already pins. `emptydrops`, eagle, minimac4 and umi-tools CI now push to the repos WARP pins; m3c-yap-hisat's `docker_build.sh` still differs.
+- **A PR's builds share its branch tag**, so each new commit's build leaves the previous one untagged in GCR. That's expected, not a double build. Never pin the branch tag; `image_pins.py` pins the build by digest.
+- **CI builds the Dockerfile without build args**, so a tool version in `docker_build.sh` must equal the Dockerfile's `ARG` default; `image_pins.py` refuses a mismatch (samtools-star-python and samtools-bwa-mem-2-lisa have one today).

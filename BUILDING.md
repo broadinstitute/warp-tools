@@ -18,7 +18,7 @@ All images publish to **Google Container Registry (GCR)** under `us.gcr.io/broad
 There are two build paths:
 
 1. **CI (canonical).** Each image has a `.github/workflows/build-<tool>.yml` workflow that triggers on a pull request touching that image's directory (e.g. `paths: ['3rd-party-tools/<tool>/**']`), and can also be run manually via **workflow_dispatch** (optional `image_tag` input). It builds the Dockerfile and pushes to `us.gcr.io/broad-gotc-prod/<tool>`, **tagged by the branch name** (`github.head_ref`). Authentication uses the `GCR_CI_KEY` repository secret — no local credentials are needed. **Opening a PR is the normal way to build an image.**
-2. **Local/manual (`docker_build.sh`).** A convenience script next to each Dockerfile for building locally. It tags the image per the [versioning strategy](#versioning-strategy), pushes to GCR, and appends the resulting reference to `docker_versions.tsv`. Running it requires a local container engine, `gcloud`, and GCR push access (`gcloud auth configure-docker`).
+2. **Local (`docker_build.sh`).** Builds the image on your machine for testing. Its `DOCKER_IMAGE_VERSION`, tool versions and `IMAGE_TAG` line also set the version tag WARP gives the CI build (next sections). Older scripts also push to GCR and Quay and append to `docker_versions.tsv`; don't use that part, and remove it when you next change the image ([Tidying an image](#tidying-an-image)).
 
 > Image vulnerability scanning runs on every PR via [trivy](https://github.com/aquasecurity/trivy); when you add a new image, register it in [.github/workflows/trivy.yml](.github/workflows/trivy.yml).
 
@@ -34,20 +34,39 @@ us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timesta
 - **`tool-version`** — the version of the wrapped tool (e.g. `samtools` `1.19`), so consumers can identify it without inspecting the image. Left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — guarantees a unique tag and avoids Cromwell image-cache collisions.
 
-Version tags are added to a PR's CI build by WARP's `image_pins.py` (next section). While the PR is open, each run moves the tag to the build it pins; once the PR merges, the tag is fixed, and a fix is a new image version with a new tag. Keep `DOCKER_IMAGE_VERSION` and the tool version in each image's `docker_build.sh` current: they are the `<image-version>[-<tool-version>]` part of the next version tag. The `docker_versions.tsv` files are kept as history and are no longer updated.
+Version tags are added to a PR's CI build by WARP's `image_pins.py` (next section). While the PR is open, each run moves the tag to the build it pins; once the PR merges, the tag is fixed, and a fix is a new image version with a new tag. `DOCKER_IMAGE_VERSION` and the tool versions in each image's `docker_build.sh` are the `<image-version>[-<tool-version>]` part of the next version tag. `image_pins.py` refuses a `DOCKER_IMAGE_VERSION` below a version already in the registry, and a tool version that differs from the Dockerfile's `ARG` default, because CI builds the Dockerfile without build args.
 
 ## Pinning an image in WARP
 
 WARP pins each image as `<image>:<version-tag>@sha256:<digest>`: the digest fixes what runs and the tag says which image version it is. Never pin a branch tag, `latest`, a bare tag or a bare digest. A change takes four steps; the WARP side is in WARP's [Updating a warp-tools image](https://broadinstitute.github.io/warp/docs/contribution/contribute_to_warp/update_warp_tools_image) page.
 
-1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`. CI builds the image and pushes it under the branch name.
+1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`, and [tidy the image](#tidying-an-image) in the same PR. CI builds the image and pushes it under the branch name.
 2. **From a WARP branch, tag and pin the build:** `python3 scripts/image_pins.py pin <PR number>`. It finds the image, its version and the PR's latest build, gives that build the version tag `<version>-<unix-timestamp>`, and rewrites WARP's pins. Rerun after another build and the same tag moves to it, so a PR leaves one version tag per image. It needs write access to the registry (`gcloud auth`).
 3. **Bump, test and review in WARP.** If the image has to change again, push here and repeat step 2 once it has built.
 4. **Merge this PR, then the WARP PR.** The merge fixes the version tag where it is.
 
+### Tidying an image
+
+Each image drops what's left of the old publishing process the next time it changes, in the PR that changes it, so the cleanup triggers no extra builds. After pinning, `image_pins.py` lists what's left for the image:
+
+- Delete its `docker_versions.tsv`.
+- Make `docker_build.sh` build locally only: no `docker push`, no Quay lines, no `docker_versions.tsv`, no `--build-arg` (so a local build matches CI's). Keep `DOCKER_IMAGE_VERSION`, the tool versions and the `IMAGE_TAG` line:
+
+  ```bash
+  #!/bin/bash
+  # Builds <tool> locally. CI builds and pushes the image; WARP's image_pins.py tags that build.
+  set -e
+  DOCKER_IMAGE_VERSION=1.0.0
+  TOOL_VERSION="1.2.3"  # the Dockerfile's ARG TOOL_VERSION default
+  TIMESTAMP=$(date +"%s")
+  IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TOOL_VERSION-$TIMESTAMP"
+  docker build -t "<tool>:$IMAGE_TAG" "$(dirname "$0")"
+  ```
+- In its `README.md`, replace a copied version tag or a pointer to `docker_versions.tsv` with a link to the WARP WDL that pins the image.
+
 ## Adding or updating an image
 
-1. Create `3rd-party-tools/<tool>/` (third-party) or extend `tools/` (in-house) with a `Dockerfile`, a `docker_build.sh`, a `docker_versions.tsv`, and a `README.md`.
+1. Create `3rd-party-tools/<tool>/` (third-party) or extend `tools/` (in-house) with a `Dockerfile`, a `docker_build.sh` in the [local-only form](#tidying-an-image), and a `README.md`.
 2. Write the `README.md` from the standard [tool README template](TOOL_README_TEMPLATE.md) (synopsis, inputs, outputs, usage, task descriptions).
 3. Keep any baked-in scripts **importable and stable**: WARP pipelines often import specific functions from a script in the image (e.g. `from multiome_label_transfer import train_scvi`) rather than calling its `main()`. The imported function API — not `main()` — is the production contract, so preserve signatures/behavior and document hidden preconditions in docstrings. When adding a variant, factor shared internals into a helper to avoid drift.
 4. Add a `.github/workflows/build-<tool>.yml` (copy an existing one; set `GCR_PATH: broad-gotc-prod/<tool>` and the `paths` trigger) and register the image in [.github/workflows/trivy.yml](.github/workflows/trivy.yml).
@@ -117,7 +136,7 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 ### Build scripts and README
 
-Each image keeps an easy-to-use `docker_build.sh` next to its `Dockerfile`, with configurable inputs for tool versions, and writes published tags to an accompanying `docker_versions.tsv` automatically. Every image also has a `README.md` (use the [tool README template](TOOL_README_TEMPLATE.md)). See [3rd-party-tools/samtools](3rd-party-tools/samtools) for an example (`docker_build.sh`, `docker_versions.tsv`, `README.md`).
+Each image keeps a `docker_build.sh` next to its `Dockerfile` that builds it locally and holds its version ([Tidying an image](#tidying-an-image) shows the form). Every image also has a `README.md` (use the [tool README template](TOOL_README_TEMPLATE.md)).
 
 ### Formatting
 
