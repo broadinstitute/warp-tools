@@ -8,7 +8,6 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/snaptools-bwa"
-#QUAY_URL="quay.io/broadinstitute/gotc-prod-snaptools-bwa" # Update and uncomment push block below after setting up quay repo
 
 # BWA version
 BWA_VERSION=0.7.17
@@ -65,11 +64,6 @@ function main(){
         --no-cache "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-#    echo "tagging and pushing Quay Image"
-#    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-#    docker push "$QUAY_URL:$IMAGE_TAG"
-
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

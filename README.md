@@ -8,7 +8,7 @@ This README is a map of the repository. For build instructions and the Dockerfil
 
 | Path | What it is |
 | --- | --- |
-| `tools/` | The in-house **`warp-tools`** image — a single image bundling Broad-authored tools (`fastqpreprocessing` and `TagSort` in C++, plus helper `scripts/`). It has its own `Dockerfile`, `docker_build.sh`, `docker_versions.tsv`, and `warp-tools.changelog.md` at the top level. |
+| `tools/` | The in-house **`warp-tools`** image — a single image bundling Broad-authored tools (`fastqpreprocessing` and `TagSort` in C++, plus helper `scripts/`). It has its own `Dockerfile`, `docker_build.sh` and `warp-tools.changelog.md` at the top level. |
 | `3rd-party-tools/` | One subdirectory per third-party image (~57). Each contains a `Dockerfile`, a `docker_build.sh`, a `README.md`, and any baked-in scripts/assets. |
 | `.github/workflows/` | CI. One `build-<tool>.yml` per image (builds & pushes to GCR), plus `trivy.yml` for vulnerability scanning. |
 
@@ -36,7 +36,7 @@ us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timesta
 - **`tool-version`** — version of the wrapped tool (e.g. `samtools` `1.19`); left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — keeps every tag unique and avoids Cromwell image-cache collisions.
 
-Version tags are fixed once their PR merges. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp). The remaining `docker_versions.tsv` files are history; each is deleted the next time its image changes.
+Version tags are fixed once their PR merges. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp).
 
 ## Building images
 

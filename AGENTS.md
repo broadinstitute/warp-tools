@@ -17,7 +17,7 @@ This file holds **container-operational** guidance only. It does **not** repeat 
 
 Open a PR: CI builds the image into GCR (`us.gcr.io/broad-gotc-prod/<image>`), and WARP's `scripts/image_pins.py pin <PR number>` tags that build and pins it. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
 
-> **Never push from `docker_build.sh`.** Its push, Quay and `docker_versions.tsv` lines, and version tags copied into READMEs, are leftovers of the old process. Remove an image's leftovers in the PR that next changes it ([Tidying an image](BUILDING.md#tidying-an-image)); don't sweep them, since a sweep rebuilds every image it touches.
+> **Never push from `docker_build.sh`.** Its `docker push` lines, and version tags copied into READMEs, are leftovers of the old process; remove an image's in the PR that next changes it ([Tidying an image](BUILDING.md#tidying-an-image)). There is no Quay mirror and no `docker_versions.tsv` any more.
 
 ## Keep scripts importable
 

@@ -17,8 +17,8 @@ All images publish to **Google Container Registry (GCR)** under `us.gcr.io/broad
 
 There are two build paths:
 
-1. **CI (canonical).** Each image has a `.github/workflows/build-<tool>.yml` workflow that triggers on a pull request touching that image's directory (e.g. `paths: ['3rd-party-tools/<tool>/**']`), and can also be run manually via **workflow_dispatch** (optional `image_tag` input). It builds the Dockerfile and pushes to `us.gcr.io/broad-gotc-prod/<tool>`, **tagged by the branch name** (`github.head_ref`). Authentication uses the `GCR_CI_KEY` repository secret — no local credentials are needed. **Opening a PR is the normal way to build an image.**
-2. **Local (`docker_build.sh`).** Builds the image on your machine for testing. Its `DOCKER_IMAGE_VERSION`, tool versions and `IMAGE_TAG` line also set the version tag WARP gives the CI build (next sections). Older scripts also push to GCR and Quay and append to `docker_versions.tsv`; don't use that part, and remove it when you next change the image ([Tidying an image](#tidying-an-image)).
+1. **CI (canonical).** Each image has a `.github/workflows/build-<tool>.yml` workflow that triggers on a pull request touching that image's directory (e.g. `paths: ['3rd-party-tools/<tool>/**']`), and can also be run manually via **workflow_dispatch** (optional `image_tag` input). Changes to the image's `README`, `docker_build.sh` or `docker_versions.tsv` alone start no build, since CI doesn't use them (except glimpse2 and sv-imputation-rust-tools, whose CI runs `docker_build.sh`). It builds the Dockerfile and pushes to `us.gcr.io/broad-gotc-prod/<tool>`, **tagged by the branch name** (`github.head_ref`). Authentication uses the `GCR_CI_KEY` repository secret — no local credentials are needed. **Opening a PR is the normal way to build an image.**
+2. **Local (`docker_build.sh`).** Builds the image on your machine for testing. Its `DOCKER_IMAGE_VERSION`, tool versions and `IMAGE_TAG` line also set the version tag WARP gives the CI build (next sections). Most scripts also still push to GCR; don't use that part, and remove it when you next change the image ([Tidying an image](#tidying-an-image)).
 
 > Image vulnerability scanning runs on every PR via [trivy](https://github.com/aquasecurity/trivy); when you add a new image, register it in [.github/workflows/trivy.yml](.github/workflows/trivy.yml).
 
@@ -47,10 +47,9 @@ WARP pins each image as `<image>:<version-tag>@sha256:<digest>`: the digest fixe
 
 ### Tidying an image
 
-Each image drops what's left of the old publishing process the next time it changes, in the PR that changes it, so the cleanup triggers no extra builds. After pinning, `image_pins.py` lists what's left for the image:
+Each image drops what's left of the old publishing process the next time it changes, in the PR that changes it. After pinning, `image_pins.py` lists what's left for the image:
 
-- Delete its `docker_versions.tsv`.
-- Make `docker_build.sh` build locally only: no `docker push`, no Quay lines, no `docker_versions.tsv`, no `--build-arg` (so a local build matches CI's). Keep `DOCKER_IMAGE_VERSION`, the tool versions and the `IMAGE_TAG` line:
+- Make `docker_build.sh` build locally only: no `docker push` and no `--build-arg` (so a local build matches CI's). Keep `DOCKER_IMAGE_VERSION`, the tool versions and the `IMAGE_TAG` line:
 
   ```bash
   #!/bin/bash
@@ -62,7 +61,7 @@ Each image drops what's left of the old publishing process the next time it chan
   IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TOOL_VERSION-$TIMESTAMP"
   docker build -t "<tool>:$IMAGE_TAG" "$(dirname "$0")"
   ```
-- In its `README.md`, replace a copied version tag or a pointer to `docker_versions.tsv` with a link to the WARP WDL that pins the image.
+- In its `README.md`, replace a copied version tag with a link to the WARP WDL that pins the image.
 
 ## Adding or updating an image
 

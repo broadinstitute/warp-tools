@@ -17,7 +17,7 @@ ATAC_BARCODES image uses the following convention for verisoning:
 
 #### `us.gcr.io/broad-gotc-prod/atac_barcodes:<image-version>-<atac_barcodes-version>-<unix-timestamp>` 
 
-We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 You can see more information about the image, including the tool versions, by running the following command:
 

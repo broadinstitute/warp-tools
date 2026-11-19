@@ -7,6 +7,9 @@ on:
     branches: [ "develop", "master" ]
     paths:
       - '3rd-party-tools/build-indices/**'
+      - '!3rd-party-tools/build-indices/README*'
+      - '!3rd-party-tools/build-indices/docker_versions.tsv'
+      - '!3rd-party-tools/build-indices/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
