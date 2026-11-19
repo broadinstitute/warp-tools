@@ -15,7 +15,7 @@ This file holds **container-operational** guidance only. It does **not** repeat 
 
 ## Build & publish, in one line
 
-Images publish to **GCR only** (`us.gcr.io/broad-gotc-prod/<image>`); CI builds on a PR touching an image's directory; then WARP's `scripts/image_pins.py pin <PR number>` tags the PR's latest build and pins it as `<image>:<version-tag>@sha256:<digest>`. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
+Images publish to **GCR only** (`us.gcr.io/broad-gotc-prod/<image>`); CI builds on a PR touching an image's directory; then WARP's `scripts/image_pins.py pin <PR number>` tags the PR's latest build and pins it as `<image>:<version-tag>@sha256:<digest>`; rerunning it while the PR is open moves that tag to the newer build, and the merge fixes it. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
 
 > There is **no Quay** publishing. CI pushes only to GCR. Some `docker_build.sh` scripts still contain `quay.io/...` tag/push lines — these are **stale and nonfunctional** (the newer images were never pushed to Quay); treat them as dead code to be removed, not a live target.
 
