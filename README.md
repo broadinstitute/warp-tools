@@ -36,7 +36,7 @@ us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timesta
 - **`tool-version`** — version of the wrapped tool (e.g. `samtools` `1.19`); left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — keeps every tag unique and avoids Cromwell image-cache collisions.
 
-Release tags never move. WARP pins `<image>:<release-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which release it is — see [Releasing an image to WARP](BUILDING.md#releasing-an-image-to-warp). The `docker_versions.tsv` files are kept as history and are no longer updated.
+Version tags never move. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp). The `docker_versions.tsv` files are kept as history and are no longer updated.
 
 ## Building images
 
