@@ -2,10 +2,7 @@
 
 ## Quick reference
 
-```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:a8b3699f2e3ce97aac227c0b8d100b3f4af6ae94fb72c0b14ca58c357a0f9c54
-```
-
+- **Pinned in WARP by:** [scANVI.wdl](https://github.com/broadinstitute/warp/blob/develop/pipelines/wdl/scanvi/scANVI.wdl); pull the `scvi-scanvi:<version-tag>@sha256:<digest>` written there.
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
 - **What is scvi-tools:** [scvi-tools](https://docs.scvi-tools.org/) provides SCVI (unsupervised variational inference) and SCANVI (semi-supervised annotation) models for single-cell omics.
 
