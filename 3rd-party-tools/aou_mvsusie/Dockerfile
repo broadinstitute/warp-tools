@@ -4,17 +4,18 @@
 # starts the task with its own command (bash), and mounts the task directory at
 # /cromwell_root. Nothing here needs an entrypoint or a working directory.
 #
-# Previous image: us.gcr.io/broad-gotc-prod/aou-mvsusie:1.0.0-20261029
+# Previous images: us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0 and :1.0.0-20261029
 #
 # Build from this directory and this checkout's scripts/.
 # Do not run ./get_scripts.sh first; it overwrites the local script changes.
 # On Google Cloud (native amd64, no emulation):
-#   gcloud builds submit --timeout=60m --machine-type=e2-highcpu-8 \
-#     --tag us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0 .
+#   gcloud builds submit --timeout=60m --machine-type=e2-highcpu-8 --no-cache \
+#     --tag us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.1 .
 # On a Mac (amd64 emulation can be slow on Apple Silicon):
-#   docker buildx build --platform linux/amd64 \
-#     -t us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0 --load .
-#   docker push us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.0
+#   docker buildx build --platform linux/amd64 --pull --no-cache \
+#     -t us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.1 --load .
+# Rescan the rebuilt image before publishing or using it on Terra.
+#   docker push us.gcr.io/broad-gotc-prod/aou-mvsusie:1.1.1
 #
 # Pinning: the R packages come from the dated Posit package snapshot that rocker/r-ver
 # uses for this R version, so CRAN versions are reproducible. mvsusieR and susieR
@@ -38,14 +39,21 @@ LABEL org.opencontainers.image.title="WARP AoU mvSuSiE" \
   org.broadinstitute.warp-tools.mvsusier.source="https://github.com/stephenslab/mvsusieR" \
   org.broadinstitute.warp-tools.susier.source="https://github.com/stephenslab/susieR"
 
-# Command-line tools used by the WDL tasks: tabix and bgzip (htslib), gzip, awk, sort, comm
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      tabix gzip gawk coreutils procps ca-certificates curl git \
+# Upgrade packages inherited from the base image as well as installing workflow tools.
+RUN apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get upgrade -y --with-new-pkgs \
+    && apt-get install -y --no-install-recommends \
+      tabix gzip gawk coreutils procps ca-certificates curl git openssl \
       build-essential gfortran cmake \
       libgsl-dev libblas-dev liblapack-dev \
       libcurl4-openssl-dev libssl-dev libxml2-dev \
       libfontconfig1-dev libfreetype6-dev libharfbuzz-dev libfribidi-dev \
       libpng-dev libjpeg-dev libtiff-dev libcairo2-dev \
+    && for package in openssl libssl3 libssl-dev; do \
+      installed="$(dpkg-query -W -f='${Version}' "$package")" \
+        && dpkg --compare-versions "$installed" ge 3.0.2-0ubuntu1.30 \
+        || { echo "Expected $package >= 3.0.2-0ubuntu1.30 (Jammy); found ${installed:-not installed}." >&2; exit 1; }; \
+    done \
     && rm -rf /var/lib/apt/lists/*
 
 # R packages used by the scripts (and likely by the summary and plot scripts)
