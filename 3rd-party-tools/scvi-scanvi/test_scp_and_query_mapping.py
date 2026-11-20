@@ -21,6 +21,7 @@ from scanpy.neighbors._common import _ind_dist_shortcut
 import scipy.sparse as sp
 
 from make_reference_only_model import train_reference_only_model
+from scp_output import make_scp_ready
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 rng = np.random.default_rng(0)
@@ -105,6 +106,15 @@ with tempfile.TemporaryDirectory() as tmp:
           "validate_inputs.py reports a missing file, a duplicate id and a duplicate file name")
     check(_ind_dist_shortcut(sp.csr_array(np.ones((4, 3), dtype=np.float32))) is not None,
           "scanpy neighbors accepts pynndescent csr_array graphs (n_obs >= 8192)")
+    # Exercise the real n_obs >= 8,192 pynndescent -> fuzzy_simplicial_set -> UMAP path end to end:
+    # scanpy slices a non-C-contiguous knn_dists view there, which umap-learn 0.6.0 rejected in numba.
+    big = ad.AnnData(sp.csr_matrix(np.ones((8200, 4), dtype=np.float32)),
+                     obs=pd.DataFrame(index=[f"c{i}" for i in range(8200)]),
+                     var=pd.DataFrame(index=[f"g{j}" for j in range(4)]))
+    big = make_scp_ready(big, {"class": rng.standard_normal((8200, 30), dtype=np.float32)},
+                         {"scanvi_input_id": "big"})
+    check(big.obsm["X_umap"].shape == (8200, 2) and np.isfinite(big.obsm["X_umap"]).all(),
+          "make_scp_ready embeds >= 8192 cells end to end through pynndescent and UMAP")
 
 print("PASSED" if not failures else f"FAILED: {failures}", flush=True)
 sys.exit(1 if failures else 0)
