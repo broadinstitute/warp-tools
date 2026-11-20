@@ -20,7 +20,7 @@ import pandas as pd
 from scanpy.neighbors._common import _ind_dist_shortcut
 import scipy.sparse as sp
 
-from make_reference_only_model import train_reference_only_model
+from make_reference_only_model import restore_raw_counts, train_reference_only_model
 from scp_output import make_scp_ready
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -115,6 +115,22 @@ with tempfile.TemporaryDirectory() as tmp:
                          {"scanvi_input_id": "big"})
     check(big.obsm["X_umap"].shape == (8200, 2) and np.isfinite(big.obsm["X_umap"]).all(),
           "make_scp_ready embeds >= 8192 cells end to end through pynndescent and UMAP")
+
+    # Allen AIT .raw restoration under both subsetting and same-count gene reordering:
+    # Allen AIT files reset .raw.var.index to '0'..'N-1' and store symbols in .raw.var['gene'].
+    ait = ad.AnnData(X=ref.X.copy(), obs=ref.obs.copy(), var=pd.DataFrame({"gene": genes}, index=genes))
+    ait.raw = ad.AnnData(X=ref.X.copy(), obs=ref.obs.copy(),
+                         var=pd.DataFrame({"gene": genes}, index=[str(j) for j in range(len(genes))]))
+    reordered = ait[:, list(reversed(range(len(genes))))].copy()
+    reordered.X = None
+    restored = restore_raw_counts(reordered)
+    check(list(restored.var_names) == genes and np.array_equal(restored.X.toarray(), ref.X.toarray()),
+          "restore_raw_counts recovers Allen AIT .raw.var['gene'] symbols aligned to .raw.X after reorder")
+    subsetted = ait[:, :50].copy()
+    subsetted.X = None
+    restored_sub = restore_raw_counts(subsetted)
+    check(list(restored_sub.var_names) == genes and restored_sub.shape == ref.shape,
+          "restore_raw_counts recovers full Allen AIT .raw counts and gene symbols after subset")
 
 print("PASSED" if not failures else f"FAILED: {failures}", flush=True)
 sys.exit(1 if failures else 0)
