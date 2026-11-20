@@ -54,7 +54,7 @@ if (anyDuplicated(display_labels)) {
 }
 
 pipeline_log("Calling mvsusieR::mvsusie_plot with conditional effects.")
-plot_result <- mvsusieR::mvsusie_plot(
+plot_args <- list(
   fit = fit,
   chr = chromosome,
   pos = positions_mb,
@@ -66,6 +66,13 @@ plot_result <- mvsusieR::mvsusie_plot(
   conditional_effect = TRUE,
   sort_by_cs = TRUE
 )
+n_credible_sets <- length(fit$sets$cs)
+if (n_credible_sets > 14L) {
+  # Keep the package's default colors for smaller plots.
+  pipeline_log(sprintf("Generating a palette for %d credible sets.", n_credible_sets))
+  plot_args$cs_colors <- grDevices::hcl.colors(n_credible_sets, palette = "Dark 3")
+}
+plot_result <- do.call(mvsusieR::mvsusie_plot, plot_args)
 if (is.null(plot_result$effect_plot)) {
   stop("mvsusie_plot did not return an effect plot.", call. = FALSE)
 }
