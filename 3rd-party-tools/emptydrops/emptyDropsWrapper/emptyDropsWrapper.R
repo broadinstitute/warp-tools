@@ -87,7 +87,12 @@ option_list <- list(
     make_option(c('--min-molecules'),
 		default=1000,
 		help='minimum number of molecules for a droplet to be called a cell',
-		dest='min_molecules')
+		dest='min_molecules'),
+    make_option(c('--seed'),
+                type='integer',
+                default=NULL, ## unset: Monte-Carlo p-values are nondeterministic
+                help='random seed for reproducible emptyDrops p-values',
+                dest='seed')
 	
     ## TODO: Expose parallel functionality
 )
@@ -190,6 +195,7 @@ if (opt$transpose) {
 ## Run emptyDrops with error handling
 catv('Running emptyDrops...')
 t0 <- Sys.time()
+if (!is.null(opt$seed)) set.seed(opt$seed)
 tryCatch({
     emptyDrops_result <- emptyDrops(m=inputMatrix,
                                     lower=ed_param_lower,

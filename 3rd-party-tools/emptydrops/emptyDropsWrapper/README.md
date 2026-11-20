@@ -11,11 +11,13 @@ This script requires the following R packages to be installed:
 
 DropletUtils are available from bioconductor and require R version 3.5
 
+emptyDrops p-values come from a Monte-Carlo simulation, so output varies between runs unless `--seed` is given.
+
 https://bioconductor.org/packages/release/bioc/html/DropletUtils.html
 
 ## Testing
 
-To run the tests run the following:
+The test checks that two runs with the same `--seed` give identical output (CI runs it on every image build):
 
 ```
 cd /tools/emptyDropsWrapper/test/ 

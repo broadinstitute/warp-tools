@@ -98,7 +98,7 @@ Run the tool/script:
 ## Task descriptions
 
 <!-- How WARP consumes this image: which pipeline(s)/WDL task(s) use it, and how
-(e.g. "imports run_multi_model from /usr/local", or "invoked as `<binary> ...`").
+(e.g. "imports train_scvi from /usr/local", or "invoked as `<binary> ...`").
 Link to the consuming pipeline. This is the bridge back to WARP. -->
 
 - **Pipeline:** [`<Pipeline>`](https://github.com/broadinstitute/warp/tree/develop/pipelines/wdl/<path>)
