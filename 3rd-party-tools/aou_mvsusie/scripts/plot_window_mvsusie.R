@@ -73,8 +73,25 @@ if (n_credible_sets > 14L) {
   plot_args$cs_colors <- grDevices::hcl.colors(n_credible_sets, palette = "Dark 3")
 }
 plot_result <- do.call(mvsusieR::mvsusie_plot, plot_args)
-if (is.null(plot_result$effect_plot)) {
-  stop("mvsusie_plot did not return an effect plot.", call. = FALSE)
+rendered_plot <- plot_result$effect_plot
+plot_result$rendered_plot_type <- "effect"
+if (is.null(rendered_plot)) {
+  if (is.null(plot_result$pip_plot)) {
+    stop("mvsusie_plot returned neither an effect plot nor a PIP plot.", call. = FALSE)
+  }
+  reason <- if (n_credible_sets == 0L) {
+    "No credible sets were reported."
+  } else {
+    sprintf("No credible-set effects passed the plot's LFSR cutoff (< %g).",
+            plot_args$lfsr_cutoff)
+  }
+  pipeline_log(paste(reason, "Saving the PIP plot instead of an effect plot."))
+  rendered_plot <- plot_result$pip_plot + ggplot2::labs(
+    title = "Variant inclusion probabilities (PIPs)",
+    subtitle = reason
+  )
+  plot_result$rendered_plot_type <- "pip_only"
+  plot_result$no_effect_plot_reason <- reason
 }
 
 png_path <- require_cli_arg(args, "png")
@@ -85,14 +102,14 @@ for (path in c(png_path, pdf_path, plot_rds_path)) {
 }
 ggplot2::ggsave(
   png_path,
-  plot_result$effect_plot,
+  rendered_plot,
   width = 15,
   height = 10,
   dpi = 300
 )
 ggplot2::ggsave(
   pdf_path,
-  plot_result$effect_plot,
+  rendered_plot,
   width = 15,
   height = 10
 )
@@ -101,4 +118,4 @@ required_outputs <- c(png_path, pdf_path, plot_rds_path)
 if (any(!file.exists(required_outputs)) || any(file.info(required_outputs)$size == 0)) {
   stop("The mvSuSiE plot outputs are incomplete.", call. = FALSE)
 }
-pipeline_log("The mvSuSiE credible-set-by-feature plots were saved.")
+pipeline_log(sprintf("Saved mvSuSiE plots (type: %s).", plot_result$rendered_plot_type))
