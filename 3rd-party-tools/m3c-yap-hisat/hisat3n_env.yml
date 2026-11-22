@@ -22,4 +22,8 @@ dependencies:
  - pip:
     - papermill
     - allcools
-    - git+https://github.com/DingWB/cemba_data@1.8.0
+    # Pinned to a commit, not a tag: snm3c_summary's mc_format='cz' support
+    # (needed to build MappingSummary from cz counts instead of allc) landed in
+    # 29dca7e5 and is in no released tag, including 1.8.1 and 1.8.2.
+    # 1fcfc1fb also adds the lambda metrics that pair with cytozip --lambda_chrom.
+    - git+https://github.com/DingWB/cemba_data@1fcfc1fb5
