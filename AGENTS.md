@@ -17,7 +17,7 @@ This file holds **container-operational** guidance only. It does **not** repeat 
 
 Open a PR: CI builds the image into GCR (`us.gcr.io/broad-gotc-prod/<image>`), and WARP's `scripts/image_pins.py pin <PR number>` tags that build and pins it. The flow is in [BUILDING.md](BUILDING.md#pinning-an-image-in-warp).
 
-> **Never push from `docker_build.sh`.** Its `docker push` lines, and version tags copied into READMEs, are leftovers of the old process; remove an image's in the PR that next changes it ([Tidying an image](BUILDING.md#tidying-an-image)). There is no Quay mirror and no `docker_versions.tsv` any more.
+> **Never push from `docker_build.sh`, and never copy WARP's pin into this repo.** WARP's pin is the record of which build runs; a tag or digest copied into a README or changelog goes stale at the next pin and needs another commit here. Leftover push lines and copied tags can go any time, since README and `docker_build.sh` changes start no build ([Tidying an image](BUILDING.md#tidying-an-image)). There is no Quay mirror and no `docker_versions.tsv` any more.
 
 ## Keep scripts importable
 

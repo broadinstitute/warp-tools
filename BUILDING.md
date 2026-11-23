@@ -18,7 +18,7 @@ All images publish to **Google Container Registry (GCR)** under `us.gcr.io/broad
 There are two build paths:
 
 1. **CI (canonical).** Each image has a `.github/workflows/build-<tool>.yml` workflow that triggers on a pull request touching that image's directory (e.g. `paths: ['3rd-party-tools/<tool>/**']`), and can also be run manually via **workflow_dispatch** (optional `image_tag` input). Changes to the image's `README`, `docker_build.sh` or `docker_versions.tsv` alone start no build, since CI doesn't use them (except glimpse2 and sv-imputation-rust-tools, whose CI runs `docker_build.sh`). It builds the Dockerfile and pushes to `us.gcr.io/broad-gotc-prod/<tool>`, **tagged by the branch name** (`github.head_ref`). Authentication uses the `GCR_CI_KEY` repository secret — no local credentials are needed. **Opening a PR is the normal way to build an image.**
-2. **Local (`docker_build.sh`).** Builds the image on your machine for testing. Its `DOCKER_IMAGE_VERSION`, tool versions and `IMAGE_TAG` line also set the version tag WARP gives the CI build (next sections). Most scripts also still push to GCR; don't use that part, and remove it when you next change the image ([Tidying an image](#tidying-an-image)).
+2. **Local (`docker_build.sh`).** Builds the image on your machine for testing. Its `DOCKER_IMAGE_VERSION`, tool versions and `IMAGE_TAG` line also set the version tag WARP gives the CI build (next sections). Most scripts also still push to GCR; don't use that part ([Tidying an image](#tidying-an-image)).
 
 > Image vulnerability scanning runs on every PR via [trivy](https://github.com/aquasecurity/trivy); when you add a new image, register it in [.github/workflows/trivy.yml](.github/workflows/trivy.yml).
 
@@ -38,22 +38,22 @@ Version tags are added to a PR's CI build by WARP's `image_pins.py` (next sectio
 
 ## Pinning an image in WARP
 
-WARP pins each image as `<image>:<version-tag>@sha256:<digest>`: the digest fixes what runs and the tag says which image version it is. Never pin a branch tag, `latest`, a bare tag or a bare digest. A change takes four steps; the WARP side is in WARP's [Updating a warp-tools image](https://broadinstitute.github.io/warp/docs/contribution/contribute_to_warp/update_warp_tools_image) page.
+WARP pins each image as `<image>:<version-tag>@sha256:<digest>`: the digest fixes what runs and the tag says which image version it is. Never pin a branch tag, `latest`, a bare tag or a bare digest. The pin is the record of which build runs: don't copy it into this repo, or every new pin needs a commit here. A change takes four steps; the WARP side is in WARP's [Updating a warp-tools image](https://broadinstitute.github.io/warp/docs/contribution/contribute_to_warp/update_warp_tools_image) page.
 
-1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`, and [tidy the image](#tidying-an-image) in the same PR. CI builds the image and pushes it under the branch name.
+1. **Change the image here and open a PR to `develop`.** Bump `DOCKER_IMAGE_VERSION` (and the tool version) in `docker_build.sh`. CI builds the image and pushes it under the branch name.
 2. **From a WARP branch, tag and pin the build:** `python3 scripts/image_pins.py pin <PR number>`. It finds the image, its version and the PR's latest build, gives that build the version tag `<version>-<unix-timestamp>`, and rewrites WARP's pins. Rerun after another build and the same tag moves to it, so a PR leaves one version tag per image. It needs write access to the registry (`gcloud auth`).
 3. **Bump, test and review in WARP.** If the image has to change again, push here and repeat step 2 once it has built.
 4. **Merge this PR, then the WARP PR.** The merge fixes the version tag where it is.
 
 ### Tidying an image
 
-Each image drops what's left of the old publishing process the next time it changes, in the PR that changes it. After pinning, `image_pins.py` lists what's left for the image:
+What's left of the old publishing process can go any time, several images in one PR, since README and `docker_build.sh` changes start no build:
 
 - Make `docker_build.sh` build locally only: no `docker push` and no `--build-arg` (so a local build matches CI's). Keep `DOCKER_IMAGE_VERSION`, the tool versions and the `IMAGE_TAG` line:
 
   ```bash
   #!/bin/bash
-  # Builds <tool> locally. CI builds and pushes the image; WARP's image_pins.py tags that build.
+  # Builds <tool> locally for testing. CI builds and pushes the image that WARP pins.
   set -e
   DOCKER_IMAGE_VERSION=1.0.0
   TOOL_VERSION="1.2.3"  # the Dockerfile's ARG TOOL_VERSION default
@@ -61,7 +61,7 @@ Each image drops what's left of the old publishing process the next time it chan
   IMAGE_TAG="$DOCKER_IMAGE_VERSION-$TOOL_VERSION-$TIMESTAMP"
   docker build -t "<tool>:$IMAGE_TAG" "$(dirname "$0")"
   ```
-- In its `README.md`, replace a copied version tag with a link to the WARP WDL that pins the image.
+- In its `README.md`, replace a copied version tag or digest with a link to the WARP WDL that pins the image.
 
 ## Adding or updating an image
 
