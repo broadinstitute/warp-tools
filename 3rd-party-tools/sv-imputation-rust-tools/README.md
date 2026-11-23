@@ -68,8 +68,8 @@ cd 3rd-party-tools/sv-imputation-rust-tools
 # Build with a specific commit hash (must be full 40-character hash)
 ./docker_build.sh -c 1234567890abcdef1234567890abcdef12345678 --no-push
 
-# Build, record tag and push to GCR (requires Docker authentication)
-./docker_build.sh -c 1234567890abcdef1234567890abcdef12345678 -t "1.0.0-test" --record-tag -y
+# Build and push to GCR (requires Docker authentication)
+./docker_build.sh -c 1234567890abcdef1234567890abcdef12345678 -t "1.0.0-test" -y
 
 # For help and all options
 ./docker_build.sh --help
@@ -79,7 +79,6 @@ cd 3rd-party-tools/sv-imputation-rust-tools
 - `-c, --commit <hash>` - Full 40-character commit hash from lrma-sv-imputation-utils (optional, fetches latest from main if not provided)
 - `-t, --tag <tag>` - Custom image tag (default: auto-generated with format `<image-version>-<short-git-commit-hash>-<unix-timestamp>`)
 - `--no-push` - Build locally without pushing to GCR
-- `--record-tag` - Save the tag to docker_versions.tsv (useful for CI/CD)
 - `-y, --yes` - Skip confirmation prompts
 
 **Note:** The script requires `docker` and `git` to be installed. It will:
@@ -88,8 +87,3 @@ cd 3rd-party-tools/sv-imputation-rust-tools
 3. Build the Docker image with the specified commit hash
 4. Display the commit hash being used during the build
 5. Optionally push to GCR (if `--no-push` is not specified)
-6. Optionally record the image tag to `docker_versions.tsv` (if `--record-tag` is specified)
-
-**The `--record-tag` flag** appends the final image tag to `docker_versions.tsv`. By default, local builds do NOT 
-record to `docker_versions.tsv` unless you explicitly use `--record-tag`. GHA does not use `--record-tag` since we 
-want to control which images are recorded in `docker_versions.tsv` and avoid recording test builds or duplicate tags.

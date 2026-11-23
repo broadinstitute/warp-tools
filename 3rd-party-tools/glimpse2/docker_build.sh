@@ -10,10 +10,9 @@ set -e
 # 1. Make sure you have Docker and git installed, and Docker is authenticated with GCR if you want to push.
 # 2. Run the script with arguments to specify GLIMPSE repo (optional), full commit hash (required), and image tag (optional).
 #    For example:
-#       ./docker_build.sh -r https://github.com/odelaneau/GLIMPSE.git -c abc123f -t my-custom-tag --record-tag
+#       ./docker_build.sh -r https://github.com/odelaneau/GLIMPSE.git -c abc123f -t my-custom-tag
 #    This will build the image using the specified GLIMPSE commit and tag it with 'my-custom-tag'.
 #    If you omit the tag, it will auto-generate one based on version, commit hash, and timestamp.
-#    If you omit the --record-tag flag, it won't record the tag to docker_versions.tsv (useful for testing or local builds).
 
 # Variables and defaults
 # Update version when changes to Dockerfile are made
@@ -31,7 +30,7 @@ CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 
 
 # Help text
-HELP="$(basename "$0") [-h|--help] [-r|--repo] -c|--commit [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the Imputation GLIMPSE2 image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-r|--repo] -c|--commit [-t|--tag] [--no-push] [-y|--yes] -- script to build the Imputation GLIMPSE2 image and push to GCR
 
 This script builds a two-stage Docker image:
 1. GLIMPSE2 base image (from their repository's Dockerfile)
@@ -48,7 +47,6 @@ where:
     -c|--commit         GLIMPSE commit hash to use (required)
     -t|--tag            Docker image tag to use (optional, will auto-generate if not provided)
     --no-push           Build locally without pushing to GCR
-    --record-tag        Record the image tag to docker_versions.tsv
     -y|--yes            Skip confirmation prompts
     "
 
@@ -64,7 +62,6 @@ trap cleanup EXIT
 function main(){
     PUSH_IMAGE=true
     SKIP_CONFIRM=false
-    RECORD_TAG=false
 
     # Check for required tools
     if ! which docker >/dev/null 2>&1; then
@@ -102,10 +99,6 @@ function main(){
         ;;
         --no-push)
         PUSH_IMAGE=false
-        shift
-        ;;
-        --record-tag)
-        RECORD_TAG=true
         shift
         ;;
         -y|--yes)
@@ -238,13 +231,6 @@ function main(){
         echo ""
         echo "Skipping push to GCR (--no-push flag set)"
         echo "Image available locally as: $FINAL_IMAGE_NAME"
-    fi
-
-    # Record tag if requested
-    if [ "$RECORD_TAG" = true ]; then
-        echo ""
-        echo "$FINAL_IMAGE_NAME" >> "$DIR/docker_versions.tsv"
-        echo "Recorded image tag to docker_versions.tsv"
     fi
 
     echo ""
