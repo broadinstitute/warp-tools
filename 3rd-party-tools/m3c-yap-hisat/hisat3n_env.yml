@@ -13,7 +13,10 @@ dependencies:
  - yaml
  - cutadapt
  - samtools
- - picard
+ # Pinned: the unpinned env resolved picard 3.5.0 on rebuild (2.4 shipped 3.1.1),
+ # and 3.5.0 raises a NullPointerException on the hisat-3n BAMs because they carry
+ # no @RG read group. 3.1.1 tolerates that.
+ - picard=3.1.1
  - bedtools
  - htslib=1.15
  - pysam
