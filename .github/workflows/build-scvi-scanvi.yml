@@ -9,6 +9,10 @@ on:
     branches: [ "develop", "master" ]
     paths:
       - '3rd-party-tools/scvi-scanvi/**'
+      - '!3rd-party-tools/scvi-scanvi/README*'
+      - '!3rd-party-tools/scvi-scanvi/*.changelog.md'
+      - '!3rd-party-tools/scvi-scanvi/docker_versions.tsv'
+      - '!3rd-party-tools/scvi-scanvi/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
