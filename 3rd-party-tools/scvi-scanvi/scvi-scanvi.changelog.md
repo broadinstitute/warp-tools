@@ -1,3 +1,10 @@
+# 1.7.3
+2026-11-20 (Date of Last Commit)
+
+* Pinned `umap-learn==0.5.12` in `requirements.txt`: `1.7.2` resolved the unpinned `umap-learn 0.6.0`, whose `fuzzy_simplicial_set` (`knn_dists.astype(np.float32, copy=False)`) passes the non-C-contiguous distance slice `scanpy.pp.neighbors` builds from `pynndescent` at 8,192 cells or more straight into `compute_membership_strengths` (`@numba.njit` requiring `float32[:, ::1]`), crashing `make_scp_ready` with a `numba` `TypingError` on every sample of at least 8,192 cells
+* Fixed `make_reference_only_model` (`restore_raw_counts`) recovering gene symbols from `.raw.var['gene']` when Allen AIT references reset `.raw.var.index` to `'0'..'N-1'`, keeping counts and gene names aligned across both subsetting and gene reordering
+* Extended `test_scp_and_query_mapping.py` to test an 8,200-cell `make_scp_ready` run (`n_obs >= 8,192` `pynndescent` + UMAP) and Allen AIT `.raw` restoration after subsetting and reordering
+
 # 1.7.2
 2026-11-13 (Date of Last Commit)
 

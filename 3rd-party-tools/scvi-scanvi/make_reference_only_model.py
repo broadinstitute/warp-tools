@@ -25,10 +25,31 @@ SCVI_MODEL_KWARGS = {"gene_likelihood": "nb", "dispersion": "gene", "encode_cova
                      "use_layer_norm": "both", "use_batch_norm": "none", "dropout_rate": 0.2}
 
 
+def restore_raw_counts(ref):
+    """Materialize counts from ref.raw.X paired with ref.raw.var's gene names.
+
+    Standard .raw frames keep gene names in raw.var.index; Allen AIT files reset raw.var.index to
+    integer strings ('0', '1', ...) and store the gene symbols in raw.var['gene']. Reading from
+    ref.raw.var rather than ref.var stays aligned column-for-column with ref.raw.X even if ref was
+    subset or reordered after .raw was recorded.
+    """
+    if ref.raw is None:
+        raise SystemExit("ERROR: reference has neither .X nor .raw; cannot obtain counts.")
+    rvar = ref.raw.var.copy()
+    if len(rvar) > 0 and all(s.isdigit() for s in rvar.index.astype(str)):
+        gcol = next((c for c in ("gene", "gene_name", "gene_symbol", "feature_name", "ensembl_id", "gene_id")
+                     if c in rvar.columns), None)
+        if gcol is None:
+            raise SystemExit(
+                "ERROR: reference .raw.var has a numeric index and no gene-name column "
+                f"(columns: {list(rvar.columns)}); cannot align .raw.X to gene names.")
+        rvar.index = rvar[gcol].astype(str).to_numpy()
+    counts = ref.raw.X.tocsr() if hasattr(ref.raw.X, "tocsr") else ref.raw.X
+    return ad.AnnData(X=counts, obs=ref.obs.copy(), var=rvar, uns=dict(ref.uns))
+
+
 def train_reference_only_model(ref, batch_key, levels, epochs, seed, out_tar, reference):
-    if ref.X is None:   # AIT references keep their counts in .raw
-        ref = ad.AnnData(X=ref.raw.X, obs=ref.obs, var=ref.raw.var)
-    ref = ref.copy()
+    ref = restore_raw_counts(ref) if ref.X is None else ref.copy()
     ref.obs["batch"] = ref.obs[batch_key].astype(str)
     scvi.settings.seed = seed
     scvi.model.SCVI.setup_anndata(ref, batch_key="batch")
