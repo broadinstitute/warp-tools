@@ -218,6 +218,35 @@ select_mashr_covariance_rows <- function(mash_data, n_pca, lfsr_threshold) {
   )
 }
 
+select_covariance_training_rows <- function(
+    mash_data, n_pca, pca_requested, strong_lfsr, susie_variant_ids
+) {
+  susie_mode <- !is.null(susie_variant_ids)
+  susie_rows <- if (susie_mode) {
+    match(unique(susie_variant_ids), rownames(mash_data$Bhat))
+  } else {
+    integer()
+  }
+  if (anyNA(susie_rows)) stop("SuSiE lead IDs do not match marginal statistics.", call. = FALSE)
+  susie_fallback <- susie_mode && length(susie_rows) < pca_requested
+  if (susie_mode && !susie_fallback) {
+    selection <- list(rows = susie_rows, significant_n = NA_integer_, fallback_used = FALSE)
+    pipeline_log(sprintf("Using %d unique SuSiE lead variants for covariance training.", length(susie_rows)))
+  } else {
+    if (susie_fallback) {
+      pipeline_log(sprintf(
+        "Only %d unique SuSiE leads matched; falling back to strong-association selection.",
+        length(susie_rows)
+      ))
+    }
+    selection <- select_mashr_covariance_rows(mash_data, n_pca, strong_lfsr)
+  }
+  selection$susie_mode <- susie_mode
+  selection$susie_fallback <- susie_fallback
+  selection$susie_matched_variants <- if (susie_mode) length(susie_rows) else NA_integer_
+  selection
+}
+
 validate_mashr_covariances <- function(covariances, n_outcomes) {
   if (!is.list(covariances) || !length(covariances)) {
     stop("Mash covariance inputs must be a non-empty list.", call. = FALSE)
@@ -242,7 +271,8 @@ learn_joint_mashr_prior <- function(
     strong_lfsr = 0.05,
     cov_pca_fun = mashr::cov_pca,
     include_canonical_priors = FALSE,
-    use_mashr_null_weight = FALSE
+    use_mashr_null_weight = FALSE,
+    susie_variant_ids = NULL
 ) {
   validate_marginal_summary_statistics(Bhat, Shat)
   if (
@@ -278,10 +308,8 @@ learn_joint_mashr_prior <- function(
       pca_requested, pca_used
     ))
   }
-  covariance_selection <- select_mashr_covariance_rows(
-    mash_data,
-    n_pca = pca_used,
-    lfsr_threshold = strong_lfsr
+  covariance_selection <- select_covariance_training_rows(
+    mash_data, pca_used, pca_requested, strong_lfsr, susie_variant_ids
   )
   covariance_rows <- covariance_selection$rows
   stage_time <- proc.time()[["elapsed"]]
@@ -402,11 +430,19 @@ learn_joint_mashr_prior <- function(
     Shat = Shat,
     mash_model_training_scope = "all_snps_in_window",
     mash_model_training_n = nrow(Bhat),
-    covariance_training_scope = "strong_snps_in_window",
+    covariance_training_scope = if (covariance_selection$susie_mode && !covariance_selection$susie_fallback) {
+      "susie_lead_snps_in_window"
+    } else {
+      "strong_snps_in_window"
+    },
     covariance_training_n = length(covariance_rows),
     covariance_significant_n = covariance_selection$significant_n,
-    covariance_selection_lfsr = strong_lfsr,
+    covariance_selection_lfsr = if (covariance_selection$susie_mode && !covariance_selection$susie_fallback) NA_real_ else strong_lfsr,
     covariance_selection_fallback_used = covariance_selection$fallback_used,
+    covariance_training_source = if (covariance_selection$susie_mode && !covariance_selection$susie_fallback) "susie_leads" else "strong_associations",
+    susie_lead_mode = covariance_selection$susie_mode,
+    susie_matched_variants = covariance_selection$susie_matched_variants,
+    susie_lead_fallback = covariance_selection$susie_fallback,
     covariance_rows = rownames(Bhat)[covariance_rows],
     pca_requested = pca_requested,
     pca_used = pca_used,

@@ -306,6 +306,10 @@ fit_window_mvsusie <- function(
       mash_model_training_n = mashr_training$mash_model_training_n,
       covariance_training_scope = mashr_training$covariance_training_scope,
       covariance_training_n = mashr_training$covariance_training_n,
+      covariance_training_source = mashr_training$covariance_training_source,
+      susie_lead_mode = mashr_training$susie_lead_mode,
+      susie_matched_variants = mashr_training$susie_matched_variants,
+      susie_lead_fallback = mashr_training$susie_lead_fallback,
       covariance_significant_n = mashr_training$covariance_significant_n,
       covariance_selection_lfsr = mashr_training$covariance_selection_lfsr,
       covariance_selection_fallback_used =

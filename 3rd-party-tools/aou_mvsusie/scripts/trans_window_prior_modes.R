@@ -1,6 +1,7 @@
 make_mvsusie_prior_learner <- function(
     include_canonical_priors = FALSE,
-    use_mashr_null_weight = FALSE
+    use_mashr_null_weight = FALSE,
+    susie_variant_ids = NULL
 ) {
   if (
     length(include_canonical_priors) != 1L ||
@@ -29,7 +30,8 @@ make_mvsusie_prior_learner <- function(
       strong_lfsr = strong_lfsr,
       cov_pca_fun = cov_pca_fun,
       include_canonical_priors = include_canonical_priors,
-      use_mashr_null_weight = use_mashr_null_weight
+      use_mashr_null_weight = use_mashr_null_weight,
+      susie_variant_ids = susie_variant_ids
     )
   }
 }

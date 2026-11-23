@@ -32,6 +32,7 @@ args <- parse_cli_args(
     optparse::make_option("--mashr-n-pca", type = "integer", default = 5L),
     optparse::make_option("--mashr-seed", type = "integer", default = NULL),
     optparse::make_option("--mashr-strong-lfsr", type = "double", default = 0.05),
+    optparse::make_option("--susie-leads", type = "character", default = NULL),
     optparse::make_option(
       "--include-canonical-priors",
       action = "store_true",
@@ -76,11 +77,18 @@ config <- make_model_config(
   mashr_strong_lfsr = as_cli_numeric(args, "mashr_strong_lfsr", 0.05)
 )
 prior_learner <- learn_joint_mashr_prior
-if (args$include_canonical_priors || args$use_mashr_null_weight) {
+susie_leads_path <- optional_cli_arg(args, "susie_leads")
+susie_match <- NULL
+if (!is.null(susie_leads_path)) {
+  source(file.path(script_dir, "susie_leads.R"))
+  susie_match <- match_susie_leads(data.table::fread(susie_leads_path), prepared)
+}
+if (args$include_canonical_priors || args$use_mashr_null_weight || !is.null(susie_match)) {
   source(file.path(script_dir, "trans_window_prior_modes.R"))
   prior_learner <- make_mvsusie_prior_learner(
     include_canonical_priors = args$include_canonical_priors,
-    use_mashr_null_weight = args$use_mashr_null_weight
+    use_mashr_null_weight = args$use_mashr_null_weight,
+    susie_variant_ids = if (is.null(susie_match)) NULL else susie_match$variant_ids
   )
 }
 pipeline_log(sprintf(
@@ -89,6 +97,9 @@ pipeline_log(sprintf(
   args$use_mashr_null_weight
 ))
 result <- fit_window_mvsusie(prepared, config, prior_learner = prior_learner)
+result$metadata$susie_lead_sets <- if (is.null(susie_match)) NA_integer_ else susie_match$n_leads
+result$metadata$susie_unmatched_leads <- if (is.null(susie_match)) NA_integer_ else susie_match$n_unmatched
+result$mashr_training$susie_lead_match <- susie_match
 bundle <- list(
   fit = result$fit,
   metadata = result$metadata,

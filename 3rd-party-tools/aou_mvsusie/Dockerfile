@@ -90,7 +90,7 @@ RUN chmod +x /opt/mvsusie/scripts/*.R \
  && for f in prepare_trans_window.R prepare_window.R fit_window.R summarize_window.R \
              plot_window_mvsusie.R trans_window_cli.R trans_window_io.R trans_window_logging.R \
              trans_window_model.R trans_window_preprocess.R trans_window_prior.R \
-             trans_window_prior_modes.R; do \
+             trans_window_prior_modes.R susie_leads.R; do \
       test -s "/opt/mvsusie/scripts/$f" || { echo "Missing /opt/mvsusie/scripts/$f in the build context." >&2; exit 1; }; \
     done \
  && R -q -e 'for (f in list.files("/opt/mvsusie/scripts", "[.]R$", full.names = TRUE)) invisible(parse(f))'
