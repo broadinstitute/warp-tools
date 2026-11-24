@@ -7,6 +7,7 @@ How to build, version, publish, and add Docker images in this repository, plus t
 - [How images are built and published](#how-images-are-built-and-published)
 - [Versioning strategy](#versioning-strategy)
 - [Pinning an image in WARP](#pinning-an-image-in-warp)
+- [Cleaning up the registry](#cleaning-up-the-registry)
 - [Adding or updating an image](#adding-or-updating-an-image)
 - [Docker style guide](#docker-style-guide)
 - [Troubleshooting and running standalone](#troubleshooting-and-running-standalone)
@@ -62,6 +63,16 @@ What's left of the old publishing process can go any time, several images in one
   docker build -t "<tool>:$IMAGE_TAG" "$(dirname "$0")"
   ```
 - In its `README.md`, replace a copied version tag or digest with a link to the WARP WDL that pins the image.
+
+## Cleaning up the registry
+
+The registry keeps every CI build: a PR's builds share its branch tag, so each new build leaves the previous one untagged. A cleanup can delete what nothing needs from the repositories this repo's CI pushes to (each workflow's `GCR_PATH`), as long as it keeps:
+
+1. **Every manifest a WARP pin points at**, on `develop`, `staging` and `master`, on open WARP PRs, and at every release tag (`<Pipeline>_v<version>`), so released versions still run. Find the pins with WARP's `scripts/image_pins.py`, the parser its `check` command uses: `references()` reads the WDLs under `pipelines/`, `tasks/`, `verification/`, `all_of_us/`, `beta-pipelines/` and `projects/`, not `deprecated/`. Resolve a pin that has only a tag through the registry.
+2. **Every manifest inside a kept index.** CI pushes each build as an OCI index holding the platform image and a build attestation, and WARP pins the index. The two inside are untagged, so deleting untagged manifests would break those pins.
+3. **Anything recent**, such as the last 30 days, by upload time or by the timestamp that ends a version tag. That covers an open PR's builds, which `image_pins.py pin` needs (an earlier one with `--digest`), and a version tag that `pin` has just added before its WARP PR is pushed.
+
+Leave the project's other repositories alone: WARP pins images in some that this repo doesn't build, and other teams may use the rest.
 
 ## Adding or updating an image
 
