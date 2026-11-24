@@ -17,8 +17,6 @@ COPY requirements.txt .
 COPY remove-reads-on-junctions.py .
 
 RUN set -eux; \
-        apt-get update --fix-missing; \
-        apt-get install -y wget; \
         python3 -m pip install --upgrade pip; \
         pip3 install -r requirements.txt \
     ; \
