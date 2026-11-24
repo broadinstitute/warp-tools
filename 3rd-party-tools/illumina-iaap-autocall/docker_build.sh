@@ -61,7 +61,6 @@ function main(){
         --build-arg IAAP_CLI_VERSION="$IAAP_CLI_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

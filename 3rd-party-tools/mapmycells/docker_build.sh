@@ -60,7 +60,6 @@ function main(){
         --build-arg MMC_VERSION="$MMC_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

@@ -49,7 +49,6 @@ function main(){
     docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

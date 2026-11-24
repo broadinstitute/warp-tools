@@ -9,6 +9,10 @@ on:
     branches: [ "develop", "master" ]
     paths:
       - '3rd-party-tools/scvi-scanvi/**'
+      - '!3rd-party-tools/scvi-scanvi/README*'
+      - '!3rd-party-tools/scvi-scanvi/*.changelog.md'
+      - '!3rd-party-tools/scvi-scanvi/docker_versions.tsv'
+      - '!3rd-party-tools/scvi-scanvi/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
@@ -40,6 +44,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG}
+      - name: Test SCVI/SCANVI seed reproducibility
+        run: docker run --rm ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG} python3 /usr/local/test_seed_reproducibility.py
+      - name: Record library versions in this build
+        run: docker run --rm ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG} cat /usr/local/versions.txt
+      - name: Test SCP-ready outputs and query mapping
+        run: docker run --rm ${DOCKER_REGISTRY}/${GCR_PATH}:${TAG} python3 /usr/local/test_scp_and_query_mapping.py
       - name: Check working directory'
         run: |
           echo "Current directory: "

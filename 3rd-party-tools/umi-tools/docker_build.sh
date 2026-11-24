@@ -60,7 +60,6 @@ function main(){
         --build-arg UMI_TOOLS_VERSION="$UMI_TOOLS_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

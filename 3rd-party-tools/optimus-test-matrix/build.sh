@@ -8,4 +8,4 @@ if [ -z $tag ]; then
     exit 1
 fi
 
-docker build -t us.gcr.io/broad-gotc-prod/optimus-test-matrix:$tag .
+docker build -t optimus-matrix-test:$tag .

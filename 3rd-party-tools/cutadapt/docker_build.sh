@@ -60,7 +60,6 @@ function main(){
         --build-arg CUTADAPT_VERSION="$CUTADAPT_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

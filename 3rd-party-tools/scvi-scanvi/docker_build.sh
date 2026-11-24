@@ -1,67 +1,8 @@
 #!/bin/bash
+# Builds scvi-scanvi locally for testing. CI builds and pushes the image that WARP pins.
 set -e
-
-# Update version when changes to Dockerfile or scripts are made
-DOCKER_IMAGE_VERSION=1.2.0
+DOCKER_IMAGE_VERSION=1.7.3
+SCVI_TOOLS_VERSION="1.5.1"  # the Dockerfile's ARG SCVI_TOOLS_VERSION default
 TIMESTAMP=$(date +"%s")
-DIR=$(cd $(dirname $0) && pwd)
-
-# Registries and tags
-GCR_URL="us.gcr.io/broad-gotc-prod/scvi-scanvi"
-
-# SCVI_TOOLS version
-SCVI_TOOLS_VERSION="1.5.1"
-
-# Necessary tools and help text
-TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-v|--version] [-t|tools] -- script to build the scvi-scanvi image and push to GCR
-
-where:
-    -h|--help Show help text
-    -v|--version Version of SCVI_TOOLS_VERSION (default: $SCVI_TOOLS_VERSION) to use
-    -t|--tools Show tools needed to run script
-    "
-
-function main(){
-    for t in "${TOOLS[@]}"; do which "$t" >/dev/null || ok=no; done
-        if [[ $ok == no ]]; then
-            echo "Missing one of the following tools: "
-            for t in "${TOOLS[@]}"; do echo "$t"; done
-            exit 1
-        fi
-
-    while [[ $# -gt 0 ]]
-    do
-    key="$1"
-    case $key in
-        -v|--version)
-        SCVI_TOOLS_VERSION="$2"
-        shift
-        shift
-        ;;
-        -h|--help)
-        echo "$HELP"
-        exit 0
-        ;;
-        -t|--tools)
-        for t in "${TOOLS[@]}"; do echo "$t"; done
-        exit 0
-        ;;
-        *)
-        shift
-        ;;
-    esac
-    done
-
-    IMAGE_TAG="$DOCKER_IMAGE_VERSION-$SCVI_TOOLS_VERSION-$TIMESTAMP"
-
-    echo "building and pushing GCR Image - $GCR_URL:$IMAGE_TAG"
-    docker build --no-cache -t "$GCR_URL:$IMAGE_TAG" \
-        --build-arg SCVI_TOOLS_VERSION="$SCVI_TOOLS_VERSION" "$DIR"
-    docker push "$GCR_URL:$IMAGE_TAG"
-
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
-    echo "done"
-}
-
-main "$@"
+IMAGE_TAG="$DOCKER_IMAGE_VERSION-$SCVI_TOOLS_VERSION-$TIMESTAMP"
+docker build -t "scvi-scanvi:$IMAGE_TAG" "$(dirname "$0")"

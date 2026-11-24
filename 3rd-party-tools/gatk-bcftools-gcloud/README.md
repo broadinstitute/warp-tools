@@ -2,7 +2,7 @@
 
 ## Quick reference
 
-Copy and paste to pull this image (see [docker_versions.tsv](docker_versions.tsv) for the current tag once published)
+Copy and paste to pull this image; WARP pins the version it runs in its WDLs ([Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp)).
 
 ```bash
 docker pull us.gcr.io/broad-gotc-prod/gatk-bcftools-gcloud:<image-version>-<gatk4-version>-<bcftools-version>-<unix-timestamp>
@@ -30,8 +30,8 @@ This image combines [gatk](../gatk) and the BCFtools portion of [bcftools-vcftoo
 This image follows the WARP-Tools tag convention
 `us.gcr.io/broad-gotc-prod/gatk-bcftools-gcloud:<image-version>-<gatk4-version>-<bcftools-version>-<unix-timestamp>`
 (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)).
-Past versions are tracked in [docker_versions.tsv](docker_versions.tsv); the last
-line is the version currently used by WARP. Inspect an image with:
+WARP pins the version it runs in its WDLs; see
+[Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp). Inspect an image with:
 
 ```bash
 docker inspect us.gcr.io/broad-gotc-prod/gatk-bcftools-gcloud:<tag>

@@ -24,7 +24,7 @@ CACHING="ON"
 # for KEGG mapping).
 #
 # MMIDAS_GIT_REF is resolved to an immutable commit SHA before the build, and
-# both are recorded as image LABELs and in docker_versions.tsv.
+# both are recorded as image LABELs.
 #
 # To pick up new MMIDAS changes: commit and push them to the fork, move or add a
 # tag, then build with --mmidas-ref <tag>. Passing a full commit SHA also works.
@@ -182,7 +182,6 @@ function main(){
 
     # Record the MMIDAS revision alongside the tag: the tag alone does not say
     # which model code the image contains.
-    echo -e "$FULL_IMAGE\t$MMIDAS_PROVENANCE" >> "$DIR/docker_versions.tsv"
     echo "Done: $FULL_IMAGE"
     echo "  mmidas revision: $MMIDAS_PROVENANCE"
 }

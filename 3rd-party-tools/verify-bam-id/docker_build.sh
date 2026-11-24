@@ -58,7 +58,6 @@ function main(){
         --build-arg GIT_HASH="$VERIFY_BAM_ID_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 
