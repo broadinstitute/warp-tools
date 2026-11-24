@@ -8,7 +8,6 @@ on:
     paths:
       - '3rd-party-tools/emptydrops/**'
       - '!3rd-party-tools/emptydrops/README*'
-      - '!3rd-party-tools/emptydrops/docker_versions.tsv'
       - '!3rd-party-tools/emptydrops/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
