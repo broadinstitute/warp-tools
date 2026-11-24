@@ -19,7 +19,7 @@ Samtools_Picard_BWA uses the following convention for verisoning:
 
 To see the Samtools version being used please reference the base image [here](..samtools/README.md)
 
-We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 You can see more information about the image, including the tool versions, by running the following command:
 

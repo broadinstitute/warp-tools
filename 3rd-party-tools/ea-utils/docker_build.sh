@@ -9,14 +9,13 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/ea-utils"
-#QUAY_URL="quay.io/humancellatlas/ea-utils"
 
 # ea-utils version
 EAUTILS_VERSION="1.04.807"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the ea-utils image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-t|--tools] -- script to build the ea-utils image and push to GCR
 
 where:
     -h|--help Show help text
@@ -62,11 +61,6 @@ function main(){
         --build-arg EAUTILS_VERSION="$EAUTILS_VERSION" "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    #echo "tagging and pushing Quay Image"
-    #docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    #docker push "$QUAY_URL:$IMAGE_TAG"
-
-    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

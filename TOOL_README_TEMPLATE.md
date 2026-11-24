@@ -13,15 +13,12 @@ worked example, and BUILDING.md for build/versioning conventions.
 
 ## Quick reference
 
-<!-- One copy-pasteable pull command (current tag from docker_versions.tsv) and a
-one-line description of what this image is. -->
-
-```bash
-docker pull us.gcr.io/broad-gotc-prod/<image>:<image-version>-<tool-version>-<unix-timestamp>
-```
+<!-- What this image is, and where WARP pins it. Don't copy a version tag or
+digest here: it goes stale. Link to the WARP WDL that pins the image instead. -->
 
 - **What is this image:** <one-sentence description of the image and its base OS>
 - **What is `<tool>`:** <one-sentence description of the wrapped tool, with a link to its upstream docs>
+- **Pinned in WARP by:** [<Pipeline>.wdl](https://github.com/broadinstitute/warp/blob/develop/pipelines/wdl/<dir>/<Pipeline>.wdl); pull the `<image>:<version-tag>@sha256:<digest>` written there.
 
 ## Synopsis
 
@@ -41,10 +38,11 @@ A short bullet list is fine. -->
 ## Versioning
 
 This image follows the WARP-Tools tag convention
-`us.gcr.io/broad-gotc-prod/<image>:<image-version>-<tool-version>-<unix-timestamp>`
+`us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timestamp>`
 (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)).
-Past versions are tracked in [docker_versions.tsv](docker_versions.tsv); the last
-line is the version currently used by WARP. Inspect an image with:
+WARP pins an image version as `<image>:<version-tag>@sha256:<digest>`; see
+[BUILDING.md → Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
+Inspect an image with:
 
 ```bash
 docker inspect us.gcr.io/broad-gotc-prod/<image>:<tag>
