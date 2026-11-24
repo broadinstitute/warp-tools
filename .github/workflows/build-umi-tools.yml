@@ -8,7 +8,6 @@ on:
     paths:
       - '3rd-party-tools/umi-tools/**'
       - '!3rd-party-tools/umi-tools/README*'
-      - '!3rd-party-tools/umi-tools/docker_versions.tsv'
       - '!3rd-party-tools/umi-tools/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
