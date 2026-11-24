@@ -16,7 +16,7 @@ Picard_Python uses the following convention for verisoning:
 
 #### `us.gcr.io/broad-gotc-prod/picard-python:1.0.0-2.26.10-1663951039` 
 
-We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 You can see more information about the image, including the tool versions, by running the following command:
 

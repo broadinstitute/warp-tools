@@ -8,7 +8,6 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/zcall"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-zcall"
 
 # ZCall Version
 ZCALL_VERSION="zCall_Version1.3_AutoCall"
@@ -62,11 +61,6 @@ function main(){
         --build-arg ZCALL_VERSION="$ZCALL_VERSION" $DIR 
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "tagging and pushing Quay Image"
-    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    docker push "$QUAY_URL:$IMAGE_TAG"
-
-    echo "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

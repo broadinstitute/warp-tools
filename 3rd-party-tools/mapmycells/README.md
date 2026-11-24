@@ -29,7 +29,7 @@ This image provides the `cell_type_mapper` command-line interfaces (`map_to_on_t
 
 This image follows the WARP-Tools tag convention
 `us.gcr.io/broad-gotc-prod/mapmycells:<image-version>-<tool-version>-<unix-timestamp>`.
-Past versions are tracked in [docker_versions.tsv](docker_versions.tsv).
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 ## Inputs
 

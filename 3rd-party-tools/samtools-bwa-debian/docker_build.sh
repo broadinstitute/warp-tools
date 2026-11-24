@@ -8,7 +8,6 @@ DIR=$(cd $(dirname $0) && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/samtools-bwa-debian"
-QUAY_URL="quay.io/broadinstitute/gotc-prod-samtools_bwa-debian"
 
 # SAMTOOLS and BWA version
 BWA_VERSION="0.7.17"
@@ -16,7 +15,7 @@ SAMTOOLS_VERSION="1.11"
 
 # Necessary tools and help text
 TOOLS=(docker gcloud)
-HELP="$(basename "$0") [-h|--help] [-b|--bwa_version] [-s|--samtools_version] [-t|tools] -- script to build the SAMTOOLS/BWA image and push to GCR & Quay
+HELP="$(basename "$0") [-h|--help] [-b|--bwa_version] [-s|--samtools_version] [-t|tools] -- script to build the SAMTOOLS/BWA image and push to GCR
 
 where:
     -h|--help Show help text
@@ -69,11 +68,6 @@ function main(){
         --no-cache $DIR
     docker push "$GCR_URL:$IMAGE_TAG"
 
-    echo "tagging and pushing Quay Image"
-    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-    docker push "$QUAY_URL:$IMAGE_TAG"
-
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 

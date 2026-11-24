@@ -2,10 +2,7 @@
 
 ## Quick reference
 
-```bash
-docker pull us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:a8b3699f2e3ce97aac227c0b8d100b3f4af6ae94fb72c0b14ca58c357a0f9c54
-```
-
+- **Pinned in WARP by:** [scANVI.wdl](https://github.com/broadinstitute/warp/blob/develop/pipelines/wdl/scanvi/scANVI.wdl); pull the `scvi-scanvi:<version-tag>@sha256:<digest>` written there.
 - **What is this image:** a GPU-enabled Python image (Debian `python:3.12-slim` base) for single-cell cell-type **label transfer** with deep generative models, bundling the `multiome_label_transfer.py` workflow.
 - **What is scvi-tools:** [scvi-tools](https://docs.scvi-tools.org/) provides SCVI (unsupervised variational inference) and SCANVI (semi-supervised annotation) models for single-cell omics.
 
@@ -23,7 +20,7 @@ This image trains SCVI/SCANVI models to transfer cell-type labels from an annota
 
 ## Versioning
 
-This image follows the WARP-Tools tag convention `us.gcr.io/broad-gotc-prod/scvi-scanvi:<image-version>-<scvi-tools-version>-<unix-timestamp>` (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)). Published references are recorded in [docker_versions.tsv](docker_versions.tsv), with the last line being the version currently used by WARP. What changed in each image version, and the library versions of the current one, are in [scvi-scanvi.changelog.md](scvi-scanvi.changelog.md). The current production image is built by CI (branch-tagged) and the scANVI pipeline pins it by immutable `@sha256` digest (shown in [Quick reference](#quick-reference)) — hence the digest rather than a semantic tag for the latest entry. Inspect an image with:
+This image follows the WARP-Tools tag convention `us.gcr.io/broad-gotc-prod/scvi-scanvi:<image-version>-<scvi-tools-version>-<unix-timestamp>` (see [BUILDING.md → Versioning strategy](../../BUILDING.md#versioning-strategy)). CI builds and pushes the image, and the scANVI pipeline pins the build it runs, by tag and digest, in [scANVI.wdl](https://github.com/broadinstitute/warp/blob/develop/pipelines/wdl/scanvi/scANVI.wdl). Nothing here copies that pin, so a new pin in WARP needs no change in warp-tools: changelog entries from 1.7.3 on don't record digests, and changes to this README, the changelog or `docker_build.sh` don't start a build. What changed in each image version, and the library versions of the current one, are in [scvi-scanvi.changelog.md](scvi-scanvi.changelog.md). Inspect an image with:
 
 ```bash
 docker inspect us.gcr.io/broad-gotc-prod/scvi-scanvi@sha256:<digest>

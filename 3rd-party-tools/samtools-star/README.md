@@ -18,7 +18,7 @@ Samtools_STAR uses the following convention for versioning:
 #### `us.gcr.io/broad-gotc-prod/samtools-star:1.0.0-1.11-2.7.10a-1642556627:<image-version>-<samtools-version>-<star-version>-<unix-timestamp>` 
 
 
-We keep track of all past versions in [docker_versions](docker_versions.tsv) with the last image listed being the currently used version in WARP.
+WARP pins the version it runs in its WDLs; see [Pinning an image in WARP](../../BUILDING.md#pinning-an-image-in-warp).
 
 You can see more information about the image, including the tool versions, by running the following command:
 
