@@ -8,7 +8,6 @@ on:
     paths:
       - '3rd-party-tools/samtools-bwa-mem-2/**'
       - '!3rd-party-tools/samtools-bwa-mem-2/README*'
-      - '!3rd-party-tools/samtools-bwa-mem-2/docker_versions.tsv'
       - '!3rd-party-tools/samtools-bwa-mem-2/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

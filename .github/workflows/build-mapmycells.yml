@@ -10,7 +10,6 @@ on:
     paths:
       - '3rd-party-tools/mapmycells/**'
       - '!3rd-party-tools/mapmycells/README*'
-      - '!3rd-party-tools/mapmycells/docker_versions.tsv'
       - '!3rd-party-tools/mapmycells/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

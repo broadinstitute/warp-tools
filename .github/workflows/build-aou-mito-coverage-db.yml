@@ -8,7 +8,6 @@ on:
     paths:
       - '3rd-party-tools/aou_mito_coverage_db/**'
       - '!3rd-party-tools/aou_mito_coverage_db/README*'
-      - '!3rd-party-tools/aou_mito_coverage_db/docker_versions.tsv'
       - '!3rd-party-tools/aou_mito_coverage_db/docker_build.sh'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
