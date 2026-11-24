@@ -9,11 +9,10 @@ set -e
 # 1. Make sure you have Docker installed and Docker is authenticated with GCR if you want to push.
 # 2. Run the script with arguments to specify git commit (optional) and image tag (optional).
 #    For example:
-#       ./docker_build.sh -c abc123def456... -t my-custom-tag --record-tag
+#       ./docker_build.sh -c abc123def456... -t my-custom-tag
 #    This will build the image using the specified git commit hash and tag it with 'my-custom-tag'.
 #    If you omit the git commit, it will use the latest commit from 'main' branch.
 #    If you omit the tag, it will auto-generate one based on version, git commit, and timestamp.
-#    If you omit the --record-tag flag, it won't record the tag to docker_versions.tsv (useful for testing or local builds).
 
 # Variables and defaults
 # Update version when changes to Dockerfile are made
@@ -29,7 +28,7 @@ GIT_COMMIT=""  # Default to empty (will use latest commit from main branch)
 CUSTOM_TAG=""  # Optional tag to use instead of auto-generated one
 
 # Help text
-HELP="$(basename "$0") [-h|--help] [-c|--commit] [-t|--tag] [--no-push] [--record-tag] [-y|--yes] -- script to build the SV Imputation Rust Tools image and push to GCR
+HELP="$(basename "$0") [-h|--help] [-c|--commit] [-t|--tag] [--no-push] [-y|--yes] -- script to build the SV Imputation Rust Tools image and push to GCR
 
 This script builds a Docker image containing:
 - BCFtools
@@ -47,14 +46,12 @@ where:
     -c|--commit         Full 40-character git commit hash for lrma-sv-imputation-utils repo (optional, uses latest main if not provided)
     -t|--tag            Docker image tag to use (optional, will auto-generate if not provided)
     --no-push           Build locally without pushing to GCR
-    --record-tag        Record the image tag to docker_versions.tsv
     -y|--yes            Skip confirmation prompts
     "
 
 function main(){
     PUSH_IMAGE=true
     SKIP_CONFIRM=false
-    RECORD_TAG=false
 
     # Check for required tools
     if ! which docker >/dev/null 2>&1; then
@@ -88,10 +85,6 @@ function main(){
         ;;
         --no-push)
         PUSH_IMAGE=false
-        shift
-        ;;
-        --record-tag)
-        RECORD_TAG=true
         shift
         ;;
         -y|--yes)
@@ -192,13 +185,6 @@ function main(){
         echo ""
         echo "Skipping push to GCR (--no-push flag set)"
         echo "Image available locally as: $FINAL_IMAGE_NAME"
-    fi
-
-    # Record tag if requested
-    if [ "$RECORD_TAG" = true ]; then
-        echo ""
-        echo "$FINAL_IMAGE_NAME" >> "$DIR/docker_versions.tsv"
-        echo "Recorded image tag to docker_versions.tsv"
     fi
 
     echo ""

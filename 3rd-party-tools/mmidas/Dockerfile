@@ -49,8 +49,8 @@ LABEL MAINTAINER="Broad Institute DSDE dsde-engineering@broadinstitute.org" \
 # Installed from a specific commit of the fork rather than a copy of a local
 # directory, so the image is reproducible from source. MMIDAS_GIT_REF is the
 # human-readable tag; MMIDAS_SHA is the immutable commit it resolved to, which
-# is what actually gets fetched. docker_build.sh resolves one to the other and
-# records both here and in docker_versions.tsv.
+# is what actually gets fetched. docker_build.sh resolves one to the other, and
+# both are recorded as image LABELs below.
 #
 # A release tarball rather than git+https://: this image has no git binary, and
 # adding one to the apt layer would invalidate the ~2 GB torch layer on every

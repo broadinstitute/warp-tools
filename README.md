@@ -8,8 +8,8 @@ This README is a map of the repository. For build instructions and the Dockerfil
 
 | Path | What it is |
 | --- | --- |
-| `tools/` | The in-house **`warp-tools`** image — a single image bundling Broad-authored tools (`fastqpreprocessing` and `TagSort` in C++, plus helper `scripts/`). It has its own `Dockerfile`, `docker_build.sh`, `docker_versions.tsv`, and `warp-tools.changelog.md` at the top level. |
-| `3rd-party-tools/` | One subdirectory per third-party image (~57). Each contains a `Dockerfile`, a `docker_build.sh`, a `docker_versions.tsv`, a `README.md`, and any baked-in scripts/assets. |
+| `tools/` | The in-house **`warp-tools`** image — a single image bundling Broad-authored tools (`fastqpreprocessing` and `TagSort` in C++, plus helper `scripts/`). It has its own `Dockerfile`, `docker_build.sh` and `warp-tools.changelog.md` at the top level. |
+| `3rd-party-tools/` | One subdirectory per third-party image (~57). Each contains a `Dockerfile`, a `docker_build.sh`, a `README.md`, and any baked-in scripts/assets. |
 | `.github/workflows/` | CI. One `build-<tool>.yml` per image (builds & pushes to GCR), plus `trivy.yml` for vulnerability scanning. |
 
 Every image directory carries its own `README.md` describing the tool and its usage — see the [tool README template](TOOL_README_TEMPLATE.md) for the standard structure.
@@ -29,14 +29,14 @@ There is no Quay or other mirror.
 Images use **semantic tags** (never rolling tags like `latest`/`master`):
 
 ```text
-us.gcr.io/broad-gotc-prod/<image>:<image-version>-<tool-version>-<unix-timestamp>
+us.gcr.io/broad-gotc-prod/<image>:<image-version>[-<tool-version>]-<unix-timestamp>
 ```
 
 - **`image-version`** — `major.minor.patch` of the image; bumped for image-level changes (base OS, system packages, baked-in scripts).
-- **`tool-version`** — version of the wrapped tool (e.g. `samtools` `1.19`).
+- **`tool-version`** — version of the wrapped tool (e.g. `samtools` `1.19`); left out for images with no single wrapped tool, such as `warp-tools`.
 - **`unix-timestamp`** — keeps every tag unique and avoids Cromwell image-cache collisions.
 
-Each image's `docker_versions.tsv` records every published tag; the **last line is the version currently used by WARP**. WARP pipelines pin images by **immutable `@sha256` digest**, so a pipeline always runs an exact image — see [How images are consumed by WARP](BUILDING.md#how-images-are-consumed-by-warp-digest-pinning).
+Version tags are fixed once their PR merges. WARP pins `<image>:<version-tag>@sha256:<digest>`, so a pipeline always runs an exact image and the tag says which image version it is — see [Pinning an image in WARP](BUILDING.md#pinning-an-image-in-warp).
 
 ## Building images
 

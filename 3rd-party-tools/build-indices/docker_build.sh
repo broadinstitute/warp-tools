@@ -9,8 +9,6 @@ DIR=$(cd "$(dirname "$0")" && pwd)
 
 # Registries and tags
 GCR_URL="us.gcr.io/broad-gotc-prod/build-indices"
-#QUAY_URL="quay.io/humancellatlas/build-indices"
-#Image path before getting renamed: quay.io/humancellatlas/snss2-indices:1.2.0
 
 #STAR version
 STAR_VERSION="2.7.10a"
@@ -63,11 +61,6 @@ function main(){
         --no-cache "$DIR"
     docker push "$GCR_URL:$IMAGE_TAG"
 
-#    echo "tagging and pushing Quay Image"
-#    docker tag "$GCR_URL:$IMAGE_TAG" "$QUAY_URL:$IMAGE_TAG"
-#    docker push "$QUAY_URL:$IMAGE_TAG"
-
-    echo -e "$GCR_URL:$IMAGE_TAG" >> "$DIR/docker_versions.tsv"
     echo "done"
 }
 
