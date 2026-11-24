@@ -18,7 +18,6 @@ on:
     paths-ignore:
       - 'tools/**'
       - '!tools/README*'
-      - '!tools/docker_versions.tsv'
       - '!tools/docker_build.sh'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
