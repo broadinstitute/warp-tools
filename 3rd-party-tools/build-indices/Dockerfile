@@ -19,8 +19,8 @@ WORKDIR /usr/local/
 COPY requirements.txt .
 # Install compiler, subread, and other prerequisite libraries
 # NOTE: && is used so it fails fast.
+# wget comes with the base image; apt can no longer fetch bullseye's security build of it.
 RUN apt-get update -y --fix-missing && apt-get install -y \
-  wget \
   tini && \
   pip3 install --upgrade pip && \
   pip3 install -r requirements.txt && \
